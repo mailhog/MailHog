@@ -4,19 +4,24 @@ import (
 	"flag"
 	"log"
 	"net"
+	"github.com/ian-kent/MailHog/mailhog/smtp"
 )
 
 var conf = map[string]string {
 	"BIND_ADDRESS": "0.0.0.0:1025",
+	"HOSTNAME": "mailhog.example",
 }
 
 func config() {
-	var listen string
+	var listen, hostname string
 
 	flag.StringVar(&listen, "listen", "0.0.0.0:1025", "Bind interface and port, e.g. 0.0.0.0:1025 or just :1025")
+	flag.StringVar(&hostname, "hostname", "mailhog.example", "Hostname for EHLO/HELO response, e.g. mailhog.example")
+
 	flag.Parse()
 
 	conf["BIND_ADDRESS"] = listen
+	conf["HOSTNAME"] = hostname
 }
 
 func main() {
@@ -33,7 +38,7 @@ func main() {
 		}
 		defer conn.Close()
 
-		go accept(conn)
+		go smtp.StartSession(conn.(*net.TCPConn))
 	}
 }
 
