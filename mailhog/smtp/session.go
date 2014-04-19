@@ -6,7 +6,10 @@ import (
 	"log"
 	"net"
 	"strings"
+	"regexp"
 	"github.com/ian-kent/MailHog/mailhog"
+	"github.com/ian-kent/MailHog/mailhog/storage"
+	"github.com/ian-kent/MailHog/mailhog/data"
 )
 
 type Session struct {
@@ -14,7 +17,7 @@ type Session struct {
 	line string
 	conf *mailhog.Config
 	state int
-	message *Message
+	message *data.SMTPMessage
 }
 
 const (
@@ -25,15 +28,11 @@ const (
 	DONE
 )
 
-type Message struct {
-	From string
-	To []string
-	Data string
-	Helo string
-}
+// TODO add Received/Return-Path headers
+// TODO replace ".." lines with . in data
 
 func StartSession(conn *net.TCPConn, conf *mailhog.Config) {
-	conv := &Session{conn, "", conf, ESTABLISH, &Message{}}
+	conv := &Session{conn, "", conf, ESTABLISH, &data.SMTPMessage{}}
 	conv.log("Starting session")
 	conv.Write("220", conv.conf.Hostname + " ESMTP Go-MailHog")
 	conv.Read()
@@ -77,8 +76,15 @@ func (c *Session) Parse() {
 		if c.state == DATA {
 			c.message.Data += parts[0] + "\n"
 			if(strings.HasSuffix(c.message.Data, "\r\n.\r\n")) {
+				c.message.Data = strings.TrimSuffix(c.message.Data, "\r\n.\r\n")
+				id, err := storage.Store(c.conf, c.message)
 				c.state = DONE
-				c.Write("250", "Ok: queued as nnnnnnnn")
+				if err != nil {
+					// FIXME
+					c.Write("500", "Error")
+					return
+				}
+				c.Write("250", "Ok: queued as " + id)
 			}
 		} else {
 			c.Process(strings.Trim(parts[0], "\r\n"))
@@ -111,7 +117,7 @@ func (c *Session) Process(line string) {
 		case command == "RSET":
 			c.log("Got RSET command, switching to ESTABLISH state")
 			c.state = ESTABLISH
-			c.message = &Message{}
+			c.message = &data.SMTPMessage{}
 			c.Write("250", "Ok")
 		case command == "NOOP":
 			c.log("Got NOOP command")
@@ -119,6 +125,10 @@ func (c *Session) Process(line string) {
 		case command == "QUIT":
 			c.log("Got QUIT command")
 			c.Write("221", "Bye")
+			err := c.conn.Close()
+			if err != nil {
+				c.log("Error closing connection")
+			}
 		case c.state == ESTABLISH:
 			switch command {
 				case "HELO": 
@@ -138,10 +148,11 @@ func (c *Session) Process(line string) {
 			switch command {
 				case "MAIL":
 					c.log("Got MAIL command, switching to RCPT state")
-					// TODO parse args
-					c.message.From = args
+					r, _ := regexp.Compile("From:<([^>]+)>")
+					match := r.FindStringSubmatch(args)
+					c.message.From = match[1]
 					c.state = RCPT
-					c.Write("250", "Ok")
+					c.Write("250", "Sender " + match[1] + " ok")
 				default:
 					c.log("Got unknown command for MAIL state: '%s'", command)
 			}
@@ -149,8 +160,11 @@ func (c *Session) Process(line string) {
 			switch command {
 				case "RCPT":
 					c.log("Got RCPT command")
-					c.message.To = append(c.message.To, args)
-					c.Write("250", "Ok")
+					r, _ := regexp.Compile("To:<([^>]+)>")
+					match := r.FindStringSubmatch(args)
+					c.message.To = append(c.message.To, match[1])
+					c.state = RCPT
+					c.Write("250", "Recipient " + match[1] + " ok")
 				case "DATA":
 					c.log("Got DATA command, switching to DATA state")
 					c.state = DATA
@@ -160,12 +174,14 @@ func (c *Session) Process(line string) {
 			}
 		case c.state == DONE:
 			switch command {
+				/*
 				case "MAIL":
 					c.log("Got MAIL command")
 					// TODO parse args
 					c.message.From = args
 					c.state = RCPT
 					c.Write("250", "Ok")
+				*/
 				default:
 					c.log("Got unknown command for DONE state: '%s'", command)
 			}
