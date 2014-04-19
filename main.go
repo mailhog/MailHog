@@ -4,13 +4,11 @@ import (
 	"flag"
 	"log"
 	"net"
+	"github.com/ian-kent/MailHog/mailhog"
 	"github.com/ian-kent/MailHog/mailhog/smtp"
 )
 
-var conf = map[string]string {
-	"BIND_ADDRESS": "0.0.0.0:1025",
-	"HOSTNAME": "mailhog.example",
-}
+var conf *mailhog.Config
 
 func config() {
 	var listen, hostname string
@@ -20,14 +18,16 @@ func config() {
 
 	flag.Parse()
 
-	conf["BIND_ADDRESS"] = listen
-	conf["HOSTNAME"] = hostname
+	conf = &mailhog.Config{
+		BindAddr: listen,
+		Hostname: hostname,
+	}
 }
 
 func main() {
 	config()
 
-	ln := listen(conf["BIND_ADDRESS"])
+	ln := listen(conf.BindAddr)
 	defer ln.Close()
 
 	for {
@@ -38,7 +38,7 @@ func main() {
 		}
 		defer conn.Close()
 
-		go smtp.StartSession(conn.(*net.TCPConn))
+		go smtp.StartSession(conn.(*net.TCPConn), conf)
 	}
 }
 
@@ -49,24 +49,4 @@ func listen(bind string) (*net.TCPListener) {
 		log.Fatalf("Error listening on socket: %s\n", err)
 	}
 	return ln.(*net.TCPListener)
-}
-
-func accept(conn net.Conn) {
-	buf := make([]byte, 1024)	
-	n, err := conn.Read(buf)
-
-	if err != nil {
-		log.Printf("Error reading from socket: %s", err)
-		return
-	}
-
-	log.Printf("Received %s bytes: %s\n", n, string(buf))
-
-	_, err = conn.Write(buf)
-	if err != nil {
-		log.Printf("Error writing to socket: %s\n", err)
-		return
-	}
-
-	log.Printf("Reply sent\n")
 }

@@ -6,12 +6,22 @@ import (
 	"log"
 	"net"
 	"strings"
+	"github.com/ian-kent/MailHog/mailhog"
 )
 
 type Session struct {
 	conn *net.TCPConn
 	line string
+	conf *mailhog.Config
+	state int
 }
+
+const (
+	ESTABLISH = iota
+	MAIL
+	RCPT
+	DATA
+)
 
 type Message struct {
 	From string
@@ -20,19 +30,20 @@ type Message struct {
 	Helo string
 }
 
-func StartSession(conn *net.TCPConn) {
-	conv := &Session{conn, ""}
-	log.Printf("Starting session with %s", conn.RemoteAddr())
-	conv.Begin()
+func StartSession(conn *net.TCPConn, conf *mailhog.Config) {
+	conv := &Session{conn, "", conf, ESTABLISH}
+	conv.log("Starting session")
+	conv.Write("220", "Go-MailHog")
+	conv.Read()
 }
 
-func (c Session) log(message string, args ...interface{}) {
-	message = strings.Join([]string{"[%s]", message}, " ")
-	args = append([]interface{}{c.conn.RemoteAddr()}, args...)
+func (c *Session) log(message string, args ...interface{}) {
+	message = strings.Join([]string{"[%s, %d]", message}, " ")
+	args = append([]interface{}{c.conn.RemoteAddr(), c.state}, args...)
 	log.Printf(message, args...)
 }
 
-func (c Session) Read() {
+func (c *Session) Read() {
 	buf := make([]byte, 1024)
 	n, err := c.conn.Read(buf)
 
@@ -45,26 +56,29 @@ func (c Session) Read() {
 		return
 	}
 
-	text := string(buf)
-	c.log("Received %d bytes: %s\n", n, text)
+	text := string(buf[0:n])
+	c.log("Received %d bytes: '%s'\n", n, text)
 
 	c.line += text
 
 	c.Parse()
 }
 
-func (c Session) Parse() {
+func (c *Session) Parse() {
 	for strings.Contains(c.line, "\n") {
 		parts := strings.SplitN(c.line, "\n", 2)
-		c.line = parts[1]
-		c.log("Parsing string: %s", parts[0])
+		if len(parts) == 2 {
+			c.line = parts[1]
+		} else {
+			c.line = ""
+		}
 		c.Process(strings.Trim(parts[0], "\r\n"))
 	}
 
 	c.Read()
 }
 
-func (c Session) Write(code string, text ...string) {
+func (c *Session) Write(code string, text ...string) {
 	if len(text) == 1 {
 		c.conn.Write([]byte(code + " " + text[0] + "\n"))
 		return
@@ -75,28 +89,43 @@ func (c Session) Write(code string, text ...string) {
 	c.conn.Write([]byte(code + " " + text[len(text)] + "\n"))
 }
 
-func (c Session) Process(line string) {
+func (c *Session) Process(line string) {
 	c.log("Processing line: %s", line)
 
 	words := strings.Split(line, " ")
+	command := words[0]
+	c.log("In state %d, got command '%s'", c.state, command)
 
-	switch words[0] {
-		case "HELO":
-			c.log("Got HELO command")
-			c.Write("250", "HELO " + "my.hostname")
-		case "EHLO":
-			c.log("Got EHLO command")
-			c.Write("250", "HELO " + "my.hostname")
-		default:
-			c.log("Got unknown command: '%s'", words[0])
+	switch {
+		case command == "RSET":
+			c.log("Got RSET command, switching to ESTABLISH state")
+			c.state = ESTABLISH
+			c.Write("250", "OK")
+		case command == "NOOP":
+			c.log("Got NOOP command")
+			c.Write("250", "OK")
+		case command == "QUIT":
+			c.log("Got QUIT command")
+			c.Write("221", "OK")
+		case c.state == ESTABLISH:
+			switch command {
+				case "HELO": 
+					c.log("Got HELO command, switching to MAIL state")
+					c.state = MAIL
+					c.Write("250", "HELO " + c.conf.Hostname)
+				case "EHLO":
+					c.log("Got EHLO command, switching to MAIL state")
+					c.state = MAIL
+					c.Write("250", "EHLO " + c.conf.Hostname)
+				default:
+					c.log("Got unknown command for ESTABLISH state: '%s'", command)
+			}
+		case c.state == MAIL:
+			switch command {
+				case "MAIL":
+					c.log("Got MAIL command")
+				default:
+					c.log("Got unknown command for MAIL state: '%s'", command)
+			}
 	}
-}
-
-func (c Session) Begin() {
-	_, err := c.conn.Write([]byte("220 Go-MailHog\n"))
-	if err != nil {
-		c.log("Failed writing to socket: %s\n", err)
-		return
-	}
-	c.Read()
 }
