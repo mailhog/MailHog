@@ -14,6 +14,7 @@ type Session struct {
 	line string
 	conf *mailhog.Config
 	state int
+	message *Message
 }
 
 const (
@@ -21,19 +22,20 @@ const (
 	MAIL
 	RCPT
 	DATA
+	DONE
 )
 
 type Message struct {
 	From string
-	To string
-	Data []byte
+	To []string
+	Data string
 	Helo string
 }
 
 func StartSession(conn *net.TCPConn, conf *mailhog.Config) {
-	conv := &Session{conn, "", conf, ESTABLISH}
+	conv := &Session{conn, "", conf, ESTABLISH, &Message{}}
 	conv.log("Starting session")
-	conv.Write("220", "Go-MailHog")
+	conv.Write("220", conv.conf.Hostname + " ESMTP Go-MailHog")
 	conv.Read()
 }
 
@@ -72,7 +74,15 @@ func (c *Session) Parse() {
 		} else {
 			c.line = ""
 		}
-		c.Process(strings.Trim(parts[0], "\r\n"))
+		if c.state == DATA {
+			c.message.Data += parts[0] + "\n"
+			if(strings.HasSuffix(c.message.Data, "\r\n.\r\n")) {
+				c.state = DONE
+				c.Write("250", "Ok: queued as nnnnnnnn")
+			}
+		} else {
+			c.Process(strings.Trim(parts[0], "\r\n"))
+		}
 	}
 
 	c.Read()
@@ -94,38 +104,70 @@ func (c *Session) Process(line string) {
 
 	words := strings.Split(line, " ")
 	command := words[0]
-	c.log("In state %d, got command '%s'", c.state, command)
+	args := strings.Join(words[1:len(words)], " ")
+	c.log("In state %d, got command '%s', args '%s'", c.state, command, args)
 
 	switch {
 		case command == "RSET":
 			c.log("Got RSET command, switching to ESTABLISH state")
 			c.state = ESTABLISH
-			c.Write("250", "OK")
+			c.message = &Message{}
+			c.Write("250", "Ok")
 		case command == "NOOP":
 			c.log("Got NOOP command")
-			c.Write("250", "OK")
+			c.Write("250", "Ok")
 		case command == "QUIT":
 			c.log("Got QUIT command")
-			c.Write("221", "OK")
+			c.Write("221", "Bye")
 		case c.state == ESTABLISH:
 			switch command {
 				case "HELO": 
 					c.log("Got HELO command, switching to MAIL state")
 					c.state = MAIL
-					c.Write("250", "HELO " + c.conf.Hostname)
+					c.message.Helo = args
+					c.Write("250", "Hello " + args)
 				case "EHLO":
 					c.log("Got EHLO command, switching to MAIL state")
 					c.state = MAIL
-					c.Write("250", "EHLO " + c.conf.Hostname)
+					c.message.Helo = args
+					c.Write("250", "Hello " + args)
 				default:
 					c.log("Got unknown command for ESTABLISH state: '%s'", command)
 			}
 		case c.state == MAIL:
 			switch command {
 				case "MAIL":
-					c.log("Got MAIL command")
+					c.log("Got MAIL command, switching to RCPT state")
+					// TODO parse args
+					c.message.From = args
+					c.state = RCPT
+					c.Write("250", "Ok")
 				default:
 					c.log("Got unknown command for MAIL state: '%s'", command)
+			}
+		case c.state == RCPT:
+			switch command {
+				case "RCPT":
+					c.log("Got RCPT command")
+					c.message.To = append(c.message.To, args)
+					c.Write("250", "Ok")
+				case "DATA":
+					c.log("Got DATA command, switching to DATA state")
+					c.state = DATA
+					c.Write("354", "End data with <CR><LF>.<CR><LF>")
+				default:
+					c.log("Got unknown command for RCPT state: '%s'", command)
+			}
+		case c.state == DONE:
+			switch command {
+				case "MAIL":
+					c.log("Got MAIL command")
+					// TODO parse args
+					c.message.From = args
+					c.state = RCPT
+					c.Write("250", "Ok")
+				default:
+					c.log("Got unknown command for DONE state: '%s'", command)
 			}
 	}
 }
