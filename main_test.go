@@ -4,6 +4,7 @@ import (
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"net"
+	"strings"
 	"regexp"
 	"github.com/ian-kent/MailHog/mailhog/storage"
 )
@@ -106,7 +107,7 @@ func TestBasicHappyPath(t *testing.T) {
 	assert.Equal(t, message.Content.Headers["Content-Length"], []string{"220"}, "Content-Length is 220")
 	assert.Equal(t, message.Content.Headers["To"], []string{"Someone <someone@mailhog.example>"}, "To is Someone <someone@mailhog.example>")
 	assert.Equal(t, message.Content.Headers["From"], []string{"Nobody <nobody@mailhog.example>"}, "From is Nobody <nobody@mailhog.example>")
-	assert.Equal(t, message.Content.Headers["Received"], []string{"from localhost by mailhog.example (Go-MailHog)"}, "Received is from localhost by mailhog.example (Go-MailHog)")
+	assert.True(t, strings.HasPrefix(message.Content.Headers["Received"][0], "from localhost by mailhog.example (Go-MailHog)\r\n          id " + match[1] + "@mailhog.example; "), "Received header is correct")
 	assert.Equal(t, message.Content.Headers["Return-Path"], []string{"<nobody@mailhog.example>"}, "Return-Path is <nobody@mailhog.example>")
 	assert.Equal(t, message.Content.Headers["Message-ID"], []string{match[1] + "@mailhog.example"}, "Message-ID is " + match[1] + "@mailhog.example")
 

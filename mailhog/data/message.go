@@ -49,7 +49,7 @@ func ParseSMTPMessage(c *mailhog.Config, m *SMTPMessage) *Message {
 		Created: time.Now(),
 	}
 	msg.Content.Headers["Message-ID"] = []string{msg.Id + "@" + c.Hostname} // FIXME
-	msg.Content.Headers["Received"] = []string{"from " + m.Helo + " by " + c.Hostname + " (Go-MailHog)"} // FIXME
+	msg.Content.Headers["Received"] = []string{"from " + m.Helo + " by " + c.Hostname + " (Go-MailHog)\r\n          id " + msg.Id + "@" + c.Hostname + "; " + time.Now().Format(time.RFC1123Z)}
 	msg.Content.Headers["Return-Path"] = []string{"<" + m.From + ">"}
 	return msg
 }
