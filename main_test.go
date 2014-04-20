@@ -1,13 +1,13 @@
 package main
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"net"
-	"strings"
-	"regexp"
 	"github.com/ian-kent/MailHog/mailhog"
 	"github.com/ian-kent/MailHog/mailhog/storage"
+	"github.com/stretchr/testify/assert"
+	"net"
+	"regexp"
+	"strings"
+	"testing"
 )
 
 // FIXME requires a running instance of MailHog
@@ -21,7 +21,7 @@ func TestBasicHappyPath(t *testing.T) {
 
 	// Read the greeting
 	n, err := conn.Read(buf)
-	assert.Nil(t, err)	
+	assert.Nil(t, err)
 	assert.Equal(t, string(buf[0:n]), "220 mailhog.example ESMTP Go-MailHog\n")
 
 	// Send EHLO
@@ -30,7 +30,7 @@ func TestBasicHappyPath(t *testing.T) {
 
 	// Read the response
 	n, err = conn.Read(buf)
-	assert.Nil(t, err)	
+	assert.Nil(t, err)
 	assert.Equal(t, string(buf[0:n]), "250 Hello localhost\n")
 
 	// Send MAIL
@@ -39,7 +39,7 @@ func TestBasicHappyPath(t *testing.T) {
 
 	// Read the response
 	n, err = conn.Read(buf)
-	assert.Nil(t, err)	
+	assert.Nil(t, err)
 	assert.Equal(t, string(buf[0:n]), "250 Sender nobody@mailhog.example ok\n")
 
 	// Send RCPT
@@ -48,7 +48,7 @@ func TestBasicHappyPath(t *testing.T) {
 
 	// Read the response
 	n, err = conn.Read(buf)
-	assert.Nil(t, err)	
+	assert.Nil(t, err)
 	assert.Equal(t, string(buf[0:n]), "250 Recipient someone@mailhog.example ok\n")
 
 	// Send DATA
@@ -57,7 +57,7 @@ func TestBasicHappyPath(t *testing.T) {
 
 	// Read the response
 	n, err = conn.Read(buf)
-	assert.Nil(t, err)	
+	assert.Nil(t, err)
 	assert.Equal(t, string(buf[0:n]), "354 End data with <CR><LF>.<CR><LF>\n")
 
 	// Send the message
@@ -73,7 +73,7 @@ func TestBasicHappyPath(t *testing.T) {
 
 	// Read the response
 	n, err = conn.Read(buf)
-	assert.Nil(t, err)	
+	assert.Nil(t, err)
 	r, _ := regexp.Compile("250 Ok: queued as ([0-9a-f]+)\n")
 	match := r.FindStringSubmatch(string(buf[0:n]))
 	assert.NotNil(t, match)
@@ -84,7 +84,7 @@ func TestBasicHappyPath(t *testing.T) {
 
 	// Read the response
 	n, err = conn.Read(buf)
-	assert.Nil(t, err)	
+	assert.Nil(t, err)
 	assert.Equal(t, string(buf[0:n]), "221 Bye\n")
 
 	message, err := storage.Load(mailhog.DefaultConfig(), match[1])
@@ -108,9 +108,9 @@ func TestBasicHappyPath(t *testing.T) {
 	assert.Equal(t, message.Content.Headers["Content-Length"], []string{"220"}, "Content-Length is 220")
 	assert.Equal(t, message.Content.Headers["To"], []string{"Someone <someone@mailhog.example>"}, "To is Someone <someone@mailhog.example>")
 	assert.Equal(t, message.Content.Headers["From"], []string{"Nobody <nobody@mailhog.example>"}, "From is Nobody <nobody@mailhog.example>")
-	assert.True(t, strings.HasPrefix(message.Content.Headers["Received"][0], "from localhost by mailhog.example (Go-MailHog)\r\n          id " + match[1] + "@mailhog.example; "), "Received header is correct")
+	assert.True(t, strings.HasPrefix(message.Content.Headers["Received"][0], "from localhost by mailhog.example (Go-MailHog)\r\n          id "+match[1]+"@mailhog.example; "), "Received header is correct")
 	assert.Equal(t, message.Content.Headers["Return-Path"], []string{"<nobody@mailhog.example>"}, "Return-Path is <nobody@mailhog.example>")
-	assert.Equal(t, message.Content.Headers["Message-ID"], []string{match[1] + "@mailhog.example"}, "Message-ID is " + match[1] + "@mailhog.example")
+	assert.Equal(t, message.Content.Headers["Message-ID"], []string{match[1] + "@mailhog.example"}, "Message-ID is "+match[1]+"@mailhog.example")
 
 	assert.Equal(t, message.Content.Body, "Hi there :)", "message has correct body")
 }

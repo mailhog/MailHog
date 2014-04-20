@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
-	"log"
-	"net"
-	"os"
 	"github.com/ian-kent/MailHog/mailhog"
 	"github.com/ian-kent/MailHog/mailhog/http"
 	"github.com/ian-kent/MailHog/mailhog/smtp"
+	"log"
+	"net"
+	"os"
 )
 
 var conf *mailhog.Config
@@ -28,10 +28,10 @@ func config() {
 	conf = &mailhog.Config{
 		SMTPBindAddr: smtpbindaddr,
 		HTTPBindAddr: httpbindaddr,
-		Hostname: hostname,
-		MongoUri: mongouri,
-		MongoDb: mongodb,
-		MongoColl: mongocoll,
+		Hostname:     hostname,
+		MongoUri:     mongouri,
+		MongoDb:      mongodb,
+		MongoColl:    mongocoll,
 	}
 }
 
@@ -40,13 +40,13 @@ func main() {
 
 	exitCh = make(chan int)
 	go web_listen()
-	go smtp_listen()	
+	go smtp_listen()
 
 	for {
 		select {
-			case <-exitCh:
-				log.Printf("Received exit signal")
-				os.Exit(0)
+		case <-exitCh:
+			log.Printf("Received exit signal")
+			os.Exit(0)
 		}
 	}
 }
@@ -56,7 +56,7 @@ func web_listen() {
 	http.Start(exitCh, conf)
 }
 
-func smtp_listen() (*net.TCPListener) {
+func smtp_listen() *net.TCPListener {
 	log.Printf("[SMTP] Binding to address: %s\n", conf.SMTPBindAddr)
 	ln, err := net.Listen("tcp", conf.SMTPBindAddr)
 	if err != nil {
