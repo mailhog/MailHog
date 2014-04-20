@@ -28,7 +28,6 @@ const (
 	DONE
 )
 
-// TODO add Received/Return-Path headers
 // TODO replace ".." lines with . in data
 
 func StartSession(conn *net.TCPConn, conf *mailhog.Config) {
@@ -39,7 +38,7 @@ func StartSession(conn *net.TCPConn, conf *mailhog.Config) {
 }
 
 func (c *Session) log(message string, args ...interface{}) {
-	message = strings.Join([]string{"[%s, %d]", message}, " ")
+	message = strings.Join([]string{"[SMTP %s, %d]", message}, " ")
 	args = append([]interface{}{c.conn.RemoteAddr(), c.state}, args...)
 	log.Printf(message, args...)
 }

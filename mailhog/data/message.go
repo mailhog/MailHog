@@ -89,6 +89,7 @@ func ContentFromString(data string) *Content {
 		if(strings.Contains(hdr, ": ")) {
 			y := strings.SplitN(hdr, ": ", 2)
 			key, value := y[0], y[1]
+			// TODO multiple header fields
 			h[key] = []string{value}
 		} else {
 			log.Printf("Found invalid header: '%s'", hdr)
