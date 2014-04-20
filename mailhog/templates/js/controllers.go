@@ -24,6 +24,16 @@ mailhogApp.controller('MailCtrl', function ($scope, $http) {
   	$('#confirm-delete-all').modal('show');
   }
 
+  $scope.getSource = function(message) {
+  	var source = "";
+  	$.each(message.Content.Headers, function(k, v) {
+  		source += k + ": " + v + "\n";
+  	});
+	source += "\n";
+	source += message.Content.Body;
+	return source;
+  }
+
   $scope.deleteAllConfirm = function() {
   	$('#confirm-delete-all').modal('hide');
   	$http.post('/api/v1/messages/delete').success(function() {

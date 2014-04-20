@@ -23,6 +23,15 @@ func Index() string {
   table td, table th {
     padding: 2px 4px 2px 4px !important;
   }
+  table#headers {
+    margin-bottom: 2px;
+  }
+  #content .nav>li>a {
+    padding: 5px 8px;
+  }
+  #content {
+    padding: 0px 2px;
+  }
 </style>
 <div class="modal fade" id="confirm-delete-all">
   <div class="modal-dialog">
@@ -74,7 +83,7 @@ func Index() string {
     </tbody>
   </table>
 </div>
-<div class="preview">
+<div class="preview" ng-if="preview">
   <table class="table" id="headers">
     <tr ng-repeat="(header, value) in preview.Content.Headers">
       <th>
@@ -85,7 +94,18 @@ func Index() string {
       </td>
     </tr>
   </table>
-  {{ preview.Content.Body }}
+  <div id="content">
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#preview-html" data-toggle="tab">HTML</a></li>
+      <li><a href="#preview-plain" data-toggle="tab">Plain text</a></li>
+      <li><a href="#preview-source" data-toggle="tab">Source</a></li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane active" id="preview-html">{{ preview.Content.Body }}</div>
+      <div class="tab-pane" id="preview-plain"><pre>{{ preview.Content.Body }}</pre></div>
+      <div class="tab-pane" id="preview-source"><pre>{{ getSource(preview) }}</pre></div>
+    </div>
+  </div>
 </div>
 `;
 }
