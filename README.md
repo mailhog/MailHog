@@ -22,6 +22,8 @@ server will start on port 8025.
 
 ### Configuration
 
+You can configure Go-MailHog using command line options:
+
 | Parameter     | Default         | Description
 | ------------- | --------------- | -----------
 | -hostname     | mailhog.example | Hostname to use for EHLO/HELO and message IDs
