@@ -52,7 +52,7 @@ func Start(exitCh chan int, conf *mailhog.Config) {
 		Handler: &handler.RegexpHandler{},
 	}
 
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/exit$"), web_exit)
+	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/exit/?$"), web_exit)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/js/controllers.js$"), web_jscontroller)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/images/hog.png$"), web_imgcontroller)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/$"), web_index)
