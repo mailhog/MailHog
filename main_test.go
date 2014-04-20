@@ -65,6 +65,7 @@ func TestBasicHappyPath(t *testing.T) {
 	content += "Content-Length: 220\r\n"
 	content += "From: Nobody <nobody@mailhog.example>\r\n"
 	content += "To: Someone <someone@mailhog.example>\r\n"
+	content += "Subject: Example message\r\n"
 	content += "\r\n"
 	content += "Hi there :)\r\n"
 	content += ".\r\n"
@@ -103,8 +104,9 @@ func TestBasicHappyPath(t *testing.T) {
 	assert.Equal(t, message.To[0].Params, "", "recipient params is empty")
 	assert.Equal(t, len(message.To[0].Relays), 0, "recipient has no relays")
 
-	assert.Equal(t, len(message.Content.Headers), 7, "message has 7 headers")
+	assert.Equal(t, len(message.Content.Headers), 8, "message has 7 headers")
 	assert.Equal(t, message.Content.Headers["Content-Type"], []string{"text/plain"}, "Content-Type header is text/plain")
+	assert.Equal(t, message.Content.Headers["Subject"], []string{"Example message"}, "Subject header is Example message")
 	assert.Equal(t, message.Content.Headers["Content-Length"], []string{"220"}, "Content-Length is 220")
 	assert.Equal(t, message.Content.Headers["To"], []string{"Someone <someone@mailhog.example>"}, "To is Someone <someone@mailhog.example>")
 	assert.Equal(t, message.Content.Headers["From"], []string{"Nobody <nobody@mailhog.example>"}, "From is Nobody <nobody@mailhog.example>")
