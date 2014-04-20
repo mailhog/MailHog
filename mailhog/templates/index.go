@@ -5,6 +5,7 @@ func Index() string {
 <style>
   .messages {
     height: 30%;
+    overflow-y: scroll;
   }
   .preview {
     height: 70%;
@@ -53,18 +54,18 @@ func Index() string {
     <tbody>
       <tr ng-repeat="message in messages" ng-click="selectMessage(message)" ng-class="{ selected: message == preview }">
         <td>
-          {{ message.from.mailbox }}@{{ message.from.domain }}
+          {{ message.From.Mailbox }}@{{ message.From.Domain }}
         </td>
         <td>
-          <span ng-repeat="to in message.to">
-            {{ to.mailbox }}@{{ to.domain }}
+          <span ng-repeat="to in message.To">
+            {{ to.Mailbox }}@{{ to.Domain }}
           </span>
         </td>
         <td>
-          {{ message.content.headers.Subject }}
+          {{ message.Content.Headers.Subject }}
         </td>
         <td>
-          {{ date(message.created) }}
+          {{ date(message.Created) }}
         </td>
         <td>
           <button class="btn btn-xs btn-default" title="Delete" ng-click="deleteOne(message)"><span class="glyphicon glyphicon-remove"></span></button>
@@ -75,7 +76,7 @@ func Index() string {
 </div>
 <div class="preview">
   <table class="table" id="headers">
-    <tr ng-repeat="(header, value) in preview.content.headers">
+    <tr ng-repeat="(header, value) in preview.Content.Headers">
       <td>
         {{ header }}
       </td>
@@ -84,7 +85,7 @@ func Index() string {
       </td>
     </tr>
   </table>
-  {{ preview.content.body }}
+  {{ preview.Content.Body }}
 </div>
 `;
 }

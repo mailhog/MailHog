@@ -1,30 +1,32 @@
 package http
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
 	"github.com/ian-kent/MailHog/mailhog"
 	"github.com/ian-kent/MailHog/mailhog/templates"
+	"github.com/ian-kent/MailHog/mailhog/storage"
 	"github.com/ian-kent/MailHog/mailhog/templates/images"
 	"github.com/ian-kent/MailHog/mailhog/templates/js"
 )
 
 var exitChannel chan int
+var config *mailhog.Config
 
 func web_exit(w http.ResponseWriter, r *http.Request) {
 	web_headers(w)
-	fmt.Fprint(w, "Exiting MailHog!")
+	w.Write([]byte("Exiting MailHog!"))
 	exitChannel <- 1
 }
 
 func web_index(w http.ResponseWriter, r *http.Request) {
 	web_headers(w)
-	fmt.Fprint(w, web_render(templates.Index()))
+	w.Write([]byte(web_render(templates.Index())))
 }
 
 func web_jscontroller(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/javascript")
-	fmt.Fprint(w, js.Controllers())
+	w.Write([]byte(js.Controllers()))
 }
 
 func web_imgcontroller(w http.ResponseWriter, r *http.Request) {
@@ -40,11 +42,23 @@ func web_headers(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/html")
 }
 
+func api_messages(w http.ResponseWriter, r *http.Request) {
+	messages, _ := storage.List(config, 0, 1000)
+	bytes, _ := json.Marshal(messages)
+	w.Header().Set("Content-Type", "text/json")
+	w.Write(bytes)
+}
+
 func Start(exitCh chan int, conf *mailhog.Config) {
 	exitChannel = exitCh
+	config = conf
+
 	http.HandleFunc("/exit", web_exit)
 	http.HandleFunc("/js/controllers.js", web_jscontroller)
 	http.HandleFunc("/images/hog.png", web_imgcontroller)
 	http.HandleFunc("/", web_index)
+	http.HandleFunc("/api/v1/messages", api_messages)
+	//http.HandleFunc("/api/v1/messages/delete", api_delete_all)
+	//http.HandleFunc("/api/v1/messages/:message_id/delete", api_delete_message)
 	http.ListenAndServe(conf.HTTPBindAddr, nil)
 }

@@ -24,6 +24,22 @@ func Store(c *mailhog.Config, m *data.SMTPMessage) (string, error) {
 	return msg.Id, nil
 }
 
+func List(c *mailhog.Config, start int, limit int) (*data.Messages, error) {
+	session, err := mgo.Dial(c.MongoUri)
+	if(err != nil) {
+		log.Printf("Error connecting to MongoDB: %s", err)
+		return nil, err
+	}
+	defer session.Close()
+	messages := &data.Messages{}
+	err = session.DB(c.MongoDb).C(c.MongoColl).Find(bson.M{}).Skip(start).Limit(limit).All(messages)
+	if err != nil {
+		log.Printf("Error loading messages: %s", err)
+		return nil, err
+	}
+	return messages, nil;
+}
+
 func Load(c *mailhog.Config, id string) (*data.Message, error) {
 	session, err := mgo.Dial(c.MongoUri)
 	if(err != nil) {

@@ -8,6 +8,8 @@ import (
     "github.com/ian-kent/MailHog/mailhog"
 )
 
+type Messages []Message
+
 type Message struct {
 	Id string
 	From *Path
