@@ -20,7 +20,7 @@ func Index() string {
   table tbody {
     overflow: scroll;
   }
-  table td {
+  table td, table th {
     padding: 2px 4px 2px 4px !important;
   }
 </style>
@@ -77,11 +77,11 @@ func Index() string {
 <div class="preview">
   <table class="table" id="headers">
     <tr ng-repeat="(header, value) in preview.Content.Headers">
-      <td>
+      <th>
         {{ header }}
-      </td>
+      </th>
       <td>
-        {{ value }}
+        <div ng-repeat="v in value">{{ v }}</div>
       </td>
     </tr>
   </table>
