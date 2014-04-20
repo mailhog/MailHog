@@ -71,7 +71,7 @@ func Index() string {
           </span>
         </td>
         <td>
-          {{ message.Content.Headers.Subject }}
+          {{ message.Content.Headers.Subject.0 }}
         </td>
         <td>
           {{ date(message.Created) }}
