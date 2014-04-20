@@ -33,7 +33,7 @@ mailhogApp.controller('MailCtrl', function ($scope, $http) {
   }
 
   $scope.deleteOne = function(message) {
-  	$http.post('/api/v1/messages/' + message._id + '/delete').success(function() {
+  	$http.post('/api/v1/messages/' + message.Id + '/delete').success(function() {
   		if($scope.preview._id == message._id) $scope.preview = null;
   		$scope.refresh();
   	});

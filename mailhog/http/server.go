@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"net/http"
+	"regexp"
 	"github.com/ian-kent/MailHog/mailhog"
 	"github.com/ian-kent/MailHog/mailhog/templates"
 	"github.com/ian-kent/MailHog/mailhog/storage"
@@ -43,10 +44,28 @@ func web_headers(w http.ResponseWriter) {
 }
 
 func api_messages(w http.ResponseWriter, r *http.Request) {
+	re, _ := regexp.Compile("/api/v1/messages/([0-9a-f]+)/delete")
+	match := re.FindStringSubmatch(r.URL.Path)
+	if len(match) > 0 {
+		api_delete_one(w, r, match[1])
+		return
+	}
+
+	// TODO start, limit
 	messages, _ := storage.List(config, 0, 1000)
 	bytes, _ := json.Marshal(messages)
 	w.Header().Set("Content-Type", "text/json")
 	w.Write(bytes)
+}
+
+func api_delete_all(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/json")
+	storage.DeleteAll(config)
+}
+
+func api_delete_one(w http.ResponseWriter, r *http.Request, id string) {
+	w.Header().Set("Content-Type", "text/json")
+	storage.DeleteOne(config, id)
 }
 
 func Start(exitCh chan int, conf *mailhog.Config) {
@@ -57,8 +76,7 @@ func Start(exitCh chan int, conf *mailhog.Config) {
 	http.HandleFunc("/js/controllers.js", web_jscontroller)
 	http.HandleFunc("/images/hog.png", web_imgcontroller)
 	http.HandleFunc("/", web_index)
-	http.HandleFunc("/api/v1/messages", api_messages)
-	//http.HandleFunc("/api/v1/messages/delete", api_delete_all)
-	//http.HandleFunc("/api/v1/messages/:message_id/delete", api_delete_message)
+	http.HandleFunc("/api/v1/messages/", api_messages)
+	http.HandleFunc("/api/v1/messages/delete", api_delete_all)
 	http.ListenAndServe(conf.HTTPBindAddr, nil)
 }

@@ -53,7 +53,7 @@ func Layout(content string) string {
             <li><a href="#" ng-click="deleteAll()">Delete all messages</a></li>
           </ul>
         </li>
-        <li><a target="_blank" href="https://github.com/ian-kent/MailHog">GitHub</a></li>
+        <li><a target="_blank" href="https://github.com/ian-kent/Go-MailHog">GitHub</a></li>
       </ul>
     </nav>
     <%= content %>

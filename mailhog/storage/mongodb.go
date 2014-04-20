@@ -40,6 +40,28 @@ func List(c *mailhog.Config, start int, limit int) (*data.Messages, error) {
 	return messages, nil;
 }
 
+func DeleteOne(c *mailhog.Config, id string) error {
+	session, err := mgo.Dial(c.MongoUri)
+	if(err != nil) {
+		log.Printf("Error connecting to MongoDB: %s", err)
+		return err
+	}
+	defer session.Close()
+	_, err = session.DB(c.MongoDb).C(c.MongoColl).RemoveAll(bson.M{"id": id})
+	return err
+}
+
+func DeleteAll(c *mailhog.Config) error {
+	session, err := mgo.Dial(c.MongoUri)
+	if(err != nil) {
+		log.Printf("Error connecting to MongoDB: %s", err)
+		return err
+	}
+	defer session.Close()
+	_, err = session.DB(c.MongoDb).C(c.MongoColl).RemoveAll(bson.M{})
+	return err
+}
+
 func Load(c *mailhog.Config, id string) (*data.Message, error) {
 	session, err := mgo.Dial(c.MongoUri)
 	if(err != nil) {
