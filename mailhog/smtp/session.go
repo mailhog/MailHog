@@ -78,7 +78,7 @@ func (c *Session) Parse() {
 			if(strings.HasSuffix(c.message.Data, "\r\n.\r\n")) {
 				c.message.Data = strings.TrimSuffix(c.message.Data, "\r\n.\r\n")
 				id, err := c.mongo.Store(c.message)
-				c.state = DONE
+				c.state = MAIL
 				if err != nil {
 					// FIXME
 					c.Write("500", "Error")
@@ -99,10 +99,10 @@ func (c *Session) Write(code string, text ...string) {
 		c.conn.Write([]byte(code + " " + text[0] + "\n"))
 		return
 	}
-	for i := 0; i < len(text) - 2; i++ {
+	for i := 0; i < len(text) - 1; i++ {
 		c.conn.Write([]byte(code + "-" + text[i] + "\n"))
 	}
-	c.conn.Write([]byte(code + " " + text[len(text)] + "\n"))
+	c.conn.Write([]byte(code + " " + text[len(text)-1] + "\n"))
 }
 
 func (c *Session) Process(line string) {
@@ -140,7 +140,7 @@ func (c *Session) Process(line string) {
 					c.log("Got EHLO command, switching to MAIL state")
 					c.state = MAIL
 					c.message.Helo = args
-					c.Write("250", "Hello " + args)
+					c.Write("250", "Hello " + args, "PIPELINING")
 				default:
 					c.log("Got unknown command for ESTABLISH state: '%s'", command)
 			}
@@ -171,19 +171,6 @@ func (c *Session) Process(line string) {
 					c.Write("354", "End data with <CR><LF>.<CR><LF>")
 				default:
 					c.log("Got unknown command for RCPT state: '%s'", command)
-			}
-		case c.state == DONE:
-			switch command {
-				/*
-				case "MAIL":
-					c.log("Got MAIL command")
-					// TODO parse args
-					c.message.From = args
-					c.state = RCPT
-					c.Write("250", "Ok")
-				*/
-				default:
-					c.log("Got unknown command for DONE state: '%s'", command)
 			}
 	}
 }
