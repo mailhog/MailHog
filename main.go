@@ -5,12 +5,14 @@ import (
 	"github.com/ian-kent/MailHog/mailhog"
 	"github.com/ian-kent/MailHog/mailhog/http"
 	"github.com/ian-kent/MailHog/mailhog/smtp"
+	"github.com/ian-kent/MailHog/mailhog/storage"
 	"log"
 	"net"
 	"os"
 )
 
 var conf *mailhog.Config
+var mongo *storage.MongoDB
 var exitCh chan int
 
 func config() {
@@ -33,6 +35,8 @@ func config() {
 		MongoDb:      mongodb,
 		MongoColl:    mongocoll,
 	}
+
+	mongo = storage.CreateMongoDB(conf)
 }
 
 func main() {
@@ -53,7 +57,7 @@ func main() {
 
 func web_listen() {
 	log.Printf("[HTTP] Binding to address: %s\n", conf.HTTPBindAddr)
-	http.Start(exitCh, conf)
+	http.Start(exitCh, conf, mongo)
 }
 
 func smtp_listen() *net.TCPListener {
@@ -72,6 +76,6 @@ func smtp_listen() *net.TCPListener {
 		}
 		defer conn.Close()
 
-		go smtp.StartSession(conn.(*net.TCPConn), conf)
+		go smtp.StartSession(conn.(*net.TCPConn), conf, mongo)
 	}
 }

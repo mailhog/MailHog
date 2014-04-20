@@ -8,15 +8,28 @@ import (
     "github.com/ian-kent/MailHog/mailhog"
 )
 
-func Store(c *mailhog.Config, m *data.SMTPMessage) (string, error) {
-	msg := data.ParseSMTPMessage(c, m)
+type MongoDB struct {
+	Session *mgo.Session
+	Config *mailhog.Config
+	Collection *mgo.Collection
+}
+
+func CreateMongoDB(c *mailhog.Config) *MongoDB {
 	session, err := mgo.Dial(c.MongoUri)
 	if(err != nil) {
-		log.Printf("Error connecting to MongoDB: %s", err)
-		return "", err
+		log.Fatalf("Error connecting to MongoDB: %s", err)
+		return nil
 	}
-	defer session.Close()
-	err = session.DB(c.MongoDb).C(c.MongoColl).Insert(msg)
+	return &MongoDB{
+		Session: session,
+		Config: c,
+		Collection: session.DB(c.MongoDb).C(c.MongoColl),
+	}
+}
+
+func (mongo *MongoDB) Store(m *data.SMTPMessage) (string, error) {
+	msg := data.ParseSMTPMessage(mongo.Config, m)
+	err := mongo.Collection.Insert(msg)
 	if err != nil {
 		log.Printf("Error inserting message: %s", err)
 		return "", err
@@ -24,15 +37,9 @@ func Store(c *mailhog.Config, m *data.SMTPMessage) (string, error) {
 	return msg.Id, nil
 }
 
-func List(c *mailhog.Config, start int, limit int) (*data.Messages, error) {
-	session, err := mgo.Dial(c.MongoUri)
-	if(err != nil) {
-		log.Printf("Error connecting to MongoDB: %s", err)
-		return nil, err
-	}
-	defer session.Close()
+func (mongo *MongoDB) List(start int, limit int) (*data.Messages, error) {
 	messages := &data.Messages{}
-	err = session.DB(c.MongoDb).C(c.MongoColl).Find(bson.M{}).Skip(start).Limit(limit).All(messages)
+	err := mongo.Collection.Find(bson.M{}).Skip(start).Limit(limit).All(messages)
 	if err != nil {
 		log.Printf("Error loading messages: %s", err)
 		return nil, err
@@ -40,37 +47,19 @@ func List(c *mailhog.Config, start int, limit int) (*data.Messages, error) {
 	return messages, nil;
 }
 
-func DeleteOne(c *mailhog.Config, id string) error {
-	session, err := mgo.Dial(c.MongoUri)
-	if(err != nil) {
-		log.Printf("Error connecting to MongoDB: %s", err)
-		return err
-	}
-	defer session.Close()
-	_, err = session.DB(c.MongoDb).C(c.MongoColl).RemoveAll(bson.M{"id": id})
+func (mongo *MongoDB) DeleteOne(id string) error {
+	_, err := mongo.Collection.RemoveAll(bson.M{"id": id})
 	return err
 }
 
-func DeleteAll(c *mailhog.Config) error {
-	session, err := mgo.Dial(c.MongoUri)
-	if(err != nil) {
-		log.Printf("Error connecting to MongoDB: %s", err)
-		return err
-	}
-	defer session.Close()
-	_, err = session.DB(c.MongoDb).C(c.MongoColl).RemoveAll(bson.M{})
+func (mongo *MongoDB) DeleteAll() error {
+	_, err := mongo.Collection.RemoveAll(bson.M{})
 	return err
 }
 
-func Load(c *mailhog.Config, id string) (*data.Message, error) {
-	session, err := mgo.Dial(c.MongoUri)
-	if(err != nil) {
-		log.Printf("Error connecting to MongoDB: %s", err)
-		return nil, err
-	}
-	defer session.Close()
+func (mongo *MongoDB) Load(id string) (*data.Message, error) {
 	result := &data.Message{}
-	err = session.DB(c.MongoDb).C(c.MongoColl).Find(bson.M{"id": id}).One(&result)
+	err := mongo.Collection.Find(bson.M{"id": id}).One(&result)
 	if err != nil {
 		log.Printf("Error loading message: %s", err)
 		return nil, err

@@ -88,7 +88,8 @@ func TestBasicHappyPath(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, string(buf[0:n]), "221 Bye\n")
 
-	message, err := storage.Load(mailhog.DefaultConfig(), match[1])
+	s := storage.CreateMongoDB(mailhog.DefaultConfig())
+	message, err := s.Load(match[1])
 	assert.Nil(t, err)
 	assert.NotNil(t, message)
 

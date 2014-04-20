@@ -18,6 +18,7 @@ type Session struct {
 	conf *mailhog.Config
 	state int
 	message *data.SMTPMessage
+	mongo *storage.MongoDB
 }
 
 const (
@@ -30,8 +31,8 @@ const (
 
 // TODO replace ".." lines with . in data
 
-func StartSession(conn *net.TCPConn, conf *mailhog.Config) {
-	conv := &Session{conn, "", conf, ESTABLISH, &data.SMTPMessage{}}
+func StartSession(conn *net.TCPConn, conf *mailhog.Config, mongo *storage.MongoDB) {
+	conv := &Session{conn, "", conf, ESTABLISH, &data.SMTPMessage{}, mongo}
 	conv.log("Starting session")
 	conv.Write("220", conv.conf.Hostname + " ESMTP Go-MailHog")
 	conv.Read()
@@ -76,7 +77,7 @@ func (c *Session) Parse() {
 			c.message.Data += parts[0] + "\n"
 			if(strings.HasSuffix(c.message.Data, "\r\n.\r\n")) {
 				c.message.Data = strings.TrimSuffix(c.message.Data, "\r\n.\r\n")
-				id, err := storage.Store(c.conf, c.message)
+				id, err := c.mongo.Store(c.message)
 				c.state = DONE
 				if err != nil {
 					// FIXME
