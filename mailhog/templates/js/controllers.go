@@ -4,7 +4,7 @@ func Controllers() string {
 	return `
 var mailhogApp = angular.module('mailhogApp', []);
 
-mailhogApp.controller('MailCtrl', function ($scope, $http) {
+mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
   $scope.refresh = function() {
     $http.get('/api/v1/messages').success(function(data) {
       $scope.messages = data;
@@ -12,11 +12,45 @@ mailhogApp.controller('MailCtrl', function ($scope, $http) {
   }
   $scope.refresh();
 
+  $scope.getMessagePlain = function(message) {
+  	var part;
+
+  	if(message.MIME) {
+  		for(var p in message.MIME.Parts) {
+  			if(message.MIME.Parts[p].Headers["Content-Type"][0] == "text/plain") {
+  				part = message.MIME.Parts[p];
+  				break;
+  			}
+  		}
+	}
+
+	if(!part) part = message.Content;
+
+	return part.Body;
+  }
+  $scope.getMessageHTML = function(message) {
+  	var part;
+  	
+  	if(message.MIME) {
+  		for(var p in message.MIME.Parts) {
+  			if(message.MIME.Parts[p].Headers["Content-Type"][0] == "text/html") {
+  				part = message.MIME.Parts[p];
+  				break;
+  			}
+  		}
+	}
+
+	if(!part) part = message.Content;
+
+	return part.Body;
+  }
+
   $scope.date = function(timestamp) {
   	return (new Date(timestamp)).toString();
   };
 
   $scope.selectMessage = function(message) {
+  	$scope.previewHTML = $sce.trustAsHtml($scope.getMessageHTML(message));
   	$scope.preview = message;
   }
 

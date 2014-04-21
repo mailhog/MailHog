@@ -17,6 +17,7 @@ type Message struct {
 	To []*Path
 	Content *Content
 	Created time.Time
+	MIME *MIMEBody
 }
 
 type Path struct {
@@ -40,7 +41,7 @@ type SMTPMessage struct {
 }
 
 type MIMEBody struct {
-	Parts []Content
+	Parts []*Content
 }
 
 func ParseSMTPMessage(c *mailhog.Config, m *SMTPMessage) *Message {
@@ -55,7 +56,12 @@ func ParseSMTPMessage(c *mailhog.Config, m *SMTPMessage) *Message {
 		Content: ContentFromString(m.Data),
 		Created: time.Now(),
 	}
-	log.Printf("Is MIME: %t\n", msg.Content.IsMIME());
+
+	if msg.Content.IsMIME() {
+		log.Printf("Parsing MIME body")
+		msg.MIME = msg.Content.ParseMIMEBody()
+	}
+	
 	msg.Content.Headers["Message-ID"] = []string{msg.Id + "@" + c.Hostname}
 	msg.Content.Headers["Received"] = []string{"from " + m.Helo + " by " + c.Hostname + " (Go-MailHog)\r\n          id " + msg.Id + "@" + c.Hostname + "; " + time.Now().Format(time.RFC1123Z)}
 	msg.Content.Headers["Return-Path"] = []string{"<" + m.From + ">"}
@@ -68,9 +74,20 @@ func (content *Content) IsMIME() bool {
 
 func (content *Content) ParseMIMEBody() *MIMEBody {
 	re := regexp.MustCompile("boundary=\"([^\"]+)\"")
-	match := re.FindStringSubmatch(content.Body)
+	match := re.FindStringSubmatch(content.Headers["Content-Type"][0])
 	log.Printf("Got boundary: %s", match[1])
-	return nil
+
+	p := strings.Split(content.Body, "--" + match[1])
+	parts := make([]*Content, 0)
+	for m := range p {
+		if len(p[m]) > 0 {
+			parts = append(parts, ContentFromString(strings.Trim(p[m], "\r\n")))
+		}
+	}
+
+	return &MIMEBody{
+		Parts: parts,
+	}
 }
 
 func PathFromString(path string) *Path {
@@ -99,6 +116,7 @@ func PathFromString(path string) *Path {
 }
 
 func ContentFromString(data string) *Content {
+	log.Printf("Parsing Content from string: '%s'", data)
 	x := strings.SplitN(data, "\r\n\r\n", 2)
 	headers, body := x[0], x[1]
 

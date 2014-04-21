@@ -71,11 +71,11 @@ func TestBasicMIMEHappyPath(t *testing.T) {
 	content += "Subject: Example message\r\n"
 	content += "MIME-Version: 1.0\r\n"
 	content += "\r\n"
-	content += "--mailhog-test-boundary\r\n"
+	content += "----mailhog-test-boundary\r\n"
 	content += "Content-Type: text/plain\r\n"
 	content += "\r\n"
 	content += "Hi there :)\r\n"
-	content += "--mailhog-test-boundary\r\n"
+	content += "----mailhog-test-boundary\r\n"
 	content += "Content-Type: text/html\r\n"
 	content += "\r\n"
 	content += "<html>\r\n"
@@ -88,7 +88,7 @@ func TestBasicMIMEHappyPath(t *testing.T) {
 	content += "    </p>\r\n"
 	content += "  </body>\r\n"
 	content += "</html>\r\n"
-	content += "--mailhog-test-boundary\r\n"
+	content += "----mailhog-test-boundary\r\n"
 	content += ".\r\n"
 	_, err = conn.Write([]byte(content))
 	assert.Nil(t, err)
@@ -136,8 +136,21 @@ func TestBasicMIMEHappyPath(t *testing.T) {
 	assert.Equal(t, message.Content.Headers["Return-Path"], []string{"<nobody@mailhog.example>"}, "Return-Path is <nobody@mailhog.example>")
 	assert.Equal(t, message.Content.Headers["Message-ID"], []string{match[1] + "@mailhog.example"}, "Message-ID is "+match[1]+"@mailhog.example")
 
-	expected := "--mailhog-test-boundary\r\nContent-Type: text/plain\r\n\r\nHi there :)\r\n--mailhog-test-boundary\r\nContent-Type: text/html\r\n\r\n<html>\r\n  <head>\r\n    <title>Example message</title>\r\n  </head>\r\n  <body>\r\n    <p style=\"font-weight: bold; color: #ff0000; text-decoration: underline\">\r\n      Hi there :)\r\n    </p>\r\n  </body>\r\n</html>\r\n--mailhog-test-boundary"
+	expected := "----mailhog-test-boundary\r\nContent-Type: text/plain\r\n\r\nHi there :)\r\n----mailhog-test-boundary\r\nContent-Type: text/html\r\n\r\n<html>\r\n  <head>\r\n    <title>Example message</title>\r\n  </head>\r\n  <body>\r\n    <p style=\"font-weight: bold; color: #ff0000; text-decoration: underline\">\r\n      Hi there :)\r\n    </p>\r\n  </body>\r\n</html>\r\n----mailhog-test-boundary"
 	assert.Equal(t, message.Content.Body, expected, "message has correct body")
 
-	
+	assert.NotNil(t, message.MIME)
+	assert.Equal(t, len(message.MIME.Parts), 2)
+
+	plain := message.MIME.Parts[0]
+	assert.NotNil(t, plain)
+	assert.Equal(t, plain.Headers["Content-Type"], []string{"text/plain"}, "Content-Type header is text/plain")
+	assert.Equal(t, plain.Body, "Hi there :)", "plain text body is correct")
+
+	html := message.MIME.Parts[1]
+	assert.NotNil(t, html)
+	assert.Equal(t, html.Headers["Content-Type"], []string{"text/html"}, "Content-Type header is text/html")
+	expected = "<html>\r\n  <head>\r\n    <title>Example message</title>\r\n  </head>\r\n  <body>\r\n    <p style=\"font-weight: bold; color: #ff0000; text-decoration: underline\">\r\n      Hi there :)\r\n    </p>\r\n  </body>\r\n</html>"
+	assert.Equal(t, html.Body, expected, "html body is correct")
+
 }

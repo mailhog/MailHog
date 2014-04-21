@@ -101,8 +101,8 @@ func Index() string {
       <li><a href="#preview-source" data-toggle="tab">Source</a></li>
     </ul>
     <div class="tab-content">
-      <div class="tab-pane active" id="preview-html">{{ preview.Content.Body }}</div>
-      <div class="tab-pane" id="preview-plain"><pre>{{ preview.Content.Body }}</pre></div>
+      <div class="tab-pane active" id="preview-html" ng-bind-html="previewHTML"></div>
+      <div class="tab-pane" id="preview-plain"><pre>{{ getMessagePlain(preview) }}</pre></div>
       <div class="tab-pane" id="preview-source"><pre>{{ getSource(preview) }}</pre></div>
     </div>
   </div>
