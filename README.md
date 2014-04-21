@@ -20,6 +20,17 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 By default, the SMTP server will start on port 1025, and the HTTP
 server will start on port 8025.
 
+### Features
+
+* ESMTP server implementing RFC5321
+* Web interface to view messages
+* API interface to list, retrieve and delete messages
+* MongoDB storage for message persistence
+* Lightweight and portable
+* No installation required
+
+![Screenshot of MailHog web interface](/images/MailHog.png "MailHog web interface")
+
 ### Configuration
 
 You can configure Go-MailHog using command line options:

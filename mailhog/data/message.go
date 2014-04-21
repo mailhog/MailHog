@@ -63,11 +63,7 @@ func ParseSMTPMessage(c *mailhog.Config, m *SMTPMessage) *Message {
 }
 
 func (content *Content) IsMIME() bool {
-	if strings.HasPrefix(content.Headers["Content-Type"][0], "multipart/") {
-		return true
-	} else {
-		return false
-	}
+	return strings.HasPrefix(content.Headers["Content-Type"][0], "multipart/")
 }
 
 func (content *Content) ParseMIMEBody() *MIMEBody {
