@@ -76,12 +76,14 @@ func (c *Session) Parse() {
 		if c.state == DATA {
 			c.message.Data += parts[0] + "\n"
 			if(strings.HasSuffix(c.message.Data, "\r\n.\r\n")) {
+				c.log("Got EOF, storing message and switching to MAIL state")
+				//c.log("Full message data: %s", c.message.Data)
 				c.message.Data = strings.TrimSuffix(c.message.Data, "\r\n.\r\n")
 				id, err := c.mongo.Store(c.message)
 				c.state = MAIL
 				if err != nil {
-					// FIXME
-					c.Write("500", "Error")
+					c.log("Error storing message: %s", err)
+					c.Write("452", "Unable to store message")
 					return
 				}
 				c.Write("250", "Ok: queued as " + id)
@@ -96,12 +98,15 @@ func (c *Session) Parse() {
 
 func (c *Session) Write(code string, text ...string) {
 	if len(text) == 1 {
+		c.log("Sent %d bytes: '%s'", len(text[0] + "\n"), text[0] + "\n")
 		c.conn.Write([]byte(code + " " + text[0] + "\n"))
 		return
 	}
 	for i := 0; i < len(text) - 1; i++ {
+		c.log("Sent %d bytes: '%s'", len(text[i] + "\n"), text[i] + "\n")
 		c.conn.Write([]byte(code + "-" + text[i] + "\n"))
 	}
+	c.log("Sent %d bytes: '%s'", len(text[len(text)-1] + "\n"), text[len(text)-1] + "\n")
 	c.conn.Write([]byte(code + " " + text[len(text)-1] + "\n"))
 }
 
@@ -143,6 +148,7 @@ func (c *Session) Process(line string) {
 					c.Write("250", "Hello " + args, "PIPELINING")
 				default:
 					c.log("Got unknown command for ESTABLISH state: '%s'", command)
+					c.Write("500", "Unrecognised command")
 			}
 		case c.state == MAIL:
 			switch command {
@@ -155,6 +161,7 @@ func (c *Session) Process(line string) {
 					c.Write("250", "Sender " + match[1] + " ok")
 				default:
 					c.log("Got unknown command for MAIL state: '%s'", command)
+					c.Write("500", "Unrecognised command")
 			}
 		case c.state == RCPT:
 			switch command {
@@ -171,6 +178,7 @@ func (c *Session) Process(line string) {
 					c.Write("354", "End data with <CR><LF>.<CR><LF>")
 				default:
 					c.log("Got unknown command for RCPT state: '%s'", command)
+					c.Write("500", "Unrecognised command")
 			}
 	}
 }

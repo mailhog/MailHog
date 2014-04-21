@@ -12,7 +12,7 @@ import (
 
 // FIXME requires a running instance of MailHog
 
-func TestBasicHappyPath(t *testing.T) {
+func TestBasicMIMEHappyPath(t *testing.T) {
 	buf := make([]byte, 1024)
 
 	// Open a connection
@@ -64,13 +64,31 @@ func TestBasicHappyPath(t *testing.T) {
 	assert.Equal(t, string(buf[0:n]), "354 End data with <CR><LF>.<CR><LF>\n")
 
 	// Send the message
-	content := "Content-Type: text/plain\r\n"
+	content := "Content-Type: multipart/alternative; boundary=\"--mailhog-test-boundary\"\r\n"
 	content += "Content-Length: 220\r\n"
 	content += "From: Nobody <nobody@mailhog.example>\r\n"
 	content += "To: Someone <someone@mailhog.example>\r\n"
 	content += "Subject: Example message\r\n"
+	content += "MIME-Version: 1.0\r\n"
+	content += "\r\n"
+	content += "--mailhog-test-boundary\r\n"
+	content += "Content-Type: text/plain\r\n"
 	content += "\r\n"
 	content += "Hi there :)\r\n"
+	content += "--mailhog-test-boundary\r\n"
+	content += "Content-Type: text/html\r\n"
+	content += "\r\n"
+	content += "<html>\r\n"
+	content += "  <head>\r\n"
+	content += "    <title>Example message</title>\r\n"
+	content += "  </head>\r\n"
+	content += "  <body>\r\n"
+	content += "    <p style=\"font-weight: bold; color: #ff0000; text-decoration: underline\">\r\n"
+	content += "      Hi there :)\r\n"
+	content += "    </p>\r\n"
+	content += "  </body>\r\n"
+	content += "</html>\r\n"
+	content += "--mailhog-test-boundary\r\n"
 	content += ".\r\n"
 	_, err = conn.Write([]byte(content))
 	assert.Nil(t, err)
@@ -108,8 +126,8 @@ func TestBasicHappyPath(t *testing.T) {
 	assert.Equal(t, message.To[0].Params, "", "recipient params is empty")
 	assert.Equal(t, len(message.To[0].Relays), 0, "recipient has no relays")
 
-	assert.Equal(t, len(message.Content.Headers), 8, "message has 7 headers")
-	assert.Equal(t, message.Content.Headers["Content-Type"], []string{"text/plain"}, "Content-Type header is text/plain")
+	assert.Equal(t, len(message.Content.Headers), 9, "message has 7 headers")
+	assert.Equal(t, message.Content.Headers["Content-Type"], []string{"multipart/alternative; boundary=\"--mailhog-test-boundary\""}, "Content-Type header is multipart/alternative; boundary=\"--mailhog-test-boundary\"")
 	assert.Equal(t, message.Content.Headers["Subject"], []string{"Example message"}, "Subject header is Example message")
 	assert.Equal(t, message.Content.Headers["Content-Length"], []string{"220"}, "Content-Length is 220")
 	assert.Equal(t, message.Content.Headers["To"], []string{"Someone <someone@mailhog.example>"}, "To is Someone <someone@mailhog.example>")
@@ -118,5 +136,8 @@ func TestBasicHappyPath(t *testing.T) {
 	assert.Equal(t, message.Content.Headers["Return-Path"], []string{"<nobody@mailhog.example>"}, "Return-Path is <nobody@mailhog.example>")
 	assert.Equal(t, message.Content.Headers["Message-ID"], []string{match[1] + "@mailhog.example"}, "Message-ID is "+match[1]+"@mailhog.example")
 
-	assert.Equal(t, message.Content.Body, "Hi there :)", "message has correct body")
+	expected := "--mailhog-test-boundary\r\nContent-Type: text/plain\r\n\r\nHi there :)\r\n--mailhog-test-boundary\r\nContent-Type: text/html\r\n\r\n<html>\r\n  <head>\r\n    <title>Example message</title>\r\n  </head>\r\n  <body>\r\n    <p style=\"font-weight: bold; color: #ff0000; text-decoration: underline\">\r\n      Hi there :)\r\n    </p>\r\n  </body>\r\n</html>\r\n--mailhog-test-boundary"
+	assert.Equal(t, message.Content.Body, expected, "message has correct body")
+
+	
 }

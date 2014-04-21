@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 	"time"
+	"regexp"
     "labix.org/v2/mgo/bson"
     "github.com/ian-kent/MailHog/mailhog"
 )
@@ -38,6 +39,10 @@ type SMTPMessage struct {
 	Helo string
 }
 
+type MIMEBody struct {
+	Parts []Content
+}
+
 func ParseSMTPMessage(c *mailhog.Config, m *SMTPMessage) *Message {
 	arr := make([]*Path, 0)
 	for _, path := range m.To {
@@ -50,10 +55,26 @@ func ParseSMTPMessage(c *mailhog.Config, m *SMTPMessage) *Message {
 		Content: ContentFromString(m.Data),
 		Created: time.Now(),
 	}
-	msg.Content.Headers["Message-ID"] = []string{msg.Id + "@" + c.Hostname} // FIXME
+	log.Printf("Is MIME: %t\n", msg.Content.IsMIME());
+	msg.Content.Headers["Message-ID"] = []string{msg.Id + "@" + c.Hostname}
 	msg.Content.Headers["Received"] = []string{"from " + m.Helo + " by " + c.Hostname + " (Go-MailHog)\r\n          id " + msg.Id + "@" + c.Hostname + "; " + time.Now().Format(time.RFC1123Z)}
 	msg.Content.Headers["Return-Path"] = []string{"<" + m.From + ">"}
 	return msg
+}
+
+func (content *Content) IsMIME() bool {
+	if strings.HasPrefix(content.Headers["Content-Type"][0], "multipart/") {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (content *Content) ParseMIMEBody() *MIMEBody {
+	re := regexp.MustCompile("boundary=\"([^\"]+)\"")
+	match := re.FindStringSubmatch(content.Body)
+	log.Printf("Got boundary: %s", match[1])
+	return nil
 }
 
 func PathFromString(path string) *Path {
@@ -82,7 +103,7 @@ func PathFromString(path string) *Path {
 }
 
 func ContentFromString(data string) *Content {
-	x := strings.Split(data, "\r\n\r\n")	
+	x := strings.SplitN(data, "\r\n\r\n", 2)
 	headers, body := x[0], x[1]
 
 	h := make(map[string][]string, 0)
