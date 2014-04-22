@@ -34,7 +34,10 @@ func TestBasicMIMEHappyPath(t *testing.T) {
 	assert.Equal(t, string(buf[0:n]), "250-Hello localhost\n")
 	n, err = conn.Read(buf)
 	assert.Nil(t, err)
-	assert.Equal(t, string(buf[0:n]), "250 PIPELINING\n")
+	assert.Equal(t, string(buf[0:n]), "250-PIPELINING\n")
+	n, err = conn.Read(buf)
+	assert.Nil(t, err)
+	assert.Equal(t, string(buf[0:n]), "250 AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN\n")
 
 	// Send MAIL
 	_, err = conn.Write([]byte("MAIL From:<nobody@mailhog.example>\r\n"))

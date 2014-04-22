@@ -19,10 +19,13 @@ type Session struct {
 	state int
 	message *data.SMTPMessage
 	mongo *storage.MongoDB
+	isTLS bool
 }
 
 const (
 	ESTABLISH = iota
+	AUTH
+	AUTH2
 	MAIL
 	RCPT
 	DATA
@@ -32,7 +35,7 @@ const (
 // TODO replace ".." lines with . in data
 
 func StartSession(conn *net.TCPConn, conf *mailhog.Config, mongo *storage.MongoDB) {
-	conv := &Session{conn, "", conf, ESTABLISH, &data.SMTPMessage{}, mongo}
+	conv := &Session{conn, "", conf, ESTABLISH, &data.SMTPMessage{}, mongo, false}
 	conv.log("Starting session")
 	conv.Write("220", conv.conf.Hostname + " ESMTP Go-MailHog")
 	conv.Read()
@@ -145,13 +148,45 @@ func (c *Session) Process(line string) {
 					c.log("Got EHLO command, switching to MAIL state")
 					c.state = MAIL
 					c.message.Helo = args
-					c.Write("250", "Hello " + args, "PIPELINING")
+					c.Write("250", "Hello " + args, "PIPELINING", "AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN")
 				default:
 					c.log("Got unknown command for ESTABLISH state: '%s'", command)
 					c.Write("500", "Unrecognised command")
 			}
-		case c.state == MAIL:
+		case c.state == AUTH:
+			c.log("Got authentication response: '%s', switching to MAIL state", args)
+			c.state = MAIL
+			c.Write("235", "Authentication successful")
+		case c.state == AUTH2:
+			c.log("Got LOGIN authentication response: '%s', switching to AUTH state", args)
+			c.state = AUTH
+			c.Write("334", "VXNlcm5hbWU6")
+		case c.state == MAIL: // TODO rename/split state
 			switch command {
+				case "AUTH":
+					c.log("Got AUTH command, staying in MAIL state")
+					switch {
+						case strings.HasPrefix(args, "PLAIN "):
+							c.log("Got PLAIN authentication: %s", strings.TrimPrefix(args, "PLAIN "))
+							c.Write("235", "Authentication successful")
+						case args == "LOGIN":
+							c.log("Got LOGIN authentication, switching to AUTH state")
+							c.state = AUTH
+							c.Write("334", "VXNlcm5hbWU6")
+						case args == "PLAIN":
+							c.log("Got PLAIN authentication (no args), switching to AUTH state")
+							c.state = AUTH
+							c.Write("334", "")
+						case args == "CRAM-MD5":
+							c.log("Got CRAM-MD5 authentication, switching to AUTH state")
+							c.state = AUTH
+							c.Write("334", "PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4=")
+						case args == "EXTERNAL ":
+							c.log("Got EXTERNAL authentication: %s", strings.TrimPrefix(args, "EXTERNAL "))
+							c.Write("235", "Authentication successful")
+						default:
+							c.Write("504", "Unsupported authentication mechanism")
+					}
 				case "MAIL":
 					c.log("Got MAIL command, switching to RCPT state")
 					r, _ := regexp.Compile("From:<([^>]+)>")
