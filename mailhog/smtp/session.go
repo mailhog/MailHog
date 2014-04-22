@@ -160,7 +160,7 @@ func (c *Session) Process(line string) {
 		case c.state == AUTH2:
 			c.log("Got LOGIN authentication response: '%s', switching to AUTH state", args)
 			c.state = AUTH
-			c.Write("334", "VXNlcm5hbWU6")
+			c.Write("334", "UGFzc3dvcmQ6")
 		case c.state == MAIL: // TODO rename/split state
 			switch command {
 				case "AUTH":
@@ -171,10 +171,10 @@ func (c *Session) Process(line string) {
 							c.Write("235", "Authentication successful")
 						case args == "LOGIN":
 							c.log("Got LOGIN authentication, switching to AUTH state")
-							c.state = AUTH
+							c.state = AUTH2
 							c.Write("334", "VXNlcm5hbWU6")
 						case args == "PLAIN":
-							c.log("Got PLAIN authentication (no args), switching to AUTH state")
+							c.log("Got PLAIN authentication (no args), switching to AUTH2 state")
 							c.state = AUTH
 							c.Write("334", "")
 						case args == "CRAM-MD5":
@@ -189,7 +189,7 @@ func (c *Session) Process(line string) {
 					}
 				case "MAIL":
 					c.log("Got MAIL command, switching to RCPT state")
-					r, _ := regexp.Compile("From:<([^>]+)>")
+					r, _ := regexp.Compile("(?i:From):<([^>]+)>")
 					match := r.FindStringSubmatch(args)
 					c.message.From = match[1]
 					c.state = RCPT
@@ -202,7 +202,7 @@ func (c *Session) Process(line string) {
 			switch command {
 				case "RCPT":
 					c.log("Got RCPT command")
-					r, _ := regexp.Compile("To:<([^>]+)>")
+					r, _ := regexp.Compile("(?i:To):<([^>]+)>")
 					match := r.FindStringSubmatch(args)
 					c.message.To = append(c.message.To, match[1])
 					c.state = RCPT

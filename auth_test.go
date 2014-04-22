@@ -87,4 +87,65 @@ func TestBasicSMTPAuth(t *testing.T) {
 	n, err = conn.Read(buf)
 	assert.Nil(t, err)
 	assert.Equal(t, string(buf[0:n]), "235 Authentication successful\n")
+
+	// Send RSET and EHLO
+	_, err = conn.Write([]byte("RSET\r\n"))
+	n, err = conn.Read(buf)
+	_, err = conn.Write([]byte("EHLO localhost\r\n"))
+	n, err = conn.Read(buf)
+	n, err = conn.Read(buf)
+	n, err = conn.Read(buf)
+
+	// Send AUTH
+	_, err = conn.Write([]byte("AUTH LOGIN\r\n"))
+	assert.Nil(t, err)
+
+	// Read the response
+	n, err = conn.Read(buf)
+	assert.Nil(t, err)
+	assert.Equal(t, string(buf[0:n]), "334 VXNlcm5hbWU6\n")
+
+	// Send AUTH
+	_, err = conn.Write([]byte("foobar\r\n"))
+	assert.Nil(t, err)
+
+	// Read the response
+	n, err = conn.Read(buf)
+	assert.Nil(t, err)
+	assert.Equal(t, string(buf[0:n]), "334 UGFzc3dvcmQ6\n")
+
+	// Send AUTH
+	_, err = conn.Write([]byte("foobar\r\n"))
+	assert.Nil(t, err)
+
+	// Read the response
+	n, err = conn.Read(buf)
+	assert.Nil(t, err)
+	assert.Equal(t, string(buf[0:n]), "235 Authentication successful\n")
+
+	// Send RSET and EHLO
+	_, err = conn.Write([]byte("RSET\r\n"))
+	n, err = conn.Read(buf)
+	_, err = conn.Write([]byte("EHLO localhost\r\n"))
+	n, err = conn.Read(buf)
+	n, err = conn.Read(buf)
+	n, err = conn.Read(buf)
+
+	// Send AUTH
+	_, err = conn.Write([]byte("AUTH CRAM-MD5\r\n"))
+	assert.Nil(t, err)
+
+	// Read the response
+	n, err = conn.Read(buf)
+	assert.Nil(t, err)
+	assert.Equal(t, string(buf[0:n]), "334 PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4=\n")
+
+	// Send AUTH
+	_, err = conn.Write([]byte("foobar\r\n"))
+	assert.Nil(t, err)
+
+	// Read the response
+	n, err = conn.Read(buf)
+	assert.Nil(t, err)
+	assert.Equal(t, string(buf[0:n]), "235 Authentication successful\n")
 }
