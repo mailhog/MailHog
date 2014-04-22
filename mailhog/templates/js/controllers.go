@@ -5,12 +5,28 @@ func Controllers() string {
 var mailhogApp = angular.module('mailhogApp', []);
 
 mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
+  $scope.cache = {};
+
   $scope.refresh = function() {
     $http.get('/api/v1/messages').success(function(data) {
       $scope.messages = data;
     });
   }
   $scope.refresh();
+
+  $scope.selectMessage = function(message) {
+  	if($scope.cache[message.Id]) {
+  		$scope.preview = $scope.cache[message.Id];
+  	} else {
+  		$scope.preview = message;
+	  	$http.get('/api/v1/messages/' + message.Id).success(function(data) {
+	  	  $scope.cache[message.Id] = data;
+	      data.previewHTML = $sce.trustAsHtml($scope.getMessageHTML(data));
+  		  $scope.preview = data;
+  		  preview = $scope.cache[message.Id];
+	    });
+	}
+  }
 
   $scope.getMessagePlain = function(message) {
   	var part;
@@ -48,11 +64,6 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
   $scope.date = function(timestamp) {
   	return (new Date(timestamp)).toString();
   };
-
-  $scope.selectMessage = function(message) {
-  	$scope.previewHTML = $sce.trustAsHtml($scope.getMessageHTML(message));
-  	$scope.preview = message;
-  }
 
   $scope.deleteAll = function() {
   	$('#confirm-delete-all').modal('show');

@@ -39,7 +39,15 @@ func (mongo *MongoDB) Store(m *data.SMTPMessage) (string, error) {
 
 func (mongo *MongoDB) List(start int, limit int) (*data.Messages, error) {
 	messages := &data.Messages{}
-	err := mongo.Collection.Find(bson.M{}).Skip(start).Limit(limit).All(messages)
+	err := mongo.Collection.Find(bson.M{}).Skip(start).Limit(limit).Select(bson.M{
+		"id": 1,
+		"_id": 1,
+		"from": 1,
+		"to": 1,
+		"content.headers": 1,
+		"content.size": 1,
+		"created": 1,
+	}).All(messages)
 	if err != nil {
 		log.Printf("Error loading messages: %s", err)
 		return nil, err

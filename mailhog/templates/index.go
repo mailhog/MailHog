@@ -61,7 +61,7 @@ func Index() string {
       <th>Actions</th>
     </tr>
     <tbody>
-      <tr ng-repeat="message in messages" ng-click="selectMessage(message)" ng-class="{ selected: message == preview }">
+      <tr ng-repeat="message in messages" ng-click="selectMessage(message)" ng-class="{ selected: message.Id == preview.Id }">
         <td>
           {{ message.From.Mailbox }}@{{ message.From.Domain }}
         </td>
@@ -101,7 +101,7 @@ func Index() string {
       <li><a href="#preview-source" data-toggle="tab">Source</a></li>
     </ul>
     <div class="tab-content">
-      <div class="tab-pane active" id="preview-html" ng-bind-html="previewHTML"></div>
+      <div class="tab-pane active" id="preview-html" ng-bind-html="preview.previewHTML"></div>
       <div class="tab-pane" id="preview-plain"><pre>{{ getMessagePlain(preview) }}</pre></div>
       <div class="tab-pane" id="preview-source"><pre>{{ getSource(preview) }}</pre></div>
     </div>
