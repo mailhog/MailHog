@@ -181,7 +181,7 @@ func (c *Session) Process(line string) {
 							c.log("Got CRAM-MD5 authentication, switching to AUTH state")
 							c.state = AUTH
 							c.Write("334", "PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4=")
-						case args == "EXTERNAL ":
+						case strings.HasPrefix(args, "EXTERNAL "):
 							c.log("Got EXTERNAL authentication: %s", strings.TrimPrefix(args, "EXTERNAL "))
 							c.Write("235", "Authentication successful")
 						default:
