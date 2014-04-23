@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/ian-kent/MailHog/mailhog"
+	"github.com/ian-kent/MailHog/mailhog/config"
 	"github.com/ian-kent/MailHog/mailhog/http"
 	"github.com/ian-kent/MailHog/mailhog/smtp"
 	"github.com/ian-kent/MailHog/mailhog/storage"
@@ -11,11 +11,10 @@ import (
 	"os"
 )
 
-var conf *mailhog.Config
-var mongo *storage.MongoDB
+var conf *config.Config
 var exitCh chan int
 
-func config() {
+func configure() {
 	var smtpbindaddr, httpbindaddr, hostname, mongouri, mongodb, mongocoll string
 
 	flag.StringVar(&smtpbindaddr, "smtpbindaddr", "0.0.0.0:1025", "SMTP bind interface and port, e.g. 0.0.0.0:1025 or just :1025")
@@ -27,7 +26,7 @@ func config() {
 
 	flag.Parse()
 
-	conf = &mailhog.Config{
+	conf = &config.Config{
 		SMTPBindAddr: smtpbindaddr,
 		HTTPBindAddr: httpbindaddr,
 		Hostname:     hostname,
@@ -36,11 +35,18 @@ func config() {
 		MongoColl:    mongocoll,
 	}
 
-	mongo = storage.CreateMongoDB(conf)
+	s := storage.CreateMongoDB(conf)
+	if s == nil {
+		log.Println("MongoDB storage unavailable, using in-memory storage")
+		conf.Storage = storage.CreateMemory(conf)
+	} else {
+		log.Println("Connected to MongoDB")
+		conf.Storage = s
+	}
 }
 
 func main() {
-	config()
+	configure()
 
 	exitCh = make(chan int)
 	go web_listen()
@@ -57,7 +63,7 @@ func main() {
 
 func web_listen() {
 	log.Printf("[HTTP] Binding to address: %s\n", conf.HTTPBindAddr)
-	http.Start(exitCh, conf, mongo)
+	http.Start(exitCh, conf)
 }
 
 func smtp_listen() *net.TCPListener {
@@ -76,6 +82,6 @@ func smtp_listen() *net.TCPListener {
 		}
 		defer conn.Close()
 
-		go smtp.StartSession(conn.(*net.TCPConn), conf, mongo)
+		go smtp.StartSession(conn.(*net.TCPConn), conf)
 	}
 }

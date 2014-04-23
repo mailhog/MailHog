@@ -1,4 +1,4 @@
-package mailhog
+package config
 
 func DefaultConfig() *Config {
 	return &Config{
@@ -18,4 +18,5 @@ type Config struct {
 	MongoUri string
 	MongoDb string
 	MongoColl string
+	Storage interface{}
 }

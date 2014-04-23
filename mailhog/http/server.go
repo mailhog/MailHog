@@ -3,9 +3,8 @@ package http
 import (
 	"regexp"
 	"net/http"
-	"github.com/ian-kent/MailHog/mailhog"
+	"github.com/ian-kent/MailHog/mailhog/config"
 	"github.com/ian-kent/MailHog/mailhog/templates"
-	"github.com/ian-kent/MailHog/mailhog/storage"
 	"github.com/ian-kent/MailHog/mailhog/templates/images"
 	"github.com/ian-kent/MailHog/mailhog/templates/js"
 	"github.com/ian-kent/MailHog/mailhog/http/api"
@@ -13,7 +12,7 @@ import (
 )
 
 var exitChannel chan int
-var config *mailhog.Config
+var cfg *config.Config
 
 func web_exit(w http.ResponseWriter, r *http.Request, route *handler.Route) {
 	web_headers(w)
@@ -44,9 +43,9 @@ func web_headers(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/html")
 }
 
-func Start(exitCh chan int, conf *mailhog.Config, mongo *storage.MongoDB) {
+func Start(exitCh chan int, conf *config.Config) {
 	exitChannel = exitCh
-	config = conf
+	cfg = conf
 
 	server := &http.Server{
 		Addr: conf.HTTPBindAddr,
@@ -58,7 +57,7 @@ func Start(exitCh chan int, conf *mailhog.Config, mongo *storage.MongoDB) {
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/images/hog.png$"), web_imgcontroller)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/$"), web_index)
 
-	api.CreateAPIv1(exitCh, conf, server, mongo)
+	api.CreateAPIv1(exitCh, conf, server)
 
 	server.ListenAndServe()
 }

@@ -5,19 +5,20 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
     "github.com/ian-kent/MailHog/mailhog/data"
-    "github.com/ian-kent/MailHog/mailhog"
+    "github.com/ian-kent/MailHog/mailhog/config"
 )
 
 type MongoDB struct {
 	Session *mgo.Session
-	Config *mailhog.Config
+	Config *config.Config
 	Collection *mgo.Collection
 }
 
-func CreateMongoDB(c *mailhog.Config) *MongoDB {
+func CreateMongoDB(c *config.Config) *MongoDB {
+	log.Printf("Connecting to MongoDB: %s\n", c.MongoUri)
 	session, err := mgo.Dial(c.MongoUri)
 	if(err != nil) {
-		log.Fatalf("Error connecting to MongoDB: %s", err)
+		log.Printf("Error connecting to MongoDB: %s", err)
 		return nil
 	}
 	return &MongoDB{
@@ -28,7 +29,7 @@ func CreateMongoDB(c *mailhog.Config) *MongoDB {
 }
 
 func (mongo *MongoDB) Store(m *data.SMTPMessage) (string, error) {
-	msg := data.ParseSMTPMessage(mongo.Config, m)
+	msg := data.ParseSMTPMessage(m, mongo.Config.Hostname)
 	err := mongo.Collection.Insert(msg)
 	if err != nil {
 		log.Printf("Error inserting message: %s", err)

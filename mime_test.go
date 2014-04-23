@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ian-kent/MailHog/mailhog"
+	"github.com/ian-kent/MailHog/mailhog/config"
 	"github.com/ian-kent/MailHog/mailhog/storage"
 	"github.com/stretchr/testify/assert"
 	"net"
@@ -112,7 +112,7 @@ func TestBasicMIMEHappyPath(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, string(buf[0:n]), "221 Bye\n")
 
-	s := storage.CreateMongoDB(mailhog.DefaultConfig())
+	s := storage.CreateMongoDB(config.DefaultConfig())
 	message, err := s.Load(match[1])
 	assert.Nil(t, err)
 	assert.NotNil(t, message)

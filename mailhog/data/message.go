@@ -6,7 +6,6 @@ import (
 	"time"
 	"regexp"
     "labix.org/v2/mgo/bson"
-    "github.com/ian-kent/MailHog/mailhog"
 )
 
 type Messages []Message
@@ -44,7 +43,7 @@ type MIMEBody struct {
 	Parts []*Content
 }
 
-func ParseSMTPMessage(c *mailhog.Config, m *SMTPMessage) *Message {
+func ParseSMTPMessage(m *SMTPMessage, hostname string) *Message {
 	arr := make([]*Path, 0)
 	for _, path := range m.To {
 		arr = append(arr, PathFromString(path))
@@ -62,8 +61,8 @@ func ParseSMTPMessage(c *mailhog.Config, m *SMTPMessage) *Message {
 		msg.MIME = msg.Content.ParseMIMEBody()
 	}
 	
-	msg.Content.Headers["Message-ID"] = []string{msg.Id + "@" + c.Hostname}
-	msg.Content.Headers["Received"] = []string{"from " + m.Helo + " by " + c.Hostname + " (Go-MailHog)\r\n          id " + msg.Id + "@" + c.Hostname + "; " + time.Now().Format(time.RFC1123Z)}
+	msg.Content.Headers["Message-ID"] = []string{msg.Id + "@" + hostname}
+	msg.Content.Headers["Received"] = []string{"from " + m.Helo + " by " + hostname + " (Go-MailHog)\r\n          id " + msg.Id + "@" + hostname + "; " + time.Now().Format(time.RFC1123Z)}
 	msg.Content.Headers["Return-Path"] = []string{"<" + m.From + ">"}
 	return msg
 }

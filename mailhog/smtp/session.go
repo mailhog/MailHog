@@ -7,7 +7,7 @@ import (
 	"net"
 	"strings"
 	"regexp"
-	"github.com/ian-kent/MailHog/mailhog"
+	"github.com/ian-kent/MailHog/mailhog/config"
 	"github.com/ian-kent/MailHog/mailhog/storage"
 	"github.com/ian-kent/MailHog/mailhog/data"
 )
@@ -15,10 +15,9 @@ import (
 type Session struct {
 	conn *net.TCPConn
 	line string
-	conf *mailhog.Config
+	conf *config.Config
 	state int
 	message *data.SMTPMessage
-	mongo *storage.MongoDB
 	isTLS bool
 }
 
@@ -34,8 +33,8 @@ const (
 
 // TODO replace ".." lines with . in data
 
-func StartSession(conn *net.TCPConn, conf *mailhog.Config, mongo *storage.MongoDB) {
-	conv := &Session{conn, "", conf, ESTABLISH, &data.SMTPMessage{}, mongo, false}
+func StartSession(conn *net.TCPConn, conf *config.Config) {
+	conv := &Session{conn, "", conf, ESTABLISH, &data.SMTPMessage{}, false}
 	conv.log("Starting session")
 	conv.Write("220", conv.conf.Hostname + " ESMTP Go-MailHog")
 	conv.Read()
@@ -82,7 +81,19 @@ func (c *Session) Parse() {
 				c.log("Got EOF, storing message and switching to MAIL state")
 				//c.log("Full message data: %s", c.message.Data)
 				c.message.Data = strings.TrimSuffix(c.message.Data, "\r\n.\r\n")
-				id, err := c.mongo.Store(c.message)
+				var id string
+				var err error
+				switch c.conf.Storage.(type) {
+					case *storage.MongoDB:
+						c.log("Storing message using MongoDB")
+						id, err = c.conf.Storage.(*storage.MongoDB).Store(c.message)
+					case *storage.Memory:
+						c.log("Storing message using Memory")
+						id, err = c.conf.Storage.(*storage.Memory).Store(c.message)
+					default:
+						c.log("Unknown storage type")
+						// TODO send error reply
+				}
 				c.state = MAIL
 				if err != nil {
 					c.log("Error storing message: %s", err)

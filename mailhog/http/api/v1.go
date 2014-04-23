@@ -5,25 +5,23 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
-	"github.com/ian-kent/MailHog/mailhog"
+	"github.com/ian-kent/MailHog/mailhog/config"
 	"github.com/ian-kent/MailHog/mailhog/storage"
 	"github.com/ian-kent/MailHog/mailhog/http/handler"
 )
 
 type APIv1 struct {
-	config *mailhog.Config
+	config *config.Config
 	exitChannel chan int
 	server *http.Server
-	mongo *storage.MongoDB
 }
 
-func CreateAPIv1(exitCh chan int, conf *mailhog.Config, server *http.Server, mongo *storage.MongoDB) *APIv1 {
+func CreateAPIv1(exitCh chan int, conf *config.Config, server *http.Server) *APIv1 {
 	log.Println("Creating API v1")
 	apiv1 := &APIv1{
 		config: conf,
 		exitChannel: exitCh,
 		server: server,
-		mongo: mongo,
 	}
 
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/?$"), apiv1.messages)
@@ -38,10 +36,21 @@ func (apiv1 *APIv1) messages(w http.ResponseWriter, r *http.Request, route *hand
 	log.Println("[APIv1] GET /api/v1/messages")
 
 	// TODO start, limit
-	messages, _ := apiv1.mongo.List(0, 1000)
-	bytes, _ := json.Marshal(messages)
-	w.Header().Set("Content-Type", "text/json")
-	w.Write(bytes)
+	switch apiv1.config.Storage.(type) {
+		case *storage.MongoDB:
+			messages, _ := apiv1.config.Storage.(*storage.MongoDB).List(0, 1000)
+			bytes, _ := json.Marshal(messages)
+			w.Header().Set("Content-Type", "text/json")
+			w.Write(bytes)
+		case *storage.Memory:
+			messages, _ := apiv1.config.Storage.(*storage.Memory).List(0, 1000)
+			bytes, _ := json.Marshal(messages)
+			w.Header().Set("Content-Type", "text/json")
+			w.Write(bytes)
+		default:
+			w.Header().Set("Content-Type", "text/json")
+			w.Write([]byte("[]"))
+	}
 }
 
 func (apiv1 *APIv1) message(w http.ResponseWriter, r *http.Request, route *handler.Route) {
@@ -49,17 +58,33 @@ func (apiv1 *APIv1) message(w http.ResponseWriter, r *http.Request, route *handl
 	id := match[1]
 	log.Printf("[APIv1] GET /api/v1/messages/%s\n", id)
 
-	message, _ := apiv1.mongo.Load(id)
-	bytes, _ := json.Marshal(message)
-	w.Header().Set("Content-Type", "text/json")
-	w.Write(bytes)
+	switch apiv1.config.Storage.(type) {
+		case *storage.MongoDB:
+			message, _ := apiv1.config.Storage.(*storage.MongoDB).Load(id)
+			bytes, _ := json.Marshal(message)
+			w.Header().Set("Content-Type", "text/json")
+			w.Write(bytes)
+		case *storage.Memory:
+			message, _ := apiv1.config.Storage.(*storage.Memory).Load(id)
+			bytes, _ := json.Marshal(message)
+			w.Header().Set("Content-Type", "text/json")
+			w.Write(bytes)
+		default:
+			w.Header().Set("Content-Type", "text/json")
+			w.Write([]byte("[]"))
+	}
 }
 
 func (apiv1 *APIv1) delete_all(w http.ResponseWriter, r *http.Request, route *handler.Route) {
 	log.Println("[APIv1] POST /api/v1/messages/delete")
 
 	w.Header().Set("Content-Type", "text/json")
-	apiv1.mongo.DeleteAll()
+	switch apiv1.config.Storage.(type) {
+		case *storage.MongoDB:
+			apiv1.config.Storage.(*storage.MongoDB).DeleteAll()
+		case *storage.Memory:
+			apiv1.config.Storage.(*storage.Memory).DeleteAll()
+	}
 }
 
 func (apiv1 *APIv1) delete_one(w http.ResponseWriter, r *http.Request, route *handler.Route) {
@@ -68,5 +93,10 @@ func (apiv1 *APIv1) delete_one(w http.ResponseWriter, r *http.Request, route *ha
 	log.Printf("[APIv1] POST /api/v1/messages/%s/delete\n", id)
 
 	w.Header().Set("Content-Type", "text/json")
-	apiv1.mongo.DeleteOne(id)
+	switch apiv1.config.Storage.(type) {
+		case *storage.MongoDB:
+			apiv1.config.Storage.(*storage.MongoDB).DeleteOne(id)
+		case *storage.Memory:
+			apiv1.config.Storage.(*storage.Memory).DeleteOne(id)
+	}
 }
