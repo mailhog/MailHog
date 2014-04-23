@@ -4,12 +4,14 @@ func Index() string {
 	return `
 <style>
   .messages {
+    padding-top: 51px;
     height: 30%;
-    overflow-y: scroll;
+    min-height: 280px;
+    border-bottom: 1px solid #CCCCCC;
   }
-  .preview {
-    height: 70%;
-    border-top: 1px solid #CCCCCC;
+  #messages-container {
+    height: 100%;
+    overflow-y: scroll;
   }
   .preview #headers {
     border-bottom: 1px solid #DDDDDD;
@@ -17,20 +19,39 @@ func Index() string {
   .selected {
     background: #DADAFA;
   }
-  table tbody {
-    overflow: scroll;
-  }
   table td, table th {
     padding: 2px 4px 2px 4px !important;
   }
+  table thead {
+    background: #eee;
+  }
   table#headers {
     margin-bottom: 2px;
+    background: #eee;
   }
   #content .nav>li>a {
     padding: 5px 8px;
   }
   #content {
     padding: 0px 2px;
+  }
+  .preview #headers tbody td {
+    width: 100%;
+  }
+  .preview #headers tbody th {
+    white-space: nowrap;
+    padding-right: 10px !important;
+    padding-left: 10px !important;
+    text-align: right;
+    color: #666;
+    font-weight: normal;
+  }
+  #preview-plain, #preview-source {
+    white-space: pre;
+    font-family: Courier New, Courier, System, fixed-width;
+  }
+  .tab-content {
+    padding: 3px;
   }
 </style>
 <div class="modal fade" id="confirm-delete-all">
@@ -52,47 +73,69 @@ func Index() string {
 </div>
 
 <div class="messages">
-  <table class="table">
-    <tr>
-      <th>From</th>
-      <th>To</th>
-      <th>Subject</th>
-      <th>Received</th>
-      <th>Actions</th>
-    </tr>
-    <tbody>
-      <tr ng-repeat="message in messages" ng-click="selectMessage(message)" ng-class="{ selected: message.Id == preview.Id }">
-        <td>
-          {{ message.From.Mailbox }}@{{ message.From.Domain }}
-        </td>
-        <td>
-          <span ng-repeat="to in message.To">
-            {{ to.Mailbox }}@{{ to.Domain }}
-          </span>
-        </td>
-        <td>
-          {{ message.Content.Headers.Subject.0 }}
-        </td>
-        <td>
-          {{ date(message.Created) }}
-        </td>
-        <td>
-          <button class="btn btn-xs btn-default" title="Delete" ng-click="deleteOne(message)"><span class="glyphicon glyphicon-remove"></span></button>
-        </td>
+  <div id="messages-container">
+    <table class="table">
+      <tr>
+        <th>From</th>
+        <th>To</th>
+        <th>Subject</th>
+        <th>Received</th>
+        <th>Actions</th>
       </tr>
-    </tbody>
-  </table>
+      <tbody>
+        <tr ng-repeat="message in messages" ng-click="selectMessage(message)" ng-class="{ selected: message.Id == preview.Id }">
+          <td>
+            {{ message.From.Mailbox }}@{{ message.From.Domain }}
+          </td>
+          <td>
+            <span ng-repeat="to in message.To">
+              {{ to.Mailbox }}@{{ to.Domain }}
+            </span>
+          </td>
+          <td>
+            {{ message.Content.Headers.Subject.0 }}
+          </td>
+          <td>
+            {{ date(message.Created) }}
+          </td>
+          <td>
+            <button class="btn btn-xs btn-default" title="Delete" ng-click="deleteOne(message)"><span class="glyphicon glyphicon-remove"></span></button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 <div class="preview" ng-if="preview">
   <table class="table" id="headers">
-    <tr ng-repeat="(header, value) in preview.Content.Headers">
-      <th>
-        {{ header }}
-      </th>
-      <td>
-        <div ng-repeat="v in value">{{ v }}</div>
-      </td>
-    </tr>
+    <tbody ng-if="!previewAllHeaders">
+      <tr>
+        <th>From</th>
+        <td>{{ preview.Content.Headers["From"][0] }}</td>
+      </tr>
+      <tr>
+        <th>Subject</th>
+        <td><strong>{{ preview.Content.Headers["Subject"][0] }}</strong></td>
+      </tr>
+      <tr>
+        <th>To</th>
+        <td>
+          <button ng-click="$parent.previewAllHeaders = true" type="button" class="btn btn-default pull-right btn-xs">Show headers</button>
+          {{ preview.Content.Headers["To"].join(', ') }}
+        </td>
+      </tr>
+    </tbody>
+    <tbody ng-if="previewAllHeaders">
+      <tr ng-repeat="(header, value) in preview.Content.Headers">
+        <th>
+          {{ header }}
+        </th>
+        <td>
+          <button ng-if="$last" ng-click="$parent.$parent.$parent.previewAllHeaders = false" type="button" class="btn btn-default pull-right btn-xs">Hide headers</button>
+          <div ng-repeat="v in value">{{ v }}</div>
+        </td>
+      </tr>
+    </tbody>
   </table>
   <div id="content">
     <ul class="nav nav-tabs">
@@ -102,8 +145,8 @@ func Index() string {
     </ul>
     <div class="tab-content">
       <div class="tab-pane active" id="preview-html" ng-bind-html="preview.previewHTML"></div>
-      <div class="tab-pane" id="preview-plain"><pre>{{ getMessagePlain(preview) }}</pre></div>
-      <div class="tab-pane" id="preview-source"><pre>{{ getSource(preview) }}</pre></div>
+      <div class="tab-pane" id="preview-plain">{{ getMessagePlain(preview) }}</div>
+      <div class="tab-pane" id="preview-source">{{ getSource(preview) }}</div>
     </div>
   </div>
 </div>

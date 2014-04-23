@@ -17,16 +17,13 @@ func Layout(content string) string {
     <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.15/angular.js"></script>
     <script src="/js/controllers.js"></script>
     <style>
-      body, html { height: 100%; overflow: none; }
+      body, html { height: 100%; }
       .navbar {
         margin-bottom: 0;
         position: absolute;
         top: 0;
         right: 0;
         width: 100%;
-      }
-      .messages {
-        padding-top: 50px;
       }
       .navbar-header img {
         height: 35px;
