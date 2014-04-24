@@ -120,7 +120,7 @@ func Index() string {
       <tr>
         <th>To</th>
         <td>
-          <button ng-click="$parent.previewAllHeaders = true" type="button" class="btn btn-default pull-right btn-xs">Show headers</button>
+          <button ng-click="$parent.previewAllHeaders = true" type="button" class="btn btn-default pull-right btn-xs">Show headers <span class="glyphicon glyphicon-chevron-down"></span></button>
           {{ preview.Content.Headers["To"].join(', ') }}
         </td>
       </tr>
@@ -131,7 +131,7 @@ func Index() string {
           {{ header }}
         </th>
         <td>
-          <button ng-if="$last" ng-click="$parent.$parent.$parent.previewAllHeaders = false" type="button" class="btn btn-default pull-right btn-xs">Hide headers</button>
+          <button ng-if="$last" ng-click="$parent.$parent.$parent.previewAllHeaders = false" type="button" class="btn btn-default pull-right btn-xs">Hide headers <span class="glyphicon glyphicon-chevron-up"></span></button>
           <div ng-repeat="v in value">{{ v }}</div>
         </td>
       </tr>
