@@ -15,11 +15,12 @@ var conf *config.Config
 var exitCh chan int
 
 func configure() {
-	var smtpbindaddr, httpbindaddr, hostname, mongouri, mongodb, mongocoll string
+	var smtpbindaddr, httpbindaddr, hostname, storage_type, mongouri, mongodb, mongocoll string
 
 	flag.StringVar(&smtpbindaddr, "smtpbindaddr", "0.0.0.0:1025", "SMTP bind interface and port, e.g. 0.0.0.0:1025 or just :1025")
 	flag.StringVar(&httpbindaddr, "httpbindaddr", "0.0.0.0:8025", "HTTP bind interface and port, e.g. 0.0.0.0:8025 or just :8025")
 	flag.StringVar(&hostname, "hostname", "mailhog.example", "Hostname for EHLO/HELO response, e.g. mailhog.example")
+	flag.StringVar(&storage_type, "storage", "memory", "Message storage: memory (default) or mongodb")
 	flag.StringVar(&mongouri, "mongouri", "127.0.0.1:27017", "MongoDB URI, e.g. 127.0.0.1:27017")
 	flag.StringVar(&mongodb, "mongodb", "mailhog", "MongoDB database, e.g. mailhog")
 	flag.StringVar(&mongocoll, "mongocoll", "messages", "MongoDB collection, e.g. messages")
@@ -35,13 +36,21 @@ func configure() {
 		MongoColl:    mongocoll,
 	}
 
-	s := storage.CreateMongoDB(conf)
-	if s == nil {
-		log.Println("MongoDB storage unavailable, using in-memory storage")
+	if storage_type == "mongodb" {
+		log.Println("Using MongoDB message storage")
+		s := storage.CreateMongoDB(conf)
+		if s == nil {
+			log.Println("MongoDB storage unavailable, reverting to in-memory storage")
+			conf.Storage = storage.CreateMemory(conf)
+		} else {
+			log.Println("Connected to MongoDB")
+			conf.Storage = s
+		}
+	} else if storage_type == "memory" {
+		log.Println("Using in-memory message storage")
 		conf.Storage = storage.CreateMemory(conf)
 	} else {
-		log.Println("Connected to MongoDB")
-		conf.Storage = s
+		log.Fatalf("Invalid storage type %s", storage_type)
 	}
 }
 
