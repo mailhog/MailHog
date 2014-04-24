@@ -10,7 +10,6 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 ### Requirements
 
 * None!
-* Well, you need MongoDB installed somewhere
 
 ### Getting started
 
@@ -23,8 +22,11 @@ server will start on port 8025.
 ### Features
 
 * ESMTP server implementing RFC5321
-* Web interface to view messages
-* API interface to list, retrieve and delete messages
+* Support for SMTP AUTH (RFC4954) and PIPELINING (RFC2920)
+* Web interface to view messages (plain text, HTML or source)
+* HTTP API to list, retrieve and delete messages
+* Multipart MIME support
+* In-memory message storage
 * MongoDB storage for message persistence
 * Lightweight and portable
 * No installation required
@@ -43,12 +45,14 @@ You can configure Go-MailHog using command line options:
 | -mongodb      | mailhog         | MongoDB database name for message storage
 | -mongouri     | 127.0.0.1:27017 | MongoDB host and port
 | -smtpbindaddr | 0.0.0.0:1025    | Interface and port for SMTP server to bind to
+| -storage      | memory          | Set message storage: memory / mongodb
 
 ### Contributing
 
 Clone this repository to ```$GOPATH/src/github.com/ian-kent/MailHog``` and type ```go install```.
 
 Run tests using ```go test```. You'll need a copy of MailHog running for tests to pass.
+(Tests currently fail using in-memory storage, use MongoDB!)
 
 If you make any changes, run ```go fmt``` before submitting a pull request.
 
