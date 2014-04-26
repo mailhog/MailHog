@@ -6,6 +6,7 @@ var mailhogApp = angular.module('mailhogApp', []);
 
 mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
   $scope.cache = {};
+  $scope.previewAllHeaders = false;
 
   $scope.refresh = function() {
     $http.get('/api/v1/messages').success(function(data) {
@@ -17,6 +18,7 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
   $scope.selectMessage = function(message) {
   	if($scope.cache[message.Id]) {
   		$scope.preview = $scope.cache[message.Id];
+      reflow();
   	} else {
   		$scope.preview = message;
 	  	$http.get('/api/v1/messages/' + message.Id).success(function(data) {
@@ -24,8 +26,26 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
 	      data.previewHTML = $sce.trustAsHtml($scope.getMessageHTML(data));
   		  $scope.preview = data;
   		  preview = $scope.cache[message.Id];
+        reflow();
 	    });
 	}
+  }
+
+  $scope.toggleHeaders = function(val) {
+    $scope.previewAllHeaders = val;
+    var t = window.setInterval(function() {
+      if(val) {
+        if($('#hide-headers').length) {
+          window.clearInterval(t);
+          reflow();
+        }
+      } else {
+        if($('#show-headers').length) {
+          window.clearInterval(t);
+          reflow();
+        }
+      }
+    }, 10);
   }
 
   $scope.getMessagePlain = function(message) {

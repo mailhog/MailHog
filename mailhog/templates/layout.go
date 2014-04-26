@@ -17,7 +17,7 @@ func Layout(content string) string {
     <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.15/angular.js"></script>
     <script src="/js/controllers.js"></script>
     <style>
-      body, html { height: 100%; }
+      body, html { height: 100%; overflow: hidden; }
       .navbar {
         margin-bottom: 0;
         position: absolute;

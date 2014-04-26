@@ -26,14 +26,11 @@ func Index() string {
     background: #eee;
   }
   table#headers {
-    margin-bottom: 2px;
+    margin-bottom: 1px;
     background: #eee;
   }
   #content .nav>li>a {
     padding: 5px 8px;
-  }
-  #content {
-    padding: 0px 2px;
   }
   .preview #headers tbody td {
     width: 100%;
@@ -50,10 +47,20 @@ func Index() string {
     white-space: pre;
     font-family: Courier New, Courier, System, fixed-width;
   }
-  .tab-content {
-    padding: 3px;
+  .preview .tab-content {
+    padding: 0;
+    overflow-y: scroll;
   }
 </style>
+<script>
+  var reflow = function() {
+    var remaining = $(window).height() - $('.preview .nav-tabs').offset().top
+    $('.preview .tab-content').height(remaining - 32)
+  }
+  $(function() {
+    reflow();
+  })
+</script>
 <div class="modal fade" id="confirm-delete-all">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -121,7 +128,7 @@ func Index() string {
       <tr>
         <th>To</th>
         <td>
-          <button ng-click="$parent.previewAllHeaders = true" type="button" class="btn btn-default pull-right btn-xs">Show headers <span class="glyphicon glyphicon-chevron-down"></span></button>
+          <button id="show-headers" ng-click="toggleHeaders(true)" type="button" class="btn btn-default pull-right btn-xs">Show headers <span class="glyphicon glyphicon-chevron-down"></span></button>
           {{ preview.Content.Headers["To"].join(', ') }}
         </td>
       </tr>
@@ -132,7 +139,7 @@ func Index() string {
           {{ header }}
         </th>
         <td>
-          <button ng-if="$last" ng-click="$parent.$parent.$parent.previewAllHeaders = false" type="button" class="btn btn-default pull-right btn-xs">Hide headers <span class="glyphicon glyphicon-chevron-up"></span></button>
+          <button id="hide-headers" ng-if="$last" ng-click="toggleHeaders(false)" type="button" class="btn btn-default pull-right btn-xs">Hide headers <span class="glyphicon glyphicon-chevron-up"></span></button>
           <div ng-repeat="v in value">{{ v }}</div>
         </td>
       </tr>
