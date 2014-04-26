@@ -24,6 +24,7 @@ func Layout(content string) string {
         top: 0;
         right: 0;
         width: 100%;
+        border-bottom: 1px solid #ccc;
       }
       .navbar-header img {
         height: 35px;

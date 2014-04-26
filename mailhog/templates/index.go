@@ -7,23 +7,33 @@ func Index() string {
     padding-top: 51px;
     height: 30%;
     min-height: 280px;
-    border-bottom: 1px solid #CCCCCC;
+    border-bottom: 1px solid #999;
   }
   #messages-container {
     height: 100%;
-    overflow-y: scroll;
   }
   .preview #headers {
     border-bottom: 1px solid #DDDDDD;
   }
   .selected {
-    background: #DADAFA;
+    background: #0066CC;
+    color: #fff;
   }
   table td, table th {
-    padding: 2px 4px 2px 4px !important;
+    padding: 2px 4px 2px 8px !important;
+  }
+  #messages-container table tbody {
+    overflow: auto;
+    height: 263px;
   }
   table thead {
     background: #eee;
+  }
+  #messages-container > table > thead > tr, #messages-container > table > tbody {
+    display: block;
+  }
+  table th:not(:last-child) {
+    border-right: 2px solid #DDD;
   }
   table#headers {
     margin-bottom: 1px;
@@ -53,12 +63,41 @@ func Index() string {
   }
 </style>
 <script>
+  var columns = [15,15,40,20,10];
   var reflow = function() {
-    var remaining = $(window).height() - $('.preview .nav-tabs').offset().top
-    $('.preview .tab-content').height(remaining - 32)
+    if($('.preview').length > 0) {
+      var remaining = $(window).height() - $('.preview .nav-tabs').offset().top
+      $('.preview .tab-content').height(remaining - 32)
+      $('#messages-container table').height($('#messages-container').height())
+      $('#messages-container table tbody').height($('#messages-container').height() - $('#messages-container table thead').height())
+    }
+
+    var $table = $('#messages-container table'), $bodyCells = $table.find('tbody tr:first').children(), colWidth;
+    var colWidth = [];
+    for(var i in columns) {
+      colWidth[i] = $table.innerWidth() / 100 * columns[i];
+    }
+    //var spare = $table.width() - $table.find('tbody tr:first').width();
+    //var add = spare / cols;
+    //colWidth = $bodyCells.map(function() { return $(this).width(); }).get();
+    $table.find('thead tr').children().each(function(i, v) { $(v).width(colWidth[i]); }); 
+    $table.find('tbody tr:first').children().each(function(i, v) { $(v).width(colWidth[i]); }); 
   }
   $(function() {
     reflow();
+    var reflowPending = false;
+    $("#messages-container table tbody").bind("DOMSubtreeModified", function() {
+      if(!reflowPending) {
+        reflowPending = true
+        window.setTimeout(function() {
+          reflow();
+          reflowPending = false;
+        }, 100);
+      }
+    });
+    $(window).resize(function() {
+        reflow();
+    }).resize();
   })
 </script>
 <div class="modal fade" id="confirm-delete-all">
@@ -82,13 +121,15 @@ func Index() string {
 <div class="messages">
   <div id="messages-container">
     <table class="table">
-      <tr>
-        <th>From</th>
-        <th>To</th>
-        <th>Subject</th>
-        <th>Received</th>
-        <th>Actions</th>
-      </tr>
+      <thead>
+        <tr>
+          <th>From</th>
+          <th>To</th>
+          <th>Subject</th>
+          <th>Received</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
       <tbody>
         <tr ng-repeat="message in messages" ng-click="selectMessage(message)" ng-class="{ selected: message.Id == preview.Id }">
           <td>
