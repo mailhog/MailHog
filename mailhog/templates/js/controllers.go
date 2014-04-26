@@ -33,10 +33,14 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
 
   	if(message.MIME) {
   		for(var p in message.MIME.Parts) {
-  			if(message.MIME.Parts[p].Headers["Content-Type"][0] == "text/plain") {
-  				part = message.MIME.Parts[p];
-  				break;
-  			}
+        if("Content-Type" in message.MIME.Parts[p].Headers) {
+          if(message.MIME.Parts[p].Headers["Content-Type"].length > 0) {
+      			if(message.MIME.Parts[p].Headers["Content-Type"][0].match(/text\/plain;?.*/)) {
+      				part = message.MIME.Parts[p];
+      				break;
+      			}
+          }
+        }
   		}
 	}
 
@@ -49,10 +53,14 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
   	
   	if(message.MIME) {
   		for(var p in message.MIME.Parts) {
-  			if(message.MIME.Parts[p].Headers["Content-Type"][0] == "text/html") {
-  				part = message.MIME.Parts[p];
-  				break;
-  			}
+        if("Content-Type" in message.MIME.Parts[p].Headers) {
+          if(message.MIME.Parts[p].Headers["Content-Type"].length > 0) {
+      			if(message.MIME.Parts[p].Headers["Content-Type"][0].match(/text\/html;?.*/)) {
+      				part = message.MIME.Parts[p];
+      				break;
+      			}
+          }
+        }
   		}
 	}
 

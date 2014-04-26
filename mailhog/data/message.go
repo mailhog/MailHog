@@ -117,24 +117,35 @@ func PathFromString(path string) *Path {
 func ContentFromString(data string) *Content {
 	log.Printf("Parsing Content from string: '%s'", data)
 	x := strings.SplitN(data, "\r\n\r\n", 2)
-	headers, body := x[0], x[1]
-
 	h := make(map[string][]string, 0)
-	hdrs := strings.Split(headers, "\r\n")
-	for _, hdr := range hdrs {
-		if(strings.Contains(hdr, ": ")) {
-			y := strings.SplitN(hdr, ": ", 2)
-			key, value := y[0], y[1]
-			// TODO multiple header fields
-			h[key] = []string{value}
-		} else {
-			log.Printf("Found invalid header: '%s'", hdr)
-		}
-	}
 
-	return &Content{
-		Size: len(data),
-		Headers: h,
-		Body: body,
+	if len(x) == 2 {
+		headers, body := x[0], x[1]
+		hdrs := strings.Split(headers, "\r\n")
+		var lastHdr = ""
+		for _, hdr := range hdrs {
+			if lastHdr != "" && strings.HasPrefix(hdr, " ") {
+				h[lastHdr][len(h[lastHdr])-1] = h[lastHdr][len(h[lastHdr])-1] + hdr
+			} else if strings.Contains(hdr, ": ") {
+				y := strings.SplitN(hdr, ": ", 2)
+				key, value := y[0], y[1]
+				// TODO multiple header fields
+				h[key] = []string{value}
+				lastHdr = key
+			} else {
+				log.Printf("Found invalid header: '%s'", hdr)
+			}
+		}
+		return &Content{
+			Size: len(data),
+			Headers: h,
+			Body: body,
+		}
+	} else {
+		return &Content{
+			Size: len(data),
+			Headers: h,
+			Body: x[0],
+		}
 	}
 }
