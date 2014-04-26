@@ -100,6 +100,7 @@ func Index() string {
           </td>
           <td>
             <button class="btn btn-xs btn-default" title="Delete" ng-click="deleteOne(message)"><span class="glyphicon glyphicon-remove"></span></button>
+            <a class="btn btn-xs btn-default" title="Delete" href="/api/v1/messages/{{ message.Id }}/download"><span class="glyphicon glyphicon-save"></span></a>
           </td>
         </tr>
       </tbody>
