@@ -51,6 +51,12 @@ You can configure Go-MailHog using command line options:
 
 Clone this repository to ```$GOPATH/src/github.com/ian-kent/MailHog``` and type ```go install```.
 
+You'll need go-bindata to embed web assets:
+```
+go get https://github.com/jteeuwen/go-bindata/...
+go-bindata assets/...
+```
+
 Run tests using ```go test```. You'll need a copy of MailHog running for tests to pass.
 (Tests currently fail using in-memory storage, use MongoDB!)
 

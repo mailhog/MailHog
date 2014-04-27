@@ -1,7 +1,3 @@
-package js
-
-func Controllers() string {
-	return `
 var mailhogApp = angular.module('mailhogApp', []);
 
 mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
@@ -122,5 +118,3 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
   	});
   }
 });
-`;
-}

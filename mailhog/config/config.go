@@ -19,4 +19,5 @@ type Config struct {
 	MongoDb string
 	MongoColl string
 	Storage interface{}
+	Assets func(asset string) ([]byte, error)
 }

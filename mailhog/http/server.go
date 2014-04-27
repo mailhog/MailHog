@@ -3,10 +3,8 @@ package http
 import (
 	"regexp"
 	"net/http"
+	"strings"
 	"github.com/ian-kent/MailHog/mailhog/config"
-	"github.com/ian-kent/MailHog/mailhog/templates"
-	"github.com/ian-kent/MailHog/mailhog/templates/images"
-	"github.com/ian-kent/MailHog/mailhog/templates/js"
 	"github.com/ian-kent/MailHog/mailhog/http/api"
 	"github.com/ian-kent/MailHog/mailhog/http/handler"
 )
@@ -22,21 +20,27 @@ func web_exit(w http.ResponseWriter, r *http.Request, route *handler.Route) {
 
 func web_index(w http.ResponseWriter, r *http.Request, route *handler.Route) {
 	web_headers(w)
-	w.Write([]byte(web_render(templates.Index())))
+	data, _ := cfg.Assets("assets/templates/index.html")
+	w.Write([]byte(web_render(string(data))))
 }
 
 func web_jscontroller(w http.ResponseWriter, r *http.Request, route *handler.Route) {
 	w.Header().Set("Content-Type", "text/javascript")
-	w.Write([]byte(js.Controllers()))
+	data, _ := cfg.Assets("assets/js/controllers.js")
+	w.Write(data)
 }
 
 func web_imgcontroller(w http.ResponseWriter, r *http.Request, route *handler.Route) {
 	w.Header().Set("Content-Type", "image/png")
-	w.Write(images.Hog())
+	data, _ := cfg.Assets("assets/images/hog.png")
+	w.Write(data)
 }
 
 func web_render(content string) string {
-	return templates.Layout(content)
+	data, _ := cfg.Assets("assets/templates/layout.html")
+	layout := string(data)
+	html := strings.Replace(layout, "<%= content %>", content, -1)
+	return html
 }
 
 func web_headers(w http.ResponseWriter) {

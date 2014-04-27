@@ -34,6 +34,7 @@ func configure() {
 		MongoUri:     mongouri,
 		MongoDb:      mongodb,
 		MongoColl:    mongocoll,
+		Assets:       Asset,
 	}
 
 	if storage_type == "mongodb" {
