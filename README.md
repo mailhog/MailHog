@@ -26,7 +26,7 @@ server will start on port 8025.
 * Web interface to view messages (plain text, HTML or source)
 * Release messages to real SMTP servers
 * HTTP API to list, retrieve and delete messages
-  * See (APIv1 documentation)[APIv1.md] for more information
+  * See [APIv1 documentation](APIv1.md) for more information
 * Multipart MIME support
 * Download individual MIME parts
 * In-memory message storage
