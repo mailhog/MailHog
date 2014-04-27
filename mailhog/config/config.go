@@ -18,6 +18,7 @@ type Config struct {
 	MongoUri string
 	MongoDb string
 	MongoColl string
+	MessageChan chan interface{}
 	Storage interface{}
 	Assets func(asset string) ([]byte, error)
 }

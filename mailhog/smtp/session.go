@@ -81,15 +81,16 @@ func (c *Session) Parse() {
 				c.log("Got EOF, storing message and switching to MAIL state")
 				//c.log("Full message data: %s", c.message.Data)
 				c.message.Data = strings.TrimSuffix(c.message.Data, "\r\n.\r\n")
+				msg := data.ParseSMTPMessage(c.message, c.conf.Hostname)
 				var id string
 				var err error
 				switch c.conf.Storage.(type) {
 					case *storage.MongoDB:
 						c.log("Storing message using MongoDB")
-						id, err = c.conf.Storage.(*storage.MongoDB).Store(c.message)
+						id, err = c.conf.Storage.(*storage.MongoDB).Store(msg)
 					case *storage.Memory:
 						c.log("Storing message using Memory")
-						id, err = c.conf.Storage.(*storage.Memory).Store(c.message)
+						id, err = c.conf.Storage.(*storage.Memory).Store(msg)
 					default:
 						c.log("Unknown storage type")
 						// TODO send error reply
@@ -101,6 +102,7 @@ func (c *Session) Parse() {
 					return
 				}
 				c.Write("250", "Ok: queued as " + id)
+				c.conf.MessageChan <- msg
 			}
 		} else {
 			c.Process(strings.Trim(parts[0], "\r\n"))

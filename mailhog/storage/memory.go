@@ -21,12 +21,11 @@ func CreateMemory(c *config.Config) *Memory {
 	}
 }
 
-func (memory *Memory) Store(m *data.SMTPMessage) (string, error) {
-	msg := data.ParseSMTPMessage(m, memory.Config.Hostname)
-	memory.Messages[msg.Id] = msg
-	memory.MessageIndex = append(memory.MessageIndex, msg.Id)
-	memory.MessageRIndex[msg.Id] = len(memory.MessageIndex)
-	return msg.Id, nil
+func (memory *Memory) Store(m *data.Message) (string, error) {
+	memory.Messages[m.Id] = m
+	memory.MessageIndex = append(memory.MessageIndex, m.Id)
+	memory.MessageRIndex[m.Id] = len(memory.MessageIndex)
+	return m.Id, nil
 }
 
 func (memory *Memory) List(start int, limit int) ([]*data.Message, error) {

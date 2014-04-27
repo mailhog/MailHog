@@ -35,6 +35,7 @@ func configure() {
 		MongoDb:      mongodb,
 		MongoColl:    mongocoll,
 		Assets:       Asset,
+		MessageChan:  make(chan interface{}),
 	}
 
 	if storage_type == "mongodb" {
@@ -64,9 +65,9 @@ func main() {
 
 	for {
 		select {
-		case <-exitCh:
-			log.Printf("Received exit signal")
-			os.Exit(0)
+			case <-exitCh:
+				log.Printf("Received exit signal")
+				os.Exit(0)
 		}
 	}
 }

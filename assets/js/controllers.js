@@ -19,6 +19,30 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
   $scope.eventDone = 0;
   $scope.eventFailed = 0;
 
+  $scope.hasEventSource = false;
+  $scope.source = null;
+
+  $(function() {
+    $scope.source = new EventSource('/api/v1/events');
+    $scope.source.addEventListener('message', function(e) {
+      $scope.$apply(function() {
+        $scope.messages.push(JSON.parse(e.data));
+      });
+    }, false);
+    $scope.source.addEventListener('open', function(e) {
+      $scope.$apply(function() {
+        $scope.hasEventSource = true;
+      });
+    }, false);
+    $scope.source.addEventListener('error', function(e) {
+      if(e.readyState == EventSource.CLOSED) {
+        $scope.$apply(function() {
+          $scope.hasEventSource = false;
+        });
+      }
+    }, false);
+  });
+
   $scope.startEvent = function(name, args, glyphicon) {
     var eID = guid();
     console.log("Starting event '" + name + "' with id '" + eID + "'")

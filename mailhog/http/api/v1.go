@@ -3,9 +3,13 @@ package api
 import (
 	"log"
 	"encoding/json"
+	"fmt"
+	"net"
 	"net/http"
 	"net/smtp"
 	"strconv"
+	"bufio"
+	"strings"
 	"github.com/ian-kent/MailHog/mailhog/data"
 	"github.com/ian-kent/MailHog/mailhog/config"
 	"github.com/ian-kent/MailHog/mailhog/storage"
@@ -16,6 +20,12 @@ type APIv1 struct {
 	config *config.Config
 	exitChannel chan int
 	server *http.Server
+	eventlisteners []*EventListener
+}
+
+type EventListener struct {
+	conn net.Conn
+	bufrw *bufio.ReadWriter
 }
 
 type ReleaseConfig struct {
@@ -30,6 +40,7 @@ func CreateAPIv1(exitCh chan int, conf *config.Config, server *http.Server) *API
 		config: conf,
 		exitChannel: exitCh,
 		server: server,
+		eventlisteners: make([]*EventListener, 0),
 	}
 
 	r := server.Handler.(*router.Router)
@@ -41,8 +52,79 @@ func CreateAPIv1(exitCh chan int, conf *config.Config, server *http.Server) *API
 	r.Get("^/api/v1/messages/([0-9a-f]+)/download/?$", apiv1.download)
 	r.Get("^/api/v1/messages/([0-9a-f]+)/mime/part/(\\d+)/download/?$", apiv1.download_part)
 	r.Post("^/api/v1/messages/([0-9a-f]+)/release/?$", apiv1.release_one)
+	r.Get("^/api/v1/events/?$", apiv1.eventstream)
+
+	go func() {
+		for {
+			select {
+				case msg := <- apiv1.config.MessageChan:
+					log.Println("Got message in APIv1 event stream")
+					bytes, _ := json.MarshalIndent(msg, "", "  ")
+					json := string(bytes)
+					log.Printf("Sending content: %s\n", json)
+					apiv1.broadcast(json)
+				case <- exitCh:
+					break;
+			}
+		}
+	}()
 
 	return apiv1
+}
+
+func (apiv1 *APIv1) broadcast(json string) {
+	log.Println("[APIv1] BROADCAST /api/v1/events")
+	for _, l := range apiv1.eventlisteners {
+		log.Printf("Sending to connection: %s\n", l.conn.RemoteAddr())
+
+		lines := strings.Split(json, "\n")
+		data := ""
+		for _, l := range lines {
+			data += "data: " + l + "\n"
+		}
+		data += "\n"
+
+		size := fmt.Sprintf("%X", len(data) + 1)
+		l.bufrw.Write([]byte(size + "\r\n"))
+
+		lines = strings.Split(data, "\n")
+		for _, ln := range lines {
+			l.bufrw.Write([]byte(ln + "\n"))
+		}
+		_, err := l.bufrw.Write([]byte("\r\n"))
+
+		if err != nil {
+			log.Printf("Error writing to connection: %s\n", err)
+			l.conn.Close()
+			// TODO remove from array
+		}
+
+		err = l.bufrw.Flush()
+		if err != nil {
+			log.Printf("Error flushing buffer: %s\n", err)
+			l.conn.Close()
+			// TODO remove from array
+		}
+	}
+}
+
+func (apiv1 *APIv1) eventstream(w http.ResponseWriter, r *http.Request, route *router.Route) {
+	log.Println("[APIv1] GET /api/v1/events")
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Write([]byte("\n\n"))
+	hj, ok := w.(http.Hijacker)
+	if !ok {
+		log.Println("[APIv1] Connection hijack failed")
+		return
+	}
+	conn, bufrw, err := hj.Hijack()
+	if err != nil {
+		log.Println("[APIv1] Connection hijack failed")
+		return
+	}
+	apiv1.eventlisteners = append(apiv1.eventlisteners, &EventListener{conn, bufrw})
 }
 
 func (apiv1 *APIv1) messages(w http.ResponseWriter, r *http.Request, route *router.Route) {

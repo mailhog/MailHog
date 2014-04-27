@@ -28,14 +28,13 @@ func CreateMongoDB(c *config.Config) *MongoDB {
 	}
 }
 
-func (mongo *MongoDB) Store(m *data.SMTPMessage) (string, error) {
-	msg := data.ParseSMTPMessage(m, mongo.Config.Hostname)
-	err := mongo.Collection.Insert(msg)
+func (mongo *MongoDB) Store(m *data.Message) (string, error) {	
+	err := mongo.Collection.Insert(m)
 	if err != nil {
 		log.Printf("Error inserting message: %s", err)
 		return "", err
 	}
-	return msg.Id, nil
+	return m.Id, nil
 }
 
 func (mongo *MongoDB) List(start int, limit int) (*data.Messages, error) {
