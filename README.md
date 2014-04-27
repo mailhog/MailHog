@@ -27,6 +27,7 @@ server will start on port 8025.
 * Release messages to real SMTP servers
 * HTTP API to list, retrieve and delete messages
 * Multipart MIME support
+* Download individual MIME parts
 * In-memory message storage
 * MongoDB storage for message persistence
 * Lightweight and portable
