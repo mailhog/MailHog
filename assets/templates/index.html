@@ -23,6 +23,10 @@
     overflow: auto;
     height: 263px;
   }
+  #messages-container table tbody td {
+    overflow-x: hidden;
+    white-space: nowrap;
+  }
   table thead {
     background: #eee;
   }
@@ -75,7 +79,7 @@
     $('#messages-container table').height($('#messages-container').height())
     $('#messages-container table tbody').height($('#messages-container').height() - $('#messages-container table thead').height())
 
-    var $table = $('#messages-container table'), $bodyCells = $table.find('tbody tr:first').children(), colWidth;
+    var $table = $('#messages-container table');
     var colWidth = [];
     for(var i in columns) {
       colWidth[i] = $table.innerWidth() / 100 * columns[i];
