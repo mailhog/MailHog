@@ -168,6 +168,7 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
 	}
 
   $scope.findMatchingMIME = function(part, mime) {
+    // TODO cache results
     if(part.MIME) {
       for(var p in part.MIME.Parts) {
         if("Content-Type" in part.MIME.Parts[p].Headers) {
@@ -185,6 +186,14 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
       }
     }
     return null;
+  }
+  $scope.hasHTML = function(message) {
+    // TODO cache this
+    var l = $scope.findMatchingMIME(message, "text/html");
+    if(l != null && l !== "undefined") {
+      return true
+    }
+    return false;
   }
   $scope.getMessageHTML = function(message) {
     var l = $scope.findMatchingMIME(message, "text/html");

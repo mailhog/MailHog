@@ -1,8 +1,7 @@
 <style>
   .messages {
     padding-top: 51px;
-    height: 30%;
-    min-height: 280px;
+    height: 350px;
     border-bottom: 1px solid #999;
     overflow: hidden;
   }
@@ -21,7 +20,7 @@
   }
   #messages-container table tbody {
     overflow: auto;
-    height: 263px;
+    height: 260px;
   }
   #messages-container table tbody td {
     overflow-x: hidden;
@@ -65,6 +64,10 @@
   .mime-part {
     padding: 10px;
   }
+  .ui-resizable-handle.ui-resizable-s {
+    background: #aaa;
+    border-bottom: 1px solid #ccc;
+  }
 </style>
 <script>
   var columns = [15,15,40,20,10];
@@ -75,6 +78,7 @@
     } else {
       remaining = $('#messages-container').offset().top + $('#messages-container').height();
     }
+    remaining -= $('.resize_bar').height();
     $('.preview .tab-content').height(remaining - 32)
     $('#messages-container table').height($('#messages-container').height())
     $('#messages-container table tbody').height($('#messages-container').height() - $('#messages-container table thead').height())
@@ -89,17 +93,8 @@
     $table.find('tbody tr:first').children().each(function(i, v) { $(v).width(colWidth[i]); }); 
   }
   $(function() {
+    $(".messages").resizable({"handles":"s"});
     reflow();
-    var reflowPending = false;
-    $("#messages-container table tbody").bind("DOMSubtreeModified", function() {
-      if(!reflowPending) {
-        reflowPending = true
-        window.setTimeout(function() {
-          reflow();
-          reflowPending = false;
-        }, 100);
-      }
-    });
     $(window).resize(function() {
         reflow();
     }).resize();
@@ -226,14 +221,14 @@
   </table>
   <div id="content">
     <ul class="nav nav-tabs">
-      <li class="active"><a href="#preview-html" data-toggle="tab">HTML</a></li>
-      <li><a href="#preview-plain" data-toggle="tab">Plain text</a></li>
+      <li ng-if="hasHTML(preview)" ng-class="{ active: hasHTML(preview) }"><a href="#preview-html" data-toggle="tab">HTML</a></li>
+      <li ng-class="{ active: !hasHTML(preview) }"><a href="#preview-plain" data-toggle="tab">Plain text</a></li>
       <li><a href="#preview-source" data-toggle="tab">Source</a></li>
       <li ng-if="preview.MIME"><a href="#preview-mime" data-toggle="tab">MIME</a></li>
     </ul>
     <div class="tab-content">
-      <div class="tab-pane active" id="preview-html" ng-bind-html="preview.previewHTML"></div>
-      <div class="tab-pane" id="preview-plain">{{ getMessagePlain(preview) }}</div>
+      <div ng-if="hasHTML(preview)" ng-class="{ active: hasHTML(preview) }" class="tab-pane" id="preview-html" ng-bind-html="preview.previewHTML"></div>
+      <div class="tab-pane" ng-class="{ active: !hasHTML(preview) }" id="preview-plain">{{ getMessagePlain(preview) }}</div>
       <div class="tab-pane" id="preview-source">{{ getSource(preview) }}</div>
       <div class="tab-pane" id="preview-mime">
         <div ng-repeat="part in preview.MIME.Parts" class="mime-part">
