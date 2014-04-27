@@ -12,6 +12,8 @@ import (
 var exitChannel chan int
 var cfg *config.Config
 
+// TODO clean this mess up
+
 func web_exit(w http.ResponseWriter, r *http.Request, route *handler.Route) {
 	web_headers(w)
 	w.Write([]byte("Exiting MailHog!"))
@@ -33,6 +35,12 @@ func web_jscontroller(w http.ResponseWriter, r *http.Request, route *handler.Rou
 func web_imgcontroller(w http.ResponseWriter, r *http.Request, route *handler.Route) {
 	w.Header().Set("Content-Type", "image/png")
 	data, _ := cfg.Assets("assets/images/hog.png")
+	w.Write(data)
+}
+
+func web_img_github(w http.ResponseWriter, r *http.Request, route *handler.Route) {
+	w.Header().Set("Content-Type", "image/png")
+	data, _ := cfg.Assets("assets/images/github.png")
 	w.Write(data)
 }
 
@@ -65,6 +73,7 @@ func Start(exitCh chan int, conf *config.Config) {
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/exit/?$"), web_exit)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/js/controllers.js$"), web_jscontroller)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/images/hog.png$"), web_imgcontroller)
+	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/images/github.png$"), web_img_github)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/images/ajax-loader.gif$"), web_img_ajaxloader)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/$"), web_index)
 

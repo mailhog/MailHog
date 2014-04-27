@@ -54,6 +54,15 @@
         color: #666;
       }
 
+      .dropdown-menu .glyphicon {
+        padding: 1px;
+        margin-right: 5px;
+        color: #666;
+      }
+      .dropdown-menu > li > a {
+        padding: 3px 10px;
+      }
+
       /* http://stackoverflow.com/questions/18838964/add-bootstrap-glyphicon-to-input-box */
       .left-inner-addon {
           position: relative;
@@ -102,12 +111,12 @@
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Options <b class="caret"></b></a>
           <ul class="dropdown-menu">
-            <li><a href="#" ng-click="refresh()">Refresh</a></li>
+            <li><a href="#" ng-click="refresh()"><span class="glyphicon glyphicon-download"></span> Refresh</a></li>
             <li class="divider"></li>
-            <li><a href="#" ng-click="deleteAll()">Delete all messages</a></li>
+            <li><a href="#" ng-click="deleteAll()"><span class="glyphicon glyphicon-remove-circle"></span> Delete all messages</a></li>
           </ul>
         </li>
-        <li><a target="_blank" href="https://github.com/ian-kent/Go-MailHog">GitHub</a></li>
+        <li><a target="_blank" href="https://github.com/ian-kent/Go-MailHog"><img src="/images/github.png" style="width: 16px;" /> GitHub</a></li>
       </ul>
     </nav>
     <%= content %>
