@@ -58,8 +58,7 @@ func (apiv1 *APIv1) messages(w http.ResponseWriter, r *http.Request, route *hand
 			w.Header().Set("Content-Type", "text/json")
 			w.Write(bytes)
 		default:
-			w.Header().Set("Content-Type", "text/json")
-			w.Write([]byte("[]"))
+			w.WriteHeader(500)
 	}
 }
 
@@ -80,9 +79,7 @@ func (apiv1 *APIv1) message(w http.ResponseWriter, r *http.Request, route *handl
 			w.Header().Set("Content-Type", "text/json")
 			w.Write(bytes)
 		default:
-			// FIXME 404?
-			w.Header().Set("Content-Type", "text/json")
-			w.Write([]byte("{}"))
+			w.WriteHeader(500)
 	}
 }
 
@@ -112,8 +109,7 @@ func (apiv1 *APIv1) download(w http.ResponseWriter, r *http.Request, route *hand
 			}
 			w.Write([]byte("\r\n" + message.Content.Body))
 		default:
-			// FIXME 404?
-			w.Write([]byte(""))
+			w.WriteHeader(500)
 	}
 }
 
@@ -127,7 +123,7 @@ func (apiv1 *APIv1) delete_all(w http.ResponseWriter, r *http.Request, route *ha
 		case *storage.Memory:
 			apiv1.config.Storage.(*storage.Memory).DeleteAll()
 		default:
-			// FIXME 404?
+			w.WriteHeader(500)
 	}
 }
 
@@ -144,7 +140,7 @@ func (apiv1 *APIv1) release_one(w http.ResponseWriter, r *http.Request, route *h
 		case *storage.Memory:
 			msg, _ = apiv1.config.Storage.(*storage.Memory).Load(id)
 		default:
-			// FIXME 404?
+			w.WriteHeader(500)
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -152,7 +148,8 @@ func (apiv1 *APIv1) release_one(w http.ResponseWriter, r *http.Request, route *h
 	err := decoder.Decode(&cfg)
 	if err != nil {
 		log.Printf("Error decoding request body: %s", err)
-		// TODO 400?
+		w.WriteHeader(500)
+		w.Write([]byte("Error decoding request body"))
 		return
 	}
 
@@ -173,7 +170,6 @@ func (apiv1 *APIv1) release_one(w http.ResponseWriter, r *http.Request, route *h
 		w.WriteHeader(500)
 		return
 	}
-	w.WriteHeader(200)
 	log.Printf("Message released successfully")
 }
 
@@ -189,6 +185,6 @@ func (apiv1 *APIv1) delete_one(w http.ResponseWriter, r *http.Request, route *ha
 		case *storage.Memory:
 			apiv1.config.Storage.(*storage.Memory).DeleteOne(id)
 		default:
-			// FIXME 404?
+			w.WriteHeader(500)
 	}
 }
