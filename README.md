@@ -24,6 +24,7 @@ on port 8025, and in-memory message storage will be used.
 * ESMTP server implementing RFC5321
 * Support for SMTP AUTH (RFC4954) and PIPELINING (RFC2920)
 * Web interface to view messages (plain text, HTML or source)
+* Real-time updates using EventSource
 * Release messages to real SMTP servers
 * HTTP API to list, retrieve and delete messages
   * See [APIv1 documentation](APIv1.md) for more information
