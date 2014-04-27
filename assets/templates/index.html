@@ -114,6 +114,38 @@
   </div>
 </div>
 
+<div class="modal fade" id="release-one">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Release message</h4>
+      </div>
+      <div class="modal-body">
+        <p>To release this message, enter a recipient and SMTP server address:</p>
+        <form role="form">
+          <div class="form-group">
+            <label for="release-message-email">Email address</label>
+            <input type="email" autofocus class="form-control" id="release-message-email" placeholder="someone@example.com">
+          </div>
+          <div class="form-group">
+            <label for="release-message-smtp-host">SMTP server</label>
+            <input type="text" class="form-control" id="release-message-smtp-host" placeholder="mail.example.com">
+          </div>
+          <div class="form-group">
+            <label for="release-message-smtp-port">SMTP port</label>
+            <input type="number" class="form-control" id="release-message-smtp-port" value="25">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" ng-click="confirmReleaseMessage()">Release message</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="messages">
   <div id="messages-container">
     <table class="table">
@@ -145,6 +177,7 @@
           <td>
             <button class="btn btn-xs btn-default" title="Delete" ng-click="deleteOne(message)"><span class="glyphicon glyphicon-remove"></span></button>
             <a class="btn btn-xs btn-default" title="Delete" href="/api/v1/messages/{{ message.Id }}/download"><span class="glyphicon glyphicon-save"></span></a>
+            <button class="btn btn-xs btn-default" title="Release" ng-click="releaseOne(message)"><span class="glyphicon glyphicon-share"></span></button>
           </td>
         </tr>
       </tbody>

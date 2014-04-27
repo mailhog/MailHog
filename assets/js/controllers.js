@@ -4,6 +4,8 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
   $scope.cache = {};
   $scope.previewAllHeaders = false;
 
+  $scope.eventsPending = [];
+
   $scope.refresh = function() {
     $http.get('/api/v1/messages').success(function(data) {
       $scope.messages = data;
@@ -91,6 +93,26 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
 
   $scope.deleteAll = function() {
   	$('#confirm-delete-all').modal('show');
+  }
+
+  $scope.releaseOne = function(message) {
+    $scope.releasing = message;
+    $('#release-one').modal('show');
+  }
+  $scope.confirmReleaseMessage = function() {
+    $('#release-one').modal('hide');
+    var message = $scope.releasing;
+    $scope.releasing = null;
+
+    $http.post('/api/v1/messages/' + message.Id + '/release', {
+      email: $('#release-message-email').val(),
+      host: $('#release-message-smtp-host').val(),
+      port: $('#release-message-smtp-port').val(),
+    }).success(function() {
+      alert("Message released")
+    }).error(function(e) {
+      alert("Failed to release message: " + e)
+    });
   }
 
   $scope.getSource = function(message) {
