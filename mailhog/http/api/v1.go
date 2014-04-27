@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/smtp"
 	"regexp"
+	"strconv"
 	"github.com/ian-kent/MailHog/mailhog/data"
 	"github.com/ian-kent/MailHog/mailhog/config"
 	"github.com/ian-kent/MailHog/mailhog/storage"
@@ -37,6 +38,7 @@ func CreateAPIv1(exitCh chan int, conf *config.Config, server *http.Server) *API
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/?$"), apiv1.message)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/delete/?$"), apiv1.delete_one)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/download/?$"), apiv1.download)
+	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/mime/part/(\\d+)/download/?$"), apiv1.download_part)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/release/?$"), apiv1.release_one)
 
 	return apiv1
@@ -108,6 +110,38 @@ func (apiv1 *APIv1) download(w http.ResponseWriter, r *http.Request, route *hand
 				}
 			}
 			w.Write([]byte("\r\n" + message.Content.Body))
+		default:
+			w.WriteHeader(500)
+	}
+}
+
+func (apiv1 *APIv1) download_part(w http.ResponseWriter, r *http.Request, route *handler.Route) {
+	match := route.Pattern.FindStringSubmatch(r.URL.Path)
+	id := match[1]
+	part, _ := strconv.Atoi(match[2])
+	log.Printf("[APIv1] GET /api/v1/messages/%s/mime/part/%d/download\n", id, part)
+
+	// TODO extension from content-type?
+
+	w.Header().Set("Content-Disposition", "attachment; filename=\"" + id + "-part-" + match[2] + "\"")
+
+	switch apiv1.config.Storage.(type) {
+		case *storage.MongoDB:
+			message, _ := apiv1.config.Storage.(*storage.MongoDB).Load(id)
+			for h, l := range message.MIME.Parts[part].Headers {
+				for _, v := range l {
+					w.Header().Set(h, v)
+				}
+			}
+			w.Write([]byte("\r\n" + message.MIME.Parts[part].Body))
+		case *storage.Memory:
+			message, _ := apiv1.config.Storage.(*storage.Memory).Load(id)
+			for h, l := range message.MIME.Parts[part].Headers {
+				for _, v := range l {
+					w.Header().Set(h, v)
+				}
+			}
+			w.Write([]byte("\r\n" + message.MIME.Parts[part].Body))
 		default:
 			w.WriteHeader(500)
 	}

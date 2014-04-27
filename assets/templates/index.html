@@ -58,6 +58,9 @@
     padding: 0;
     overflow-y: scroll;
   }
+  .mime-part {
+    padding: 10px;
+  }
 </style>
 <script>
   var columns = [15,15,40,20,10];
@@ -222,11 +225,21 @@
       <li class="active"><a href="#preview-html" data-toggle="tab">HTML</a></li>
       <li><a href="#preview-plain" data-toggle="tab">Plain text</a></li>
       <li><a href="#preview-source" data-toggle="tab">Source</a></li>
+      <li ng-if="preview.MIME"><a href="#preview-mime" data-toggle="tab">MIME</a></li>
     </ul>
     <div class="tab-content">
       <div class="tab-pane active" id="preview-html" ng-bind-html="preview.previewHTML"></div>
       <div class="tab-pane" id="preview-plain">{{ getMessagePlain(preview) }}</div>
       <div class="tab-pane" id="preview-source">{{ getSource(preview) }}</div>
+      <div class="tab-pane" id="preview-mime">
+        <div ng-repeat="part in preview.MIME.Parts" class="mime-part">
+          <a href="/api/v1/messages/{{ preview.Id }}/mime/part/{{ $index }}/download" type="button" class="btn btn-default btn-sm">
+            <span class="glyphicon glyphicon-save"></span>
+            Download
+          </a>
+          {{ part.Headers["Content-Type"][0] || "Unknown type" }} ({{ part.Size }} bytes)
+        </div>
+      </div>
     </div>
   </div>
 </div>
