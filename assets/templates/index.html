@@ -4,6 +4,7 @@
     height: 30%;
     min-height: 280px;
     border-bottom: 1px solid #999;
+    overflow: hidden;
   }
   #messages-container {
     height: 100%;
@@ -61,21 +62,22 @@
 <script>
   var columns = [15,15,40,20,10];
   var reflow = function() {
+    var remaining = 0;
     if($('.preview').length > 0) {
-      var remaining = $(window).height() - $('.preview .nav-tabs').offset().top
-      $('.preview .tab-content').height(remaining - 32)
-      $('#messages-container table').height($('#messages-container').height())
-      $('#messages-container table tbody').height($('#messages-container').height() - $('#messages-container table thead').height())
+      remaining = $(window).height() - $('.preview .nav-tabs').offset().top
+    } else {
+      remaining = $('#messages-container').offset().top + $('#messages-container').height();
     }
+    $('.preview .tab-content').height(remaining - 32)
+    $('#messages-container table').height($('#messages-container').height())
+    $('#messages-container table tbody').height($('#messages-container').height() - $('#messages-container table thead').height())
 
     var $table = $('#messages-container table'), $bodyCells = $table.find('tbody tr:first').children(), colWidth;
     var colWidth = [];
     for(var i in columns) {
       colWidth[i] = $table.innerWidth() / 100 * columns[i];
     }
-    //var spare = $table.width() - $table.find('tbody tr:first').width();
-    //var add = spare / cols;
-    //colWidth = $bodyCells.map(function() { return $(this).width(); }).get();
+    
     $table.find('thead tr').children().each(function(i, v) { $(v).width(colWidth[i]); }); 
     $table.find('tbody tr:first').children().each(function(i, v) { $(v).width(colWidth[i]); }); 
   }
