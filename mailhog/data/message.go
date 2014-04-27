@@ -16,7 +16,7 @@ type Message struct {
 	To []*Path
 	Content *Content
 	Created time.Time
-	MIME *MIMEBody
+	MIME *MIMEBody // FIXME refactor to use Content.MIME
 }
 
 type Path struct {
@@ -30,6 +30,7 @@ type Content struct {
 	Headers map[string][]string
 	Body string
 	Size int
+	MIME *MIMEBody
 }
 
 type SMTPMessage struct {
@@ -42,6 +43,8 @@ type SMTPMessage struct {
 type MIMEBody struct {
 	Parts []*Content
 }
+
+// TODO support nested MIME content
 
 func ParseSMTPMessage(m *SMTPMessage, hostname string) *Message {
 	arr := make([]*Path, 0)
@@ -68,7 +71,9 @@ func ParseSMTPMessage(m *SMTPMessage, hostname string) *Message {
 }
 
 func (content *Content) IsMIME() bool {
-	return strings.HasPrefix(content.Headers["Content-Type"][0], "multipart/")
+	header, ok := content.Headers["Content-Type"]
+	if !ok { return false }
+	return strings.HasPrefix(header[0], "multipart/")
 }
 
 func (content *Content) ParseMIMEBody() *MIMEBody {
@@ -80,7 +85,12 @@ func (content *Content) ParseMIMEBody() *MIMEBody {
 	parts := make([]*Content, 0)
 	for m := range p {
 		if len(p[m]) > 0 {
-			parts = append(parts, ContentFromString(strings.Trim(p[m], "\r\n")))
+			part := ContentFromString(strings.Trim(p[m], "\r\n"))
+			if(part.IsMIME()) {
+				log.Printf("Parsing inner MIME body")
+				part.MIME = part.ParseMIMEBody()
+			}
+			parts = append(parts, part)
 		}
 	}
 

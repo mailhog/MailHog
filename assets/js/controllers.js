@@ -57,7 +57,7 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
 
   $scope.startEvent = function(name, args, glyphicon) {
     var eID = guid();
-    console.log("Starting event '" + name + "' with id '" + eID + "'")
+    //console.log("Starting event '" + name + "' with id '" + eID + "'")
     var e = {
       id: eID,
       name: name,
@@ -82,9 +82,9 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
         e.complete = true;
         $scope.eventDone++;
         if(this.failed) {
-          console.log("Failed event '" + e.name + "' with id '" + eID + "'")
+          // console.log("Failed event '" + e.name + "' with id '" + eID + "'")
         } else {
-          console.log("Completed event '" + e.name + "' with id '" + eID + "'")
+          // console.log("Completed event '" + e.name + "' with id '" + eID + "'")
           $timeout(function() {
             e.remove();
           }, 10000);
@@ -96,7 +96,7 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
         this.done();
       },
       remove: function() {
-        console.log("Deleted event '" + e.name + "' with id '" + eID + "'")
+        // console.log("Deleted event '" + e.name + "' with id '" + eID + "'")
         if(e.failed) {
           $scope.eventFailed--;
         }
@@ -160,45 +160,39 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
   }
 
   $scope.getMessagePlain = function(message) {
-  	var part;
-
-  	if(message.MIME) {
-  		for(var p in message.MIME.Parts) {
-        if("Content-Type" in message.MIME.Parts[p].Headers) {
-          if(message.MIME.Parts[p].Headers["Content-Type"].length > 0) {
-      			if(message.MIME.Parts[p].Headers["Content-Type"][0].match(/text\/plain;?.*/)) {
-      				part = message.MIME.Parts[p];
-      				break;
-      			}
-          }
-        }
-  		}
+    var l = $scope.findMatchingMIME(message, "text/plain");
+    if(l != null && l !== "undefined") {
+      return l.Body;
+    }
+    return message.Content.Body;
 	}
 
-	if(!part) part = message.Content;
-
-	return part.Body;
+  $scope.findMatchingMIME = function(part, mime) {
+    if(part.MIME) {
+      for(var p in part.MIME.Parts) {
+        if("Content-Type" in part.MIME.Parts[p].Headers) {
+          if(part.MIME.Parts[p].Headers["Content-Type"].length > 0) {
+            if(part.MIME.Parts[p].Headers["Content-Type"][0].match(mime + ";?.*")) {
+              return part.MIME.Parts[p];
+            } else if (part.MIME.Parts[p].Headers["Content-Type"][0].match(/multipart\/.*/)) {
+              var f = $scope.findMatchingMIME(part.MIME.Parts[p], mime);
+              if(f != null) {
+                return f;
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
   }
   $scope.getMessageHTML = function(message) {
-  	var part;
-  	
-  	if(message.MIME) {
-  		for(var p in message.MIME.Parts) {
-        if("Content-Type" in message.MIME.Parts[p].Headers) {
-          if(message.MIME.Parts[p].Headers["Content-Type"].length > 0) {
-      			if(message.MIME.Parts[p].Headers["Content-Type"][0].match(/text\/html;?.*/)) {
-      				part = message.MIME.Parts[p];
-      				break;
-      			}
-          }
-        }
-  		}
+    var l = $scope.findMatchingMIME(message, "text/html");
+    if(l != null && l !== "undefined") {
+      return l.Body;
+    }
+  	return "<HTML not found>";
 	}
-
-	if(!part) part = message.Content;
-
-	return part.Body;
-  }
 
   $scope.date = function(timestamp) {
   	return (new Date(timestamp)).toString();
