@@ -54,6 +54,8 @@ func web_render(content string) string {
 	data, _ := cfg.Assets("assets/templates/layout.html")
 	layout := string(data)
 	html := strings.Replace(layout, "<%= content %>", content, -1)
+	// TODO clean this up
+	html = strings.Replace(html, "<%= config[Hostname] %>", cfg.Hostname, -1)
 	return html
 }
 

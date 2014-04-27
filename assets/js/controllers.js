@@ -75,6 +75,10 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
     return e;
   }
 
+  $scope.messagesDisplayed = function() {
+    return $('#messages-container table tbody tr').length
+  }
+
   $scope.refresh = function() {
     var e = $scope.startEvent("Loading messages", null, "glyphicon-download");
     $http.get('/api/v1/messages').success(function(data) {

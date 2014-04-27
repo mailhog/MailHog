@@ -84,6 +84,14 @@
         <img src="/images/hog.png">
         <a class="navbar-brand" href="#">MailHog</a>
       </div>
+      <ul class="nav navbar-nav navbar-left navbar-subtext">
+        <li>
+          <a><%= config[Hostname] %></a>
+        </li>
+        <li>
+          <a>{{ messagesDisplayed() }} {{ searchText ? "of " + messages.length : "" }} messages</a>
+        </li>
+      </ul>
       <ul class="nav navbar-nav navbar-right">
         <li ng-if="eventCount > 0" class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
