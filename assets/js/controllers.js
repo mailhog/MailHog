@@ -23,6 +23,13 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
   $scope.source = null;
 
   $(function() {
+    $scope.openStream();
+  });
+
+  $scope.toggleStream = function() {
+    $scope.source == null ? $scope.openStream() : $scope.closeStream();
+  }
+  $scope.openStream = function() {
     $scope.source = new EventSource('/api/v1/events');
     $scope.source.addEventListener('message', function(e) {
       $scope.$apply(function() {
@@ -35,13 +42,18 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
       });
     }, false);
     $scope.source.addEventListener('error', function(e) {
-      if(e.readyState == EventSource.CLOSED) {
+      //if(e.readyState == EventSource.CLOSED) {
         $scope.$apply(function() {
           $scope.hasEventSource = false;
         });
-      }
+      //}
     }, false);
-  });
+  }
+  $scope.closeStream = function() {
+    $scope.source.close();
+    $scope.source = null;
+    $scope.hasEventSource = false;
+  }
 
   $scope.startEvent = function(name, args, glyphicon) {
     var eID = guid();
