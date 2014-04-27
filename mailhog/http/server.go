@@ -36,6 +36,12 @@ func web_imgcontroller(w http.ResponseWriter, r *http.Request, route *handler.Ro
 	w.Write(data)
 }
 
+func web_img_ajaxloader(w http.ResponseWriter, r *http.Request, route *handler.Route) {
+	w.Header().Set("Content-Type", "image/gif")
+	data, _ := cfg.Assets("assets/images/ajax-loader.gif")
+	w.Write(data)
+}
+
 func web_render(content string) string {
 	data, _ := cfg.Assets("assets/templates/layout.html")
 	layout := string(data)
@@ -59,6 +65,7 @@ func Start(exitCh chan int, conf *config.Config) {
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/exit/?$"), web_exit)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/js/controllers.js$"), web_jscontroller)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/images/hog.png$"), web_imgcontroller)
+	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/images/ajax-loader.gif$"), web_img_ajaxloader)
 	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/$"), web_index)
 
 	api.CreateAPIv1(exitCh, conf, server)

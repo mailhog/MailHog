@@ -26,6 +26,25 @@
       .navbar-nav.navbar-right:last-child {
         margin-right: 0; /* bootstrap fix?! */
       }
+      .ajax-loader {
+        background: url('/images/ajax-loader.gif');
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+      }
+      .ajax-event {
+        padding: 5px;
+      }
+      .ajax-event h1 {
+        font-size: 1em;
+        padding: 2px;
+        margin: 0;
+      }
+      .ajax-event h2 {
+        font-size: 0.8em;
+        padding: 2px;
+        margin: 0;
+      }
     </style>
   </head>
   <body ng-controller="MailCtrl">
@@ -35,6 +54,18 @@
         <a class="navbar-brand" href="#">MailHog</a>
       </div>
       <ul class="nav navbar-nav navbar-right">
+        <li ng-if="eventCount > 0" class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            <span ng-if="eventCount > eventDone" class="ajax-loader"></span>
+            {{ eventCount - eventDone }} pending <b class="caret"></b>
+          </a>
+          <ul class="dropdown-menu">
+            <li ng-class="e.getClass()" ng-repeat="(id, e) in eventsPending" class="ajax-event">
+              <h1>{{ e.name }}</h1>
+              <h2 ng-if="e.args">{{ e.args }}</h2>
+            </li>
+          </ul>
+        </li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Options <b class="caret"></b></a>
           <ul class="dropdown-menu">

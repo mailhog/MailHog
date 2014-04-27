@@ -1,14 +1,80 @@
 var mailhogApp = angular.module('mailhogApp', []);
 
-mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
+function guid() {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+               .toString(16)
+               .substring(1);
+  }
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+         s4() + '-' + s4() + s4() + s4();
+}
+
+mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
   $scope.cache = {};
   $scope.previewAllHeaders = false;
 
-  $scope.eventsPending = [];
+  $scope.eventsPending = {};
+  $scope.eventCount = 0;
+  $scope.eventDone = 0;
+  $scope.eventFailed = 0;
+
+  $scope.startEvent = function(name, args) {
+    var eID = guid();
+    console.log("Starting event '" + name + "' with id '" + eID + "'")
+    var e = {
+      id: eID,
+      name: name,
+      started: new Date(),
+      complete: false,
+      failed: false,
+      args: args,
+      getClass: function() {
+        // FIXME bit nasty
+        if(this.failed) {
+          return "bg-danger"
+        }
+        if(this.complete) {
+          return "bg-success"
+        }
+        return "bg-warning"; // pending
+      },
+      done: function() {
+        //delete $scope.eventsPending[eID]
+        var e = this;
+        e.complete = true;
+        $scope.eventDone++;
+        if(this.failed) {
+          console.log("Failed event '" + e.name + "' with id '" + eID + "'")
+        } else {
+          console.log("Completed event '" + e.name + "' with id '" + eID + "'")
+        }
+        $timeout(function() {
+          console.log("Deleted event '" + e.name + "' with id '" + eID + "'")
+          if(e.failed) {
+            $scope.eventFailed--;
+          }
+          delete $scope.eventsPending[eID];
+          $scope.eventDone--;
+          $scope.eventCount--;
+        }, 30000);
+      },
+      fail: function() {
+        $scope.eventFailed++;
+        this.failed = true;
+        this.done();
+      }
+    };
+    $scope.eventsPending[eID] = e;
+    $scope.eventCount++;
+    return e;
+  }
 
   $scope.refresh = function() {
+    var e = $scope.startEvent("Loading messages");
     $http.get('/api/v1/messages').success(function(data) {
       $scope.messages = data;
+      e.done();
     });
   }
   $scope.refresh();
@@ -19,12 +85,14 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
       reflow();
   	} else {
   		$scope.preview = message;
+      var e = $scope.startEvent("Loading message", message.Id);
 	  	$http.get('/api/v1/messages/' + message.Id).success(function(data) {
 	  	  $scope.cache[message.Id] = data;
 	      data.previewHTML = $sce.trustAsHtml($scope.getMessageHTML(data));
   		  $scope.preview = data;
   		  preview = $scope.cache[message.Id];
         reflow();
+        e.done();
 	    });
 	}
   }
@@ -104,14 +172,17 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
     var message = $scope.releasing;
     $scope.releasing = null;
 
+    var e = $scope.startEvent("Releasing message", message.Id);
+
     $http.post('/api/v1/messages/' + message.Id + '/release', {
       email: $('#release-message-email').val(),
       host: $('#release-message-smtp-host').val(),
       port: $('#release-message-smtp-port').val(),
     }).success(function() {
-      alert("Message released")
-    }).error(function(e) {
-      alert("Failed to release message: " + e)
+      e.done();
+    }).error(function(err) {
+      e.fail();
+      e.error = err;
     });
   }
 
@@ -127,16 +198,20 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce) {
 
   $scope.deleteAllConfirm = function() {
   	$('#confirm-delete-all').modal('hide');
+    var e = $scope.startEvent("Deleting all messages");
   	$http.post('/api/v1/messages/delete').success(function() {
   		$scope.refresh();
   		$scope.preview = null;
+      e.done()
   	});
   }
 
   $scope.deleteOne = function(message) {
+    var e = $scope.startEvent("Deleting message", message.Id);
   	$http.post('/api/v1/messages/' + message.Id + '/delete').success(function() {
   		if($scope.preview._id == message._id) $scope.preview = null;
   		$scope.refresh();
+      e.done();
   	});
   }
 });
