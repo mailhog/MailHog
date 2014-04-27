@@ -40,11 +40,18 @@
         font-size: 1em;
         padding: 2px;
         margin: 0;
+        padding-left: 20px;
       }
       .ajax-event h2 {
         font-size: 0.8em;
         padding: 2px;
         margin: 0;
+        padding-left: 20px;
+      }
+      .ajax-event .glyphicon {
+        float: left;
+        padding: 1px;
+        color: #666;
       }
 
       /* http://stackoverflow.com/questions/18838964/add-bootstrap-glyphicon-to-input-box */
@@ -69,14 +76,6 @@
         <a class="navbar-brand" href="#">MailHog</a>
       </div>
       <ul class="nav navbar-nav navbar-right">
-        <li>
-          <form class="navbar-form navbar-left" role="search">
-            <div class="form-group left-inner-addon">
-              <i class="glyphicon glyphicon-search"></i>
-              <input ng-model="searchText" type="text" class="form-control" placeholder="Search">
-            </div>
-          </form>
-        </li>
         <li ng-if="eventCount > 0" class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
             <span ng-if="eventCount > eventDone" class="ajax-loader"></span>
@@ -84,12 +83,21 @@
           </a>
           <ul class="dropdown-menu">
             <li ng-class="e.getClass()" ng-repeat="(id, e) in eventsPending" class="ajax-event">
+              <span class="glyphicon {{ e.glyphicon }}"></span>
               <button ng-if="e.failed" ng-click="e.remove()" class="btn btn-xs btn-danger pull-right"><span class="glyphicon glyphicon-remove"></span></button>
               <h1>{{ e.name }}</h1>
               <h2 ng-if="e.args">{{ e.args }}</h2>
               <h2 ng-if="e.error">{{ e.error }}</h2>
             </li>
           </ul>
+        </li>
+        <li>
+          <form class="navbar-form navbar-left" role="search">
+            <div class="form-group left-inner-addon">
+              <i class="glyphicon glyphicon-search"></i>
+              <input ng-model="searchText" type="text" class="form-control" placeholder="Search">
+            </div>
+          </form>
         </li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Options <b class="caret"></b></a>
