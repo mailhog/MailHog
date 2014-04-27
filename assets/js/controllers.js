@@ -48,21 +48,25 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
           console.log("Failed event '" + e.name + "' with id '" + eID + "'")
         } else {
           console.log("Completed event '" + e.name + "' with id '" + eID + "'")
+          $timeout(function() {
+            e.remove();
+          }, 10000);
         }
-        $timeout(function() {
-          console.log("Deleted event '" + e.name + "' with id '" + eID + "'")
-          if(e.failed) {
-            $scope.eventFailed--;
-          }
-          delete $scope.eventsPending[eID];
-          $scope.eventDone--;
-          $scope.eventCount--;
-        }, 30000);
       },
       fail: function() {
         $scope.eventFailed++;
         this.failed = true;
         this.done();
+      },
+      remove: function() {
+        console.log("Deleted event '" + e.name + "' with id '" + eID + "'")
+        if(e.failed) {
+          $scope.eventFailed--;
+        }
+        delete $scope.eventsPending[eID];
+        $scope.eventDone--;
+        $scope.eventCount--;
+        return false;
       }
     };
     $scope.eventsPending[eID] = e;

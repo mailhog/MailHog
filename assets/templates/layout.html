@@ -34,6 +34,7 @@
       }
       .ajax-event {
         padding: 5px;
+        width: 225px;
       }
       .ajax-event h1 {
         font-size: 1em;
@@ -45,6 +46,7 @@
         padding: 2px;
         margin: 0;
       }
+
     </style>
   </head>
   <body ng-controller="MailCtrl">
@@ -57,12 +59,14 @@
         <li ng-if="eventCount > 0" class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
             <span ng-if="eventCount > eventDone" class="ajax-loader"></span>
-            {{ eventCount - eventDone }} pending <b class="caret"></b>
+            {{ eventCount - eventDone }} pending<span ng-if="eventFailed > 0"> ({{ eventFailed}} failed)</span> <span ng-if="eventDone > 0"> ({{ eventDone}} complete)</span> <b class="caret"></b>
           </a>
           <ul class="dropdown-menu">
             <li ng-class="e.getClass()" ng-repeat="(id, e) in eventsPending" class="ajax-event">
+              <button ng-if="e.failed" ng-click="e.remove()" class="btn btn-xs btn-danger pull-right"><span class="glyphicon glyphicon-remove"></span></button>
               <h1>{{ e.name }}</h1>
               <h2 ng-if="e.args">{{ e.args }}</h2>
+              <h2 ng-if="e.error">{{ e.error }}</h2>
             </li>
           </ul>
         </li>
