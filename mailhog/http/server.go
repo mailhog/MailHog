@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 	"strings"
+	"log"
 	"github.com/ian-kent/MailHog/mailhog/config"
 	"github.com/ian-kent/MailHog/mailhog/http/api"
 	"github.com/ian-kent/MailHog/mailhog/http/router"
@@ -25,27 +26,27 @@ func web_index(w http.ResponseWriter, r *http.Request, route *router.Route) {
 	w.Write([]byte(web_render(string(data))))
 }
 
-func web_jscontroller(w http.ResponseWriter, r *http.Request, route *router.Route) {
-	w.Header().Set("Content-Type", "text/javascript")
-	data, _ := cfg.Assets("assets/js/controllers.js")
-	w.Write(data)
-}
+func web_static(w http.ResponseWriter, r *http.Request, route *router.Route) {
+	match := route.Pattern.FindStringSubmatch(r.URL.Path)
+	file := match[1]
+	log.Printf("[HTTP] GET %s\n", file)	
 
-func web_imgcontroller(w http.ResponseWriter, r *http.Request, route *router.Route) {
-	w.Header().Set("Content-Type", "image/png")
-	data, _ := cfg.Assets("assets/images/hog.png")
-	w.Write(data)
-}
+	if strings.HasSuffix(file, ".gif") {
+		w.Header().Set("Content-Type", "image/gif")
+	} else if strings.HasSuffix(file, ".png") {
+		w.Header().Set("Content-Type", "image/png")
+	} else if strings.HasSuffix(file, ".js") {
+		w.Header().Set("Content-Type", "text/javascript")
+	} else {
+		w.Header().Set("Content-Type", "text/plain")
+	}
 
-func web_img_github(w http.ResponseWriter, r *http.Request, route *router.Route) {
-	w.Header().Set("Content-Type", "image/png")
-	data, _ := cfg.Assets("assets/images/github.png")
-	w.Write(data)
-}
-
-func web_img_ajaxloader(w http.ResponseWriter, r *http.Request, route *router.Route) {
-	w.Header().Set("Content-Type", "image/gif")
-	data, _ := cfg.Assets("assets/images/ajax-loader.gif")
+	data, err := cfg.Assets("assets" + file)
+	if err != nil {
+		w.WriteHeader(404)
+		return
+	}
+	
 	w.Write(data)
 }
 
@@ -73,10 +74,10 @@ func Start(exitCh chan int, conf *config.Config) {
 	}
 
 	r.Get("^/exit/?$", web_exit)
-	r.Get("^/js/controllers.js$", web_jscontroller)
-	r.Get("^/images/hog.png$", web_imgcontroller)
-	r.Get("^/images/github.png$", web_img_github)
-	r.Get("^/images/ajax-loader.gif$", web_img_ajaxloader)
+	r.Get("^(/js/controllers.js)$", web_static)
+	r.Get("^(/images/hog.png)$", web_static)
+	r.Get("^(/images/github.png)$", web_static)
+	r.Get("^(/images/ajax-loader.gif)$", web_static)
 	r.Get("^/$", web_index)
 
 	api.CreateAPIv1(exitCh, conf, server)
