@@ -77,7 +77,7 @@
     for(var i in columns) {
       colWidth[i] = $table.innerWidth() / 100 * columns[i];
     }
-    
+
     $table.find('thead tr').children().each(function(i, v) { $(v).width(colWidth[i]); }); 
     $table.find('tbody tr:first').children().each(function(i, v) { $(v).width(colWidth[i]); }); 
   }
@@ -161,7 +161,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="message in messages" ng-click="selectMessage(message)" ng-class="{ selected: message.Id == preview.Id }">
+        <tr ng-repeat="message in messages | filter:searchText" ng-click="selectMessage(message)" ng-class="{ selected: message.Id == preview.Id }">
           <td>
             {{ message.From.Mailbox }}@{{ message.From.Domain }}
           </td>

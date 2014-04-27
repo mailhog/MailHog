@@ -47,6 +47,19 @@
         margin: 0;
       }
 
+      /* http://stackoverflow.com/questions/18838964/add-bootstrap-glyphicon-to-input-box */
+      .left-inner-addon {
+          position: relative;
+      }
+      .left-inner-addon input {
+          padding-left: 30px;    
+      }
+      .left-inner-addon i {
+          color: #aaa;
+          position: absolute;
+          padding: 9px 10px;
+          pointer-events: none;
+      }
     </style>
   </head>
   <body ng-controller="MailCtrl">
@@ -56,6 +69,14 @@
         <a class="navbar-brand" href="#">MailHog</a>
       </div>
       <ul class="nav navbar-nav navbar-right">
+        <li>
+          <form class="navbar-form navbar-left" role="search">
+            <div class="form-group left-inner-addon">
+              <i class="glyphicon glyphicon-search"></i>
+              <input ng-model="searchText" type="text" class="form-control" placeholder="Search">
+            </div>
+          </form>
+        </li>
         <li ng-if="eventCount > 0" class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
             <span ng-if="eventCount > eventDone" class="ajax-loader"></span>
