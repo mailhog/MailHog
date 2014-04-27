@@ -33,13 +33,13 @@ func CreateAPIv1(exitCh chan int, conf *config.Config, server *http.Server) *API
 		server: server,
 	}
 
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/?$"), apiv1.messages)
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/delete/?$"), apiv1.delete_all)
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/?$"), apiv1.message)
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/delete/?$"), apiv1.delete_one)
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/download/?$"), apiv1.download)
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/mime/part/(\\d+)/download/?$"), apiv1.download_part)
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/release/?$"), apiv1.release_one)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"GET"},regexp.MustCompile("^/api/v1/messages/?$"), apiv1.messages)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"DELETE"},regexp.MustCompile("^/api/v1/messages/?$"), apiv1.delete_all)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"GET"},regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/?$"), apiv1.message)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"DELETE"},regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/?$"), apiv1.delete_one)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"GET"},regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/download/?$"), apiv1.download)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"GET"},regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/mime/part/(\\d+)/download/?$"), apiv1.download_part)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"POST"},regexp.MustCompile("^/api/v1/messages/([0-9a-f]+)/release/?$"), apiv1.release_one)
 
 	return apiv1
 }
@@ -65,6 +65,7 @@ func (apiv1 *APIv1) messages(w http.ResponseWriter, r *http.Request, route *hand
 }
 
 func (apiv1 *APIv1) message(w http.ResponseWriter, r *http.Request, route *handler.Route) {
+
 	match := route.Pattern.FindStringSubmatch(r.URL.Path)
 	id := match[1]
 	log.Printf("[APIv1] GET /api/v1/messages/%s\n", id)
@@ -148,7 +149,7 @@ func (apiv1 *APIv1) download_part(w http.ResponseWriter, r *http.Request, route 
 }
 
 func (apiv1 *APIv1) delete_all(w http.ResponseWriter, r *http.Request, route *handler.Route) {
-	log.Println("[APIv1] POST /api/v1/messages/delete")
+	log.Println("[APIv1] POST /api/v1/messages")
 
 	w.Header().Set("Content-Type", "text/json")
 	switch apiv1.config.Storage.(type) {

@@ -72,12 +72,12 @@ func Start(exitCh chan int, conf *config.Config) {
 		Handler: &handler.RegexpHandler{},
 	}
 
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/exit/?$"), web_exit)
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/js/controllers.js$"), web_jscontroller)
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/images/hog.png$"), web_imgcontroller)
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/images/github.png$"), web_img_github)
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/images/ajax-loader.gif$"), web_img_ajaxloader)
-	server.Handler.(*handler.RegexpHandler).HandleFunc(regexp.MustCompile("^/$"), web_index)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"GET"},regexp.MustCompile("^/exit/?$"), web_exit)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"GET"},regexp.MustCompile("^/js/controllers.js$"), web_jscontroller)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"GET"},regexp.MustCompile("^/images/hog.png$"), web_imgcontroller)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"GET"},regexp.MustCompile("^/images/github.png$"), web_img_github)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"GET"},regexp.MustCompile("^/images/ajax-loader.gif$"), web_img_ajaxloader)
+	server.Handler.(*handler.RegexpHandler).HandleFunc([]string{"GET"},regexp.MustCompile("^/$"), web_index)
 
 	api.CreateAPIv1(exitCh, conf, server)
 

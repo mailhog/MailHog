@@ -208,7 +208,7 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
   $scope.deleteAllConfirm = function() {
   	$('#confirm-delete-all').modal('hide');
     var e = $scope.startEvent("Deleting all messages", null, "glyphicon-remove-circle");
-  	$http.post('/api/v1/messages/delete').success(function() {
+  	$http.delete('/api/v1/messages').success(function() {
   		$scope.refresh();
   		$scope.preview = null;
       e.done()
@@ -217,7 +217,7 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
 
   $scope.deleteOne = function(message) {
     var e = $scope.startEvent("Deleting message", message.Id, "glyphicon-remove");
-  	$http.post('/api/v1/messages/' + message.Id + '/delete').success(function() {
+  	$http.delete('/api/v1/messages/' + message.Id).success(function() {
   		if($scope.preview._id == message._id) $scope.preview = null;
   		$scope.refresh();
       e.done();
