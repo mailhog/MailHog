@@ -13,7 +13,7 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 
 ### Getting started
 
-* Download the latest release of Go-MailHog for your platform
+* [Download the latest release](RELEASES.md) of Go-MailHog for your platform
 * Start MailHog
 
 By default, the SMTP server will start on port 1025, the HTTP server will start
