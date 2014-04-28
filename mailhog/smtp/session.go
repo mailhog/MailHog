@@ -7,6 +7,7 @@ import (
 	"net"
 	"strings"
 	"regexp"
+	"errors"
 	"github.com/ian-kent/MailHog/mailhog/config"
 	"github.com/ian-kent/MailHog/mailhog/storage"
 	"github.com/ian-kent/MailHog/mailhog/data"
@@ -202,11 +203,14 @@ func (c *Session) Process(line string) {
 					}
 				case "MAIL":
 					c.log("Got MAIL command, switching to RCPT state")
-					r, _ := regexp.Compile("(?i:From):<([^>]+)>")
-					match := r.FindStringSubmatch(args)
-					c.message.From = match[1]
+					from, err := ParseMAIL(args)
+					if err != nil {
+						c.Write("550", err.Error())
+						return
+					}
+					c.message.From = from
 					c.state = RCPT
-					c.Write("250", "Sender " + match[1] + " ok")
+					c.Write("250", "Sender " + from + " ok")
 				default:
 					c.log("Got unknown command for MAIL state: '%s'", command)
 					c.Write("500", "Unrecognised command")
@@ -215,11 +219,14 @@ func (c *Session) Process(line string) {
 			switch command {
 				case "RCPT":
 					c.log("Got RCPT command")
-					r, _ := regexp.Compile("(?i:To):<([^>]+)>")
-					match := r.FindStringSubmatch(args)
-					c.message.To = append(c.message.To, match[1])
+					to, err := ParseRCPT(args)
+					if err != nil {
+						c.Write("550", err.Error())
+						return
+					}
+					c.message.To = append(c.message.To, to)
 					c.state = RCPT
-					c.Write("250", "Recipient " + match[1] + " ok")
+					c.Write("250", "Recipient " + to + " ok")
 				case "DATA":
 					c.log("Got DATA command, switching to DATA state")
 					c.state = DATA
@@ -229,4 +236,22 @@ func (c *Session) Process(line string) {
 					c.Write("500", "Unrecognised command")
 			}
 	}
+}
+
+func ParseMAIL(mail string) (string, error) {
+	r := regexp.MustCompile("(?i:From):<([^>]+)>")
+	match := r.FindStringSubmatch(mail)
+	if(len(match) != 2) {
+		return "", errors.New("Invalid sender")
+	}
+	return match[1], nil;
+}
+
+func ParseRCPT(rcpt string) (string, error) {
+	r := regexp.MustCompile("(?i:To):<([^>]+)>")
+	match := r.FindStringSubmatch(rcpt)
+	if(len(match) != 2) {
+		return "", errors.New("Invalid recipient")
+	}
+	return match[1], nil;
 }

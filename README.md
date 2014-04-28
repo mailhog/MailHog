@@ -61,7 +61,9 @@ go get https://github.com/jteeuwen/go-bindata/...
 go-bindata assets/...
 ```
 
-Run tests using ```go test```. You'll need a copy of MailHog running for tests to pass.
+If you build using ```make install```, necessary dependencies will be installed for you.
+
+Run tests using ```make test```. You'll need a copy of MailHog running for tests to pass.
 (Tests currently fail using in-memory storage, use MongoDB!)
 
 If you make any changes, run ```go fmt``` before submitting a pull request.
