@@ -3,6 +3,10 @@ Go-MailHog API v1
 
 The v1 API is a RESTful HTTP JSON API.
 
+### GET /v1/api/events
+
+Streams new messages using EventSource and chunked encoding
+
 ### GET /v1/api/messages
 
 Lists all messages excluding message content
