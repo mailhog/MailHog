@@ -3,12 +3,14 @@ package main
 import (
 	"flag"
 	"github.com/ian-kent/Go-MailHog/mailhog/config"
-	"github.com/ian-kent/Go-MailHog/mailhog/http"
 	"github.com/ian-kent/Go-MailHog/mailhog/smtp"
+	"github.com/ian-kent/Go-MailHog/mailhog/http/api"
 	"github.com/ian-kent/Go-MailHog/mailhog/storage"
-	"log"
+	gotcha "github.com/ian-kent/gotcha/app"
+	"github.com/ian-kent/go-log/log"
 	"net"
 	"os"
+	mhhttp "github.com/ian-kent/Go-MailHog/mailhog/http"
 )
 
 var conf *config.Config
@@ -73,8 +75,26 @@ func main() {
 }
 
 func web_listen() {
-	log.Printf("[HTTP] Binding to address: %s\n", conf.HTTPBindAddr)
-	http.Start(exitCh, conf)
+	log.Info("[HTTP] Binding to address: %s", conf.HTTPBindAddr)
+
+	var app = gotcha.Create(Asset)
+	app.Config.Listen = conf.HTTPBindAddr
+
+	r := app.Router
+
+	r.Get("/images/(?P<file>.*)", r.Static("assets/images/{{file}}"))
+	r.Get("/js/(?P<file>.*)", r.Static("assets/js/{{file}}"))
+	r.Get("/", mhhttp.Index)
+
+	api.CreateAPIv1(conf, app)
+
+	app.Config.LeftDelim = ">>";
+	app.Config.RightDelim = "<<";
+
+	app.Start()
+
+	<-make(chan int)
+	exitCh<-1
 }
 
 func smtp_listen() *net.TCPListener {
