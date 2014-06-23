@@ -1,8 +1,8 @@
 package storage
 
 import (
-	"github.com/ian-kent/MailHog/mailhog/config"
-    "github.com/ian-kent/MailHog/mailhog/data"
+	"github.com/ian-kent/Go-MailHog/mailhog/config"
+    "github.com/ian-kent/Go-MailHog/mailhog/data"
 )
 
 type Memory struct {

@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"bufio"
 	"strings"
-	"github.com/ian-kent/MailHog/mailhog/data"
-	"github.com/ian-kent/MailHog/mailhog/config"
-	"github.com/ian-kent/MailHog/mailhog/storage"
-	"github.com/ian-kent/MailHog/mailhog/http/router"
+	"github.com/ian-kent/Go-MailHog/mailhog/data"
+	"github.com/ian-kent/Go-MailHog/mailhog/config"
+	"github.com/ian-kent/Go-MailHog/mailhog/storage"
+	"github.com/ian-kent/Go-MailHog/mailhog/http/router"
 )
 
 type APIv1 struct {

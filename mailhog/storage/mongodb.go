@@ -4,8 +4,8 @@ import (
 	"log"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-    "github.com/ian-kent/MailHog/mailhog/data"
-    "github.com/ian-kent/MailHog/mailhog/config"
+    "github.com/ian-kent/Go-MailHog/mailhog/data"
+    "github.com/ian-kent/Go-MailHog/mailhog/config"
 )
 
 type MongoDB struct {

@@ -3,7 +3,7 @@ Go-MailHog
 
 Inspired by [MailCatcher](http://mailcatcher.me/), easier to install.
 
-Go-MailHog is a rewritten version of [MailHog](https://github.com/ian-kent/MailHog), which was born out of [M3MTA](https://github.com/ian-kent/M3MTA).
+Go-MailHog is a rewritten version of [MailHog](https://github.com/ian-kent/Go-MailHog), which was born out of [M3MTA](https://github.com/ian-kent/M3MTA).
 
 Go was chosen for portability - MailHog runs without installation on multiple platforms.
 
@@ -53,7 +53,7 @@ You can configure Go-MailHog using command line options:
 
 ### Contributing
 
-Clone this repository to ```$GOPATH/src/github.com/ian-kent/MailHog``` and type ```go install```.
+Clone this repository to ```$GOPATH/src/github.com/ian-kent/Go-MailHog``` and type ```go install```.
 
 You'll need go-bindata to embed web assets:
 ```

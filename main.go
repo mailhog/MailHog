@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"github.com/ian-kent/MailHog/mailhog/config"
-	"github.com/ian-kent/MailHog/mailhog/http"
-	"github.com/ian-kent/MailHog/mailhog/smtp"
-	"github.com/ian-kent/MailHog/mailhog/storage"
+	"github.com/ian-kent/Go-MailHog/mailhog/config"
+	"github.com/ian-kent/Go-MailHog/mailhog/http"
+	"github.com/ian-kent/Go-MailHog/mailhog/smtp"
+	"github.com/ian-kent/Go-MailHog/mailhog/storage"
 	"log"
 	"net"
 	"os"

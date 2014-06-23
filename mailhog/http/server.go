@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 	"log"
-	"github.com/ian-kent/MailHog/mailhog/config"
-	"github.com/ian-kent/MailHog/mailhog/http/api"
-	"github.com/ian-kent/MailHog/mailhog/http/router"
+	"github.com/ian-kent/Go-MailHog/mailhog/config"
+	"github.com/ian-kent/Go-MailHog/mailhog/http/api"
+	"github.com/ian-kent/Go-MailHog/mailhog/http/router"
 )
 
 var exitChannel chan int

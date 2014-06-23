@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/ian-kent/MailHog/mailhog/config"
-	"github.com/ian-kent/MailHog/mailhog/storage"
+	"github.com/ian-kent/Go-MailHog/mailhog/config"
+	"github.com/ian-kent/Go-MailHog/mailhog/storage"
 	"github.com/stretchr/testify/assert"
 	"net"
 	"regexp"
