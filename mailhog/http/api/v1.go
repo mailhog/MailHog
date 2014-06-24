@@ -94,14 +94,8 @@ func (apiv1 *APIv1) eventstream(session *http.Session) {
 
 	apiv1.eventlisteners = append(apiv1.eventlisteners, &EventListener{
 		session,
-		session.Response.Chunked(),
+		session.Response.EventStream(),
 	})
-
-	session.Response.Headers.Add("Content-Type", "text/event-stream")
-	session.Response.Headers.Add("Cache-Control", "no-cache")
-	session.Response.Headers.Add("Connection", "keep-alive")
-	session.Response.Write([]byte("\n\n"))
-	session.Response.Send()
 }
 
 func (apiv1 *APIv1) messages(session *http.Session) {
