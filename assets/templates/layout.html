@@ -94,7 +94,7 @@
       </div>
       <ul class="nav navbar-nav navbar-left navbar-subtext">
         <li>
-          <a><%= config[Hostname] %></a>
+          <a>[: .config.Hostname :]</a>
         </li>
         <li>
           <a>{{ messagesDisplayed() }} {{ searchText ? "of " + messages.length : "" }} messages</a>
@@ -140,6 +140,6 @@
         <li><a target="_blank" href="https://github.com/ian-kent/Go-MailHog"><img src="/images/github.png" style="width: 16px;" /> GitHub</a></li>
       </ul>
     </nav>
-    <%= content %>
+    [: .Content :]
   </body>
 </html>

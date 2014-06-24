@@ -1,41 +1,41 @@
-package data;
+package data
 
 import (
+	"labix.org/v2/mgo/bson"
 	"log"
+	"regexp"
 	"strings"
 	"time"
-	"regexp"
-    "labix.org/v2/mgo/bson"
 )
 
 type Messages []Message
 
 type Message struct {
-	Id string
-	From *Path
-	To []*Path
+	Id      string
+	From    *Path
+	To      []*Path
 	Content *Content
 	Created time.Time
-	MIME *MIMEBody // FIXME refactor to use Content.MIME
+	MIME    *MIMEBody // FIXME refactor to use Content.MIME
 }
 
 type Path struct {
-	Relays []string
+	Relays  []string
 	Mailbox string
-	Domain string
-	Params string
+	Domain  string
+	Params  string
 }
 
 type Content struct {
 	Headers map[string][]string
-	Body string
-	Size int
-	MIME *MIMEBody
+	Body    string
+	Size    int
+	MIME    *MIMEBody
 }
 
 type SMTPMessage struct {
 	From string
-	To []string
+	To   []string
 	Data string
 	Helo string
 }
@@ -52,9 +52,9 @@ func ParseSMTPMessage(m *SMTPMessage, hostname string) *Message {
 		arr = append(arr, PathFromString(path))
 	}
 	msg := &Message{
-		Id: bson.NewObjectId().Hex(),
-		From: PathFromString(m.From),
-		To: arr,
+		Id:      bson.NewObjectId().Hex(),
+		From:    PathFromString(m.From),
+		To:      arr,
 		Content: ContentFromString(m.Data),
 		Created: time.Now(),
 	}
@@ -63,7 +63,7 @@ func ParseSMTPMessage(m *SMTPMessage, hostname string) *Message {
 		log.Printf("Parsing MIME body")
 		msg.MIME = msg.Content.ParseMIMEBody()
 	}
-	
+
 	msg.Content.Headers["Message-ID"] = []string{msg.Id + "@" + hostname}
 	msg.Content.Headers["Received"] = []string{"from " + m.Helo + " by " + hostname + " (Go-MailHog)\r\n          id " + msg.Id + "@" + hostname + "; " + time.Now().Format(time.RFC1123Z)}
 	msg.Content.Headers["Return-Path"] = []string{"<" + m.From + ">"}
@@ -72,7 +72,9 @@ func ParseSMTPMessage(m *SMTPMessage, hostname string) *Message {
 
 func (content *Content) IsMIME() bool {
 	header, ok := content.Headers["Content-Type"]
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 	return strings.HasPrefix(header[0], "multipart/")
 }
 
@@ -81,12 +83,12 @@ func (content *Content) ParseMIMEBody() *MIMEBody {
 	match := re.FindStringSubmatch(content.Headers["Content-Type"][0])
 	log.Printf("Got boundary: %s", match[1])
 
-	p := strings.Split(content.Body, "--" + match[1])
+	p := strings.Split(content.Body, "--"+match[1])
 	parts := make([]*Content, 0)
 	for m := range p {
 		if len(p[m]) > 0 {
 			part := ContentFromString(strings.Trim(p[m], "\r\n"))
-			if(part.IsMIME()) {
+			if part.IsMIME() {
 				log.Printf("Parsing inner MIME body")
 				part.MIME = part.ParseMIMEBody()
 			}
@@ -102,14 +104,14 @@ func (content *Content) ParseMIMEBody() *MIMEBody {
 func PathFromString(path string) *Path {
 	relays := make([]string, 0)
 	email := path
-	if(strings.Contains(path, ":")) {
+	if strings.Contains(path, ":") {
 		x := strings.SplitN(path, ":", 2)
 		r, e := x[0], x[1]
 		email = e
 		relays = strings.Split(r, ",")
 	}
 	mailbox, domain := "", ""
-	if(strings.Contains(email, "@")) {
+	if strings.Contains(email, "@") {
 		x := strings.SplitN(email, "@", 2)
 		mailbox, domain = x[0], x[1]
 	} else {
@@ -117,10 +119,10 @@ func PathFromString(path string) *Path {
 	}
 
 	return &Path{
-		Relays: relays,
+		Relays:  relays,
 		Mailbox: mailbox,
-		Domain: domain,
-		Params: "", // FIXME?
+		Domain:  domain,
+		Params:  "", // FIXME?
 	}
 }
 
@@ -147,15 +149,15 @@ func ContentFromString(data string) *Content {
 			}
 		}
 		return &Content{
-			Size: len(data),
+			Size:    len(data),
 			Headers: h,
-			Body: body,
+			Body:    body,
 		}
 	} else {
 		return &Content{
-			Size: len(data),
+			Size:    len(data),
 			Headers: h,
-			Body: x[0],
+			Body:    x[0],
 		}
 	}
 }

@@ -1,34 +1,34 @@
 package storage
 
 import (
-	"log"
+	"github.com/ian-kent/Go-MailHog/mailhog/config"
+	"github.com/ian-kent/Go-MailHog/mailhog/data"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-    "github.com/ian-kent/Go-MailHog/mailhog/data"
-    "github.com/ian-kent/Go-MailHog/mailhog/config"
+	"log"
 )
 
 type MongoDB struct {
-	Session *mgo.Session
-	Config *config.Config
+	Session    *mgo.Session
+	Config     *config.Config
 	Collection *mgo.Collection
 }
 
 func CreateMongoDB(c *config.Config) *MongoDB {
 	log.Printf("Connecting to MongoDB: %s\n", c.MongoUri)
 	session, err := mgo.Dial(c.MongoUri)
-	if(err != nil) {
+	if err != nil {
 		log.Printf("Error connecting to MongoDB: %s", err)
 		return nil
 	}
 	return &MongoDB{
-		Session: session,
-		Config: c,
+		Session:    session,
+		Config:     c,
 		Collection: session.DB(c.MongoDb).C(c.MongoColl),
 	}
 }
 
-func (mongo *MongoDB) Store(m *data.Message) (string, error) {	
+func (mongo *MongoDB) Store(m *data.Message) (string, error) {
 	err := mongo.Collection.Insert(m)
 	if err != nil {
 		log.Printf("Error inserting message: %s", err)
@@ -40,19 +40,19 @@ func (mongo *MongoDB) Store(m *data.Message) (string, error) {
 func (mongo *MongoDB) List(start int, limit int) (*data.Messages, error) {
 	messages := &data.Messages{}
 	err := mongo.Collection.Find(bson.M{}).Skip(start).Limit(limit).Select(bson.M{
-		"id": 1,
-		"_id": 1,
-		"from": 1,
-		"to": 1,
+		"id":              1,
+		"_id":             1,
+		"from":            1,
+		"to":              1,
 		"content.headers": 1,
-		"content.size": 1,
-		"created": 1,
+		"content.size":    1,
+		"created":         1,
 	}).All(messages)
 	if err != nil {
 		log.Printf("Error loading messages: %s", err)
 		return nil, err
 	}
-	return messages, nil;
+	return messages, nil
 }
 
 func (mongo *MongoDB) DeleteOne(id string) error {
@@ -72,5 +72,5 @@ func (mongo *MongoDB) Load(id string) (*data.Message, error) {
 		log.Printf("Error loading message: %s", err)
 		return nil, err
 	}
-	return result, nil;
+	return result, nil
 }

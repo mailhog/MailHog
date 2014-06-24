@@ -3,14 +3,16 @@ package main
 import (
 	"flag"
 	"github.com/ian-kent/Go-MailHog/mailhog/config"
-	"github.com/ian-kent/Go-MailHog/mailhog/smtp"
+	mhhttp "github.com/ian-kent/Go-MailHog/mailhog/http"
 	"github.com/ian-kent/Go-MailHog/mailhog/http/api"
+	"github.com/ian-kent/Go-MailHog/mailhog/smtp"
 	"github.com/ian-kent/Go-MailHog/mailhog/storage"
-	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/ian-kent/go-log/log"
+	gotcha "github.com/ian-kent/gotcha/app"
+	"github.com/ian-kent/gotcha/events"
+	"github.com/ian-kent/gotcha/http"
 	"net"
 	"os"
-	mhhttp "github.com/ian-kent/Go-MailHog/mailhog/http"
 )
 
 var conf *config.Config
@@ -67,9 +69,9 @@ func main() {
 
 	for {
 		select {
-			case <-exitCh:
-				log.Printf("Received exit signal")
-				os.Exit(0)
+		case <-exitCh:
+			log.Printf("Received exit signal")
+			os.Exit(0)
 		}
 	}
 }
@@ -80,6 +82,11 @@ func web_listen() {
 	var app = gotcha.Create(Asset)
 	app.Config.Listen = conf.HTTPBindAddr
 
+	app.On(events.BeforeHandler, func(session *http.Session, next func()) {
+		session.Stash["config"] = conf
+		next()
+	})
+
 	r := app.Router
 
 	r.Get("/images/(?P<file>.*)", r.Static("assets/images/{{file}}"))
@@ -88,13 +95,13 @@ func web_listen() {
 
 	api.CreateAPIv1(conf, app)
 
-	app.Config.LeftDelim = ">>";
-	app.Config.RightDelim = "<<";
+	app.Config.LeftDelim = "[:"
+	app.Config.RightDelim = ":]"
 
 	app.Start()
 
 	<-make(chan int)
-	exitCh<-1
+	exitCh <- 1
 }
 
 func smtp_listen() *net.TCPListener {

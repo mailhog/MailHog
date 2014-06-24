@@ -3,23 +3,23 @@ package smtp
 // http://www.rfc-editor.org/rfc/rfc5321.txt
 
 import (
-	"log"
-	"net"
-	"strings"
-	"regexp"
 	"errors"
 	"github.com/ian-kent/Go-MailHog/mailhog/config"
-	"github.com/ian-kent/Go-MailHog/mailhog/storage"
 	"github.com/ian-kent/Go-MailHog/mailhog/data"
+	"github.com/ian-kent/Go-MailHog/mailhog/storage"
+	"log"
+	"net"
+	"regexp"
+	"strings"
 )
 
 type Session struct {
-	conn *net.TCPConn
-	line string
-	conf *config.Config
-	state int
+	conn    *net.TCPConn
+	line    string
+	conf    *config.Config
+	state   int
 	message *data.SMTPMessage
-	isTLS bool
+	isTLS   bool
 }
 
 const (
@@ -37,7 +37,7 @@ const (
 func StartSession(conn *net.TCPConn, conf *config.Config) {
 	conv := &Session{conn, "", conf, ESTABLISH, &data.SMTPMessage{}, false}
 	conv.log("Starting session")
-	conv.Write("220", conv.conf.Hostname + " ESMTP Go-MailHog")
+	conv.Write("220", conv.conf.Hostname+" ESMTP Go-MailHog")
 	conv.Read()
 }
 
@@ -78,7 +78,7 @@ func (c *Session) Parse() {
 		}
 		if c.state == DATA {
 			c.message.Data += parts[0] + "\n"
-			if(strings.HasSuffix(c.message.Data, "\r\n.\r\n")) {
+			if strings.HasSuffix(c.message.Data, "\r\n.\r\n") {
 				c.log("Got EOF, storing message and switching to MAIL state")
 				//c.log("Full message data: %s", c.message.Data)
 				c.message.Data = strings.TrimSuffix(c.message.Data, "\r\n.\r\n")
@@ -86,15 +86,15 @@ func (c *Session) Parse() {
 				var id string
 				var err error
 				switch c.conf.Storage.(type) {
-					case *storage.MongoDB:
-						c.log("Storing message using MongoDB")
-						id, err = c.conf.Storage.(*storage.MongoDB).Store(msg)
-					case *storage.Memory:
-						c.log("Storing message using Memory")
-						id, err = c.conf.Storage.(*storage.Memory).Store(msg)
-					default:
-						c.log("Unknown storage type")
-						// TODO send error reply
+				case *storage.MongoDB:
+					c.log("Storing message using MongoDB")
+					id, err = c.conf.Storage.(*storage.MongoDB).Store(msg)
+				case *storage.Memory:
+					c.log("Storing message using Memory")
+					id, err = c.conf.Storage.(*storage.Memory).Store(msg)
+				default:
+					c.log("Unknown storage type")
+					// TODO send error reply
 				}
 				c.state = MAIL
 				if err != nil {
@@ -102,7 +102,7 @@ func (c *Session) Parse() {
 					c.Write("452", "Unable to store message")
 					return
 				}
-				c.Write("250", "Ok: queued as " + id)
+				c.Write("250", "Ok: queued as "+id)
 				c.conf.MessageChan <- msg
 			}
 		} else {
@@ -115,15 +115,15 @@ func (c *Session) Parse() {
 
 func (c *Session) Write(code string, text ...string) {
 	if len(text) == 1 {
-		c.log("Sent %d bytes: '%s'", len(text[0] + "\n"), text[0] + "\n")
+		c.log("Sent %d bytes: '%s'", len(text[0]+"\n"), text[0]+"\n")
 		c.conn.Write([]byte(code + " " + text[0] + "\n"))
 		return
 	}
-	for i := 0; i < len(text) - 1; i++ {
-		c.log("Sent %d bytes: '%s'", len(text[i] + "\n"), text[i] + "\n")
+	for i := 0; i < len(text)-1; i++ {
+		c.log("Sent %d bytes: '%s'", len(text[i]+"\n"), text[i]+"\n")
 		c.conn.Write([]byte(code + "-" + text[i] + "\n"))
 	}
-	c.log("Sent %d bytes: '%s'", len(text[len(text)-1] + "\n"), text[len(text)-1] + "\n")
+	c.log("Sent %d bytes: '%s'", len(text[len(text)-1]+"\n"), text[len(text)-1]+"\n")
 	c.conn.Write([]byte(code + " " + text[len(text)-1] + "\n"))
 }
 
@@ -136,122 +136,122 @@ func (c *Session) Process(line string) {
 	c.log("In state %d, got command '%s', args '%s'", c.state, command, args)
 
 	switch {
-		case command == "RSET":
-			c.log("Got RSET command, switching to ESTABLISH state")
-			c.state = ESTABLISH
-			c.message = &data.SMTPMessage{}
-			c.Write("250", "Ok")
-		case command == "NOOP":
-			c.log("Got NOOP command")
-			c.Write("250", "Ok")
-		case command == "QUIT":
-			c.log("Got QUIT command")
-			c.Write("221", "Bye")
-			err := c.conn.Close()
-			if err != nil {
-				c.log("Error closing connection")
-			}
-		case c.state == ESTABLISH:
-			switch command {
-				case "HELO": 
-					c.log("Got HELO command, switching to MAIL state")
-					c.state = MAIL
-					c.message.Helo = args
-					c.Write("250", "Hello " + args)
-				case "EHLO":
-					c.log("Got EHLO command, switching to MAIL state")
-					c.state = MAIL
-					c.message.Helo = args
-					c.Write("250", "Hello " + args, "PIPELINING", "AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN")
-				default:
-					c.log("Got unknown command for ESTABLISH state: '%s'", command)
-					c.Write("500", "Unrecognised command")
-			}
-		case c.state == AUTH:
-			c.log("Got authentication response: '%s', switching to MAIL state", args)
+	case command == "RSET":
+		c.log("Got RSET command, switching to ESTABLISH state")
+		c.state = ESTABLISH
+		c.message = &data.SMTPMessage{}
+		c.Write("250", "Ok")
+	case command == "NOOP":
+		c.log("Got NOOP command")
+		c.Write("250", "Ok")
+	case command == "QUIT":
+		c.log("Got QUIT command")
+		c.Write("221", "Bye")
+		err := c.conn.Close()
+		if err != nil {
+			c.log("Error closing connection")
+		}
+	case c.state == ESTABLISH:
+		switch command {
+		case "HELO":
+			c.log("Got HELO command, switching to MAIL state")
 			c.state = MAIL
-			c.Write("235", "Authentication successful")
-		case c.state == AUTH2:
-			c.log("Got LOGIN authentication response: '%s', switching to AUTH state", args)
-			c.state = AUTH
-			c.Write("334", "UGFzc3dvcmQ6")
-		case c.state == MAIL: // TODO rename/split state
-			switch command {
-				case "AUTH":
-					c.log("Got AUTH command, staying in MAIL state")
-					switch {
-						case strings.HasPrefix(args, "PLAIN "):
-							c.log("Got PLAIN authentication: %s", strings.TrimPrefix(args, "PLAIN "))
-							c.Write("235", "Authentication successful")
-						case args == "LOGIN":
-							c.log("Got LOGIN authentication, switching to AUTH state")
-							c.state = AUTH2
-							c.Write("334", "VXNlcm5hbWU6")
-						case args == "PLAIN":
-							c.log("Got PLAIN authentication (no args), switching to AUTH2 state")
-							c.state = AUTH
-							c.Write("334", "")
-						case args == "CRAM-MD5":
-							c.log("Got CRAM-MD5 authentication, switching to AUTH state")
-							c.state = AUTH
-							c.Write("334", "PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4=")
-						case strings.HasPrefix(args, "EXTERNAL "):
-							c.log("Got EXTERNAL authentication: %s", strings.TrimPrefix(args, "EXTERNAL "))
-							c.Write("235", "Authentication successful")
-						default:
-							c.Write("504", "Unsupported authentication mechanism")
-					}
-				case "MAIL":
-					c.log("Got MAIL command, switching to RCPT state")
-					from, err := ParseMAIL(args)
-					if err != nil {
-						c.Write("550", err.Error())
-						return
-					}
-					c.message.From = from
-					c.state = RCPT
-					c.Write("250", "Sender " + from + " ok")
-				default:
-					c.log("Got unknown command for MAIL state: '%s'", command)
-					c.Write("500", "Unrecognised command")
+			c.message.Helo = args
+			c.Write("250", "Hello "+args)
+		case "EHLO":
+			c.log("Got EHLO command, switching to MAIL state")
+			c.state = MAIL
+			c.message.Helo = args
+			c.Write("250", "Hello "+args, "PIPELINING", "AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN")
+		default:
+			c.log("Got unknown command for ESTABLISH state: '%s'", command)
+			c.Write("500", "Unrecognised command")
+		}
+	case c.state == AUTH:
+		c.log("Got authentication response: '%s', switching to MAIL state", args)
+		c.state = MAIL
+		c.Write("235", "Authentication successful")
+	case c.state == AUTH2:
+		c.log("Got LOGIN authentication response: '%s', switching to AUTH state", args)
+		c.state = AUTH
+		c.Write("334", "UGFzc3dvcmQ6")
+	case c.state == MAIL: // TODO rename/split state
+		switch command {
+		case "AUTH":
+			c.log("Got AUTH command, staying in MAIL state")
+			switch {
+			case strings.HasPrefix(args, "PLAIN "):
+				c.log("Got PLAIN authentication: %s", strings.TrimPrefix(args, "PLAIN "))
+				c.Write("235", "Authentication successful")
+			case args == "LOGIN":
+				c.log("Got LOGIN authentication, switching to AUTH state")
+				c.state = AUTH2
+				c.Write("334", "VXNlcm5hbWU6")
+			case args == "PLAIN":
+				c.log("Got PLAIN authentication (no args), switching to AUTH2 state")
+				c.state = AUTH
+				c.Write("334", "")
+			case args == "CRAM-MD5":
+				c.log("Got CRAM-MD5 authentication, switching to AUTH state")
+				c.state = AUTH
+				c.Write("334", "PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4=")
+			case strings.HasPrefix(args, "EXTERNAL "):
+				c.log("Got EXTERNAL authentication: %s", strings.TrimPrefix(args, "EXTERNAL "))
+				c.Write("235", "Authentication successful")
+			default:
+				c.Write("504", "Unsupported authentication mechanism")
 			}
-		case c.state == RCPT:
-			switch command {
-				case "RCPT":
-					c.log("Got RCPT command")
-					to, err := ParseRCPT(args)
-					if err != nil {
-						c.Write("550", err.Error())
-						return
-					}
-					c.message.To = append(c.message.To, to)
-					c.state = RCPT
-					c.Write("250", "Recipient " + to + " ok")
-				case "DATA":
-					c.log("Got DATA command, switching to DATA state")
-					c.state = DATA
-					c.Write("354", "End data with <CR><LF>.<CR><LF>")
-				default:
-					c.log("Got unknown command for RCPT state: '%s'", command)
-					c.Write("500", "Unrecognised command")
+		case "MAIL":
+			c.log("Got MAIL command, switching to RCPT state")
+			from, err := ParseMAIL(args)
+			if err != nil {
+				c.Write("550", err.Error())
+				return
 			}
+			c.message.From = from
+			c.state = RCPT
+			c.Write("250", "Sender "+from+" ok")
+		default:
+			c.log("Got unknown command for MAIL state: '%s'", command)
+			c.Write("500", "Unrecognised command")
+		}
+	case c.state == RCPT:
+		switch command {
+		case "RCPT":
+			c.log("Got RCPT command")
+			to, err := ParseRCPT(args)
+			if err != nil {
+				c.Write("550", err.Error())
+				return
+			}
+			c.message.To = append(c.message.To, to)
+			c.state = RCPT
+			c.Write("250", "Recipient "+to+" ok")
+		case "DATA":
+			c.log("Got DATA command, switching to DATA state")
+			c.state = DATA
+			c.Write("354", "End data with <CR><LF>.<CR><LF>")
+		default:
+			c.log("Got unknown command for RCPT state: '%s'", command)
+			c.Write("500", "Unrecognised command")
+		}
 	}
 }
 
 func ParseMAIL(mail string) (string, error) {
 	r := regexp.MustCompile("(?i:From):<([^>]+)>")
 	match := r.FindStringSubmatch(mail)
-	if(len(match) != 2) {
+	if len(match) != 2 {
 		return "", errors.New("Invalid sender")
 	}
-	return match[1], nil;
+	return match[1], nil
 }
 
 func ParseRCPT(rcpt string) (string, error) {
 	r := regexp.MustCompile("(?i:To):<([^>]+)>")
 	match := r.FindStringSubmatch(rcpt)
-	if(len(match) != 2) {
+	if len(match) != 2 {
 		return "", errors.New("Invalid recipient")
 	}
-	return match[1], nil;
+	return match[1], nil
 }
