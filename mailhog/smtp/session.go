@@ -4,13 +4,14 @@ package smtp
 
 import (
 	"errors"
-	"github.com/ian-kent/Go-MailHog/mailhog/config"
-	"github.com/ian-kent/Go-MailHog/mailhog/data"
-	"github.com/ian-kent/Go-MailHog/mailhog/storage"
 	"log"
 	"net"
 	"regexp"
 	"strings"
+
+	"github.com/ian-kent/Go-MailHog/mailhog/config"
+	"github.com/ian-kent/Go-MailHog/mailhog/data"
+	"github.com/ian-kent/Go-MailHog/mailhog/storage"
 )
 
 type Session struct {
@@ -137,8 +138,8 @@ func (c *Session) Process(line string) {
 
 	switch {
 	case command == "RSET":
-		c.log("Got RSET command, switching to ESTABLISH state")
-		c.state = ESTABLISH
+		c.log("Got RSET command, switching to MAIL state")
+		c.state = MAIL
 		c.message = &data.SMTPMessage{}
 		c.Write("250", "Ok")
 	case command == "NOOP":
@@ -154,15 +155,9 @@ func (c *Session) Process(line string) {
 	case c.state == ESTABLISH:
 		switch command {
 		case "HELO":
-			c.log("Got HELO command, switching to MAIL state")
-			c.state = MAIL
-			c.message.Helo = args
-			c.Write("250", "Hello "+args)
+			c.DoHELO(args)
 		case "EHLO":
-			c.log("Got EHLO command, switching to MAIL state")
-			c.state = MAIL
-			c.message.Helo = args
-			c.Write("250", "Hello "+args, "PIPELINING", "AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN")
+			c.DoEHLO(args)
 		default:
 			c.log("Got unknown command for ESTABLISH state: '%s'", command)
 			c.Write("500", "Unrecognised command")
@@ -211,6 +206,10 @@ func (c *Session) Process(line string) {
 			c.message.From = from
 			c.state = RCPT
 			c.Write("250", "Sender "+from+" ok")
+		case "HELO":
+			c.DoHELO(args)
+		case "EHLO":
+			c.DoEHLO(args)
 		default:
 			c.log("Got unknown command for MAIL state: '%s'", command)
 			c.Write("500", "Unrecognised command")
@@ -236,6 +235,20 @@ func (c *Session) Process(line string) {
 			c.Write("500", "Unrecognised command")
 		}
 	}
+}
+
+func (c *Session) DoHELO(args string) {
+	c.log("Got HELO command, switching to MAIL state")
+	c.state = MAIL
+	c.message.Helo = args
+	c.Write("250", "Hello "+args)
+}
+
+func (c *Session) DoEHLO(args string) {
+	c.log("Got EHLO command, switching to MAIL state")
+	c.state = MAIL
+	c.message.Helo = args
+	c.Write("250", "Hello "+args, "PIPELINING", "AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN")
 }
 
 func ParseMAIL(mail string) (string, error) {
