@@ -1038,10 +1038,6 @@ type _bintree_t struct {
 
 var _bintree = &_bintree_t{nil, map[string]*_bintree_t{
 	"assets": &_bintree_t{nil, map[string]*_bintree_t{
-		"templates": &_bintree_t{nil, map[string]*_bintree_t{
-			"index.html":  &_bintree_t{assets_templates_index_html, map[string]*_bintree_t{}},
-			"layout.html": &_bintree_t{assets_templates_layout_html, map[string]*_bintree_t{}},
-		}},
 		"images": &_bintree_t{nil, map[string]*_bintree_t{
 			"ajax-loader.gif": &_bintree_t{assets_images_ajax_loader_gif, map[string]*_bintree_t{}},
 			"github.png":      &_bintree_t{assets_images_github_png, map[string]*_bintree_t{}},
@@ -1049,6 +1045,10 @@ var _bintree = &_bintree_t{nil, map[string]*_bintree_t{
 		}},
 		"js": &_bintree_t{nil, map[string]*_bintree_t{
 			"controllers.js": &_bintree_t{assets_js_controllers_js, map[string]*_bintree_t{}},
+		}},
+		"templates": &_bintree_t{nil, map[string]*_bintree_t{
+			"index.html":  &_bintree_t{assets_templates_index_html, map[string]*_bintree_t{}},
+			"layout.html": &_bintree_t{assets_templates_layout_html, map[string]*_bintree_t{}},
 		}},
 	}},
 }}

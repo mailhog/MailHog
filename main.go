@@ -2,17 +2,19 @@ package main
 
 import (
 	"flag"
+	"net"
+	"os"
+
 	"github.com/ian-kent/Go-MailHog/mailhog/config"
 	mhhttp "github.com/ian-kent/Go-MailHog/mailhog/http"
 	"github.com/ian-kent/Go-MailHog/mailhog/http/api"
 	"github.com/ian-kent/Go-MailHog/mailhog/smtp"
 	"github.com/ian-kent/Go-MailHog/mailhog/storage"
+	"github.com/ian-kent/envconf"
 	"github.com/ian-kent/go-log/log"
 	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/ian-kent/gotcha/events"
 	"github.com/ian-kent/gotcha/http"
-	"net"
-	"os"
 )
 
 var conf *config.Config
@@ -21,13 +23,13 @@ var exitCh chan int
 func configure() {
 	var smtpbindaddr, httpbindaddr, hostname, storage_type, mongouri, mongodb, mongocoll string
 
-	flag.StringVar(&smtpbindaddr, "smtpbindaddr", "0.0.0.0:1025", "SMTP bind interface and port, e.g. 0.0.0.0:1025 or just :1025")
-	flag.StringVar(&httpbindaddr, "httpbindaddr", "0.0.0.0:8025", "HTTP bind interface and port, e.g. 0.0.0.0:8025 or just :8025")
-	flag.StringVar(&hostname, "hostname", "mailhog.example", "Hostname for EHLO/HELO response, e.g. mailhog.example")
-	flag.StringVar(&storage_type, "storage", "memory", "Message storage: memory (default) or mongodb")
-	flag.StringVar(&mongouri, "mongouri", "127.0.0.1:27017", "MongoDB URI, e.g. 127.0.0.1:27017")
-	flag.StringVar(&mongodb, "mongodb", "mailhog", "MongoDB database, e.g. mailhog")
-	flag.StringVar(&mongocoll, "mongocoll", "messages", "MongoDB collection, e.g. messages")
+	flag.StringVar(&smtpbindaddr, "smtpbindaddr", envconf.FromEnvP("MH_SMTP_BIND_ADDR", "0.0.0.0:1025").(string), "SMTP bind interface and port, e.g. 0.0.0.0:1025 or just :1025")
+	flag.StringVar(&httpbindaddr, "httpbindaddr", envconf.FromEnvP("MH_HTTP_BIND_ADDR", "0.0.0.0:8025").(string), "HTTP bind interface and port, e.g. 0.0.0.0:8025 or just :8025")
+	flag.StringVar(&hostname, "hostname", envconf.FromEnvP("MH_HOSTNAME", "mailhog.example").(string), "Hostname for EHLO/HELO response, e.g. mailhog.example")
+	flag.StringVar(&storage_type, "storage", envconf.FromEnvP("MH_STORAGE", "memory").(string), "Message storage: memory (default) or mongodb")
+	flag.StringVar(&mongouri, "mongouri", envconf.FromEnvP("MH_MONGO_URI", "127.0.0.1:27017").(string), "MongoDB URI, e.g. 127.0.0.1:27017")
+	flag.StringVar(&mongodb, "mongodb", envconf.FromEnvP("MH_MONGO_DB", "mailhog").(string), "MongoDB database, e.g. mailhog")
+	flag.StringVar(&mongocoll, "mongocoll", envconf.FromEnvP("MH_MONGO_COLLECTION", "messages").(string), "MongoDB collection, e.g. messages")
 
 	flag.Parse()
 
