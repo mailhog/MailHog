@@ -13,8 +13,10 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 
 ### Getting started
 
+Either:
+
 * [Download the latest release](RELEASES.md) of Go-MailHog for your platform
-* Start MailHog
+* Use Docker or AWS Elastic Beanstalk to deploy Go-MailHog with the example [Dockerfile](Dockerfile)
 
 By default, the SMTP server will start on port 1025, the HTTP server will start
 on port 8025, and in-memory message storage will be used.
