@@ -66,4 +66,4 @@ If you make any changes, run ```go fmt ./...``` before submitting a pull request
 
 Copyright ©‎ 2014, Ian Kent (http://www.iankent.eu).
 
-Released under MIT license, see [LICENSE](license) for details.
+Released under MIT license, see [LICENSE](LICENSE.md) for details.

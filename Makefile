@@ -10,7 +10,7 @@ test: test-deps
 	go list ./... | xargs -n1 go test
 
 release: release-deps
-	gox
+	gox -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}"
 
 fmt:
 	go fmt ./...
