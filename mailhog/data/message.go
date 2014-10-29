@@ -1,11 +1,12 @@
 package data
 
 import (
-	"labix.org/v2/mgo/bson"
 	"log"
 	"regexp"
 	"strings"
 	"time"
+
+	"labix.org/v2/mgo/bson"
 )
 
 type Messages []Message
@@ -44,8 +45,6 @@ type MIMEBody struct {
 	Parts []*Content
 }
 
-// TODO support nested MIME content
-
 func ParseSMTPMessage(m *SMTPMessage, hostname string) *Message {
 	arr := make([]*Path, 0)
 	for _, path := range m.To {
@@ -79,20 +78,29 @@ func (content *Content) IsMIME() bool {
 }
 
 func (content *Content) ParseMIMEBody() *MIMEBody {
-	re := regexp.MustCompile("boundary=\"([^\"]+)\"")
-	match := re.FindStringSubmatch(content.Headers["Content-Type"][0])
-	log.Printf("Got boundary: %s", match[1])
-
-	p := strings.Split(content.Body, "--"+match[1])
 	parts := make([]*Content, 0)
-	for m := range p {
-		if len(p[m]) > 0 {
-			part := ContentFromString(strings.Trim(p[m], "\r\n"))
-			if part.IsMIME() {
-				log.Printf("Parsing inner MIME body")
-				part.MIME = part.ParseMIMEBody()
+
+	if hdr, ok := content.Headers["Content-Type"]; ok {
+		if len(hdr) > 0 {
+			re := regexp.MustCompile("boundary=\"([^\"]+)\"")
+			match := re.FindStringSubmatch(hdr[0])
+			if len(match) < 2 {
+				log.Printf("Boundary not found: %s")
 			}
-			parts = append(parts, part)
+			log.Printf("Got boundary: %s", match[1])
+
+			p := strings.Split(content.Body, "--"+match[1])
+
+			for _, s := range p {
+				if len(s) > 0 {
+					part := ContentFromString(strings.Trim(s, "\r\n"))
+					if part.IsMIME() {
+						log.Printf("Parsing inner MIME body")
+						part.MIME = part.ParseMIMEBody()
+					}
+					parts = append(parts, part)
+				}
+			}
 		}
 	}
 
