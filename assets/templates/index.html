@@ -203,7 +203,7 @@
         <th>To</th>
         <td>
           <button id="show-headers" ng-click="toggleHeaders(true)" type="button" class="btn btn-default pull-right btn-xs">Show headers <span class="glyphicon glyphicon-chevron-down"></span></button>
-          {{ preview.Content.Headers["To"].join(', ') }}
+          {{ tryDecodeMime(preview.Content.Headers["To"].join(', ')) }}
         </td>
       </tr>
     </tbody>
