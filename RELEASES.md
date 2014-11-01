@@ -1,6 +1,19 @@
 Go-MailHog Releases
 ===================
 
+### [v0.05](https://github.com/ian-kent/Go-MailHog/releases/tag/0.05)
+
+- Add #4 - UI support for RFC2047 encoded headers
+
+### [v0.04](https://github.com/ian-kent/Go-MailHog/releases/tag/0.04)
+
+* Configure from environment
+* Include example Dockerfile
+* Fix #1 - mismatched import path and repository name
+* Fix #2 - possible panic with some MIME content
+* Fix #3 - incorrect handling of RSET
+
+
 ### [v0.03](https://github.com/ian-kent/Go-MailHog/releases/tag/0.03)
 
 * Download message in .eml format
