@@ -89,8 +89,8 @@
       colWidth[i] = $table.innerWidth() / 100 * columns[i];
     }
 
-    $table.find('thead tr').children().each(function(i, v) { $(v).width(colWidth[i]); }); 
-    $table.find('tbody tr:first').children().each(function(i, v) { $(v).width(colWidth[i]); }); 
+    $table.find('thead tr').children().each(function(i, v) { $(v).width(colWidth[i]); });
+    $table.find('tbody tr:first').children().each(function(i, v) { $(v).width(colWidth[i]); });
   }
   $(function() {
     $(".messages").resizable({"handles":"s"});
@@ -173,7 +173,7 @@
             </span>
           </td>
           <td>
-            {{ message.Content.Headers.Subject.0 }}
+            {{ tryDecodeMime(message.Content.Headers.Subject.0) }}
           </td>
           <td>
             {{ date(message.Created) }}
@@ -193,11 +193,11 @@
     <tbody ng-if="!previewAllHeaders">
       <tr>
         <th>From</th>
-        <td>{{ preview.Content.Headers["From"][0] }}</td>
+        <td>{{ tryDecodeMime(preview.Content.Headers["From"][0]) }}</td>
       </tr>
       <tr>
         <th>Subject</th>
-        <td><strong>{{ preview.Content.Headers["Subject"][0] }}</strong></td>
+        <td><strong>{{ tryDecodeMime(preview.Content.Headers["Subject"][0]) }}</strong></td>
       </tr>
       <tr>
         <th>To</th>
@@ -210,7 +210,7 @@
     <tbody ng-if="previewAllHeaders">
       <tr ng-repeat="(header, value) in preview.Content.Headers">
         <th>
-          {{ header }}
+          {{ tryDecodeMime(header) }}
         </th>
         <td>
           <button id="hide-headers" ng-if="$last" ng-click="toggleHeaders(false)" type="button" class="btn btn-default pull-right btn-xs">Hide headers <span class="glyphicon glyphicon-chevron-up"></span></button>

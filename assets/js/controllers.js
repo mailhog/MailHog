@@ -55,6 +55,10 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
     $scope.hasEventSource = false;
   }
 
+  $scope.tryDecodeMime = function(str) {
+    return unescapeFromMime(str)
+  }
+
   $scope.startEvent = function(name, args, glyphicon) {
     var eID = guid();
     //console.log("Starting event '" + name + "' with id '" + eID + "'")
