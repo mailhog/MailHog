@@ -144,7 +144,7 @@ func ContentFromString(data string) *Content {
 		hdrs := strings.Split(headers, "\r\n")
 		var lastHdr = ""
 		for _, hdr := range hdrs {
-			if lastHdr != "" && strings.HasPrefix(hdr, " ") {
+			if lastHdr != "" && (strings.HasPrefix(hdr, " ") || strings.HasPrefix(hdr, "\t")) {
 				h[lastHdr][len(h[lastHdr])-1] = h[lastHdr][len(h[lastHdr])-1] + hdr
 			} else if strings.Contains(hdr, ": ") {
 				y := strings.SplitN(hdr, ": ", 2)
