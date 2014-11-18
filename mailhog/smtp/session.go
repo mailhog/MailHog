@@ -132,7 +132,7 @@ func (c *Session) Process(line string) {
 	c.log("Processing line: %s", line)
 
 	words := strings.Split(line, " ")
-	command := words[0]
+	command := strings.ToUpper(words[0])
 	args := strings.Join(words[1:len(words)], " ")
 	c.log("In state %d, got command '%s', args '%s'", c.state, command, args)
 
