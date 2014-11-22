@@ -29,12 +29,22 @@ func Accept(conn *net.TCPConn, conf *config.Config) {
 	session := &Session{conn, proto, conf, false, ""}
 	proto.LogHandler = session.logf
 	proto.MessageReceivedHandler = session.acceptMessageHandler
+	proto.ValidateSenderHandler = session.validateSender
+	proto.ValidateRecipientHandler = session.validateRecipient
 
 	session.logf("Starting session")
 	session.Write(proto.Start(conf.Hostname))
 	for session.Read() == true {
 	}
 	session.logf("Session ended")
+}
+
+func (c *Session) validateRecipient(to string) bool {
+	return true
+}
+
+func (c *Session) validateSender(from string) bool {
+	return true
 }
 
 func (c *Session) acceptMessageHandler(msg *data.Message) (id string, err error) {

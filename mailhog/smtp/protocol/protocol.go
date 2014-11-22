@@ -23,8 +23,10 @@ type Protocol struct {
 	message  *data.SMTPMessage
 	hostname string
 
-	LogHandler             func(message string, args ...interface{})
-	MessageReceivedHandler func(*data.Message) (string, error)
+	LogHandler               func(message string, args ...interface{})
+	MessageReceivedHandler   func(*data.Message) (string, error)
+	ValidateSenderHandler    func(from string) bool
+	ValidateRecipientHandler func(to string) bool
 }
 
 // NewProtocol returns a new SMTP state machine in INVALID state
@@ -85,7 +87,6 @@ func (proto *Protocol) Parse(line string) (string, *Reply) {
 // ProcessData handles content received (with newlines stripped) while
 // in the SMTP DATA state
 func (proto *Protocol) ProcessData(line string) (reply *Reply) {
-
 	proto.message.Data += line + "\n"
 
 	if strings.HasSuffix(proto.message.Data, "\r\n.\r\n") {
@@ -191,6 +192,12 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 			if err != nil {
 				return ReplyError(err)
 			}
+			if proto.ValidateSenderHandler != nil {
+				if !proto.ValidateSenderHandler(from) {
+					// TODO correct sender error response
+					return ReplyError(errors.New("Invalid sender " + from))
+				}
+			}
 			proto.message.From = from
 			proto.state = RCPT
 			return ReplySenderOk(from)
@@ -209,6 +216,12 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 			to, err := ParseRCPT(command.args)
 			if err != nil {
 				return ReplyError(err)
+			}
+			if proto.ValidateRecipientHandler != nil {
+				if !proto.ValidateRecipientHandler(to) {
+					// TODO correct send error response
+					return ReplyError(errors.New("Invalid recipient " + to))
+				}
 			}
 			proto.message.To = append(proto.message.To, to)
 			proto.state = RCPT
