@@ -1,4 +1,4 @@
-package smtp
+package server
 
 // http://www.rfc-editor.org/rfc/rfc5321.txt
 
@@ -6,18 +6,18 @@ import (
 	"errors"
 	"log"
 	"net"
-	"strconv"
 	"strings"
 
 	"github.com/ian-kent/Go-MailHog/mailhog/config"
 	"github.com/ian-kent/Go-MailHog/mailhog/data"
+	"github.com/ian-kent/Go-MailHog/mailhog/smtp/protocol"
 	"github.com/ian-kent/Go-MailHog/mailhog/storage"
 )
 
 // Session represents a SMTP session using net.TCPConn
 type Session struct {
 	conn  *net.TCPConn
-	proto *Protocol
+	proto *protocol.Protocol
 	conf  *config.Config
 	isTLS bool
 	line  string
@@ -25,7 +25,7 @@ type Session struct {
 
 // Accept starts a new SMTP session using net.TCPConn
 func Accept(conn *net.TCPConn, conf *config.Config) {
-	proto := NewProtocol()
+	proto := protocol.NewProtocol()
 	session := &Session{conn, proto, conf, false, ""}
 	proto.LogHandler = session.logf
 	proto.MessageReceivedHandler = session.acceptMessageHandler
@@ -84,7 +84,7 @@ func (c *Session) Read() bool {
 
 	if reply != nil {
 		c.Write(reply)
-		if reply.status == 221 {
+		if reply.Status == 221 {
 			c.conn.Close()
 		}
 	}
@@ -93,19 +93,9 @@ func (c *Session) Read() bool {
 }
 
 // Write writes a reply to the underlying net.TCPConn
-func (c *Session) Write(reply *Reply) {
-	if len(reply.lines) == 0 {
-		l := strconv.Itoa(reply.status)
-		c.logf("Sent %d bytes: '%s'", len(l), l)
-		c.conn.Write([]byte(l))
-	}
-	for i, line := range reply.lines {
-		l := ""
-		if i == len(reply.lines)-1 {
-			l = strconv.Itoa(reply.status) + " " + line + "\n"
-		} else {
-			l = strconv.Itoa(reply.status) + "-" + line + "\n"
-		}
+func (c *Session) Write(reply *protocol.Reply) {
+	lines := reply.Lines()
+	for _, l := range lines {
 		logText := strings.Replace(l, "\n", "\\n", -1)
 		logText = strings.Replace(logText, "\r", "\\r", -1)
 		c.logf("Sent %d bytes: '%s'", len(l), logText)

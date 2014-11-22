@@ -1,4 +1,4 @@
-package smtp
+package protocol
 
 // http://www.rfc-editor.org/rfc/rfc5321.txt
 

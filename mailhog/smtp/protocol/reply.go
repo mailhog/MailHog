@@ -1,11 +1,41 @@
-package smtp
+package protocol
+
+import (
+	"strconv"
+	"strings"
+)
 
 // http://www.rfc-editor.org/rfc/rfc5321.txt
 
 // Reply is a struct representing an SMTP reply (status code + lines)
 type Reply struct {
-	status int
+	Status int
 	lines  []string
+}
+
+// Lines returns the formatted SMTP reply
+func (r Reply) Lines() []string {
+	var lines []string
+
+	if len(r.lines) == 0 {
+		l := strconv.Itoa(r.Status)
+		lines = append(lines, l)
+		return lines
+	}
+
+	for i, line := range r.lines {
+		l := ""
+		if i == len(r.lines)-1 {
+			l = strconv.Itoa(r.Status) + " " + line + "\n"
+		} else {
+			l = strconv.Itoa(r.Status) + "-" + line + "\n"
+		}
+		logText := strings.Replace(l, "\n", "\\n", -1)
+		logText = strings.Replace(logText, "\r", "\\r", -1)
+		lines = append(lines, l)
+	}
+
+	return lines
 }
 
 // ReplyIdent creates a 220 welcome reply
