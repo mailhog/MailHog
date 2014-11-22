@@ -8,15 +8,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ian-kent/Go-MailHog/mailhog/config"
 	"github.com/ian-kent/Go-MailHog/mailhog/data"
 )
 
 // Protocol is a state machine representing an SMTP session
 type Protocol struct {
-	conf    *config.Config
-	state   State
-	message *data.SMTPMessage
+	state    State
+	message  *data.SMTPMessage
+	hostname string
 
 	MessageIDHandler       func() (string, error)
 	LogHandler             func(message string, args ...interface{})
@@ -84,9 +83,8 @@ var StateMap = map[State]string{
 
 // NewProtocol returns a new SMTP state machine in INVALID state
 // handler is called when a message is received and should return a message ID
-func NewProtocol(cfg *config.Config) *Protocol {
+func NewProtocol() *Protocol {
 	return &Protocol{
-		conf:    cfg,
 		state:   INVALID,
 		message: &data.SMTPMessage{},
 	}
@@ -104,11 +102,12 @@ func (proto *Protocol) logf(message string, args ...interface{}) {
 }
 
 // Start begins an SMTP conversation with a 220 reply
-func (proto *Protocol) Start() *Reply {
+func (proto *Protocol) Start(hostname string) *Reply {
 	proto.state = ESTABLISH
+	proto.hostname = hostname
 	return &Reply{
 		status: 220,
-		lines:  []string{proto.conf.Hostname + " ESMTP Go-MailHog"},
+		lines:  []string{hostname + " ESMTP Go-MailHog"},
 	}
 }
 
@@ -151,7 +150,7 @@ func (proto *Protocol) ProcessData(line string) (reply *Reply) {
 		proto.message.Data = strings.TrimSuffix(proto.message.Data, "\r\n.\r\n")
 		proto.state = MAIL
 
-		msg := proto.message.Parse(proto.conf.Hostname)
+		msg := proto.message.Parse(proto.hostname)
 
 		if proto.MessageReceivedHandler != nil {
 			id, err := proto.MessageReceivedHandler(msg)
