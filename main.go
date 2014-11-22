@@ -8,7 +8,7 @@ import (
 	"github.com/ian-kent/Go-MailHog/mailhog/config"
 	mhhttp "github.com/ian-kent/Go-MailHog/mailhog/http"
 	"github.com/ian-kent/Go-MailHog/mailhog/http/api"
-	"github.com/ian-kent/Go-MailHog/mailhog/smtp"
+	smtp "github.com/ian-kent/Go-MailHog/mailhog/smtp/server"
 	"github.com/ian-kent/Go-MailHog/mailhog/storage"
 	"github.com/ian-kent/envconf"
 	"github.com/ian-kent/go-log/log"
@@ -122,6 +122,6 @@ func smtp_listen() *net.TCPListener {
 		}
 		defer conn.Close()
 
-		go smtp.StartSession(conn.(*net.TCPConn), conf)
+		go smtp.Accept(conn.(*net.TCPConn), conf)
 	}
 }
