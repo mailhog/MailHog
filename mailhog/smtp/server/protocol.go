@@ -18,6 +18,7 @@ type Protocol struct {
 	state   State
 	message *data.SMTPMessage
 
+	MessageIDHandler       func() (string, error)
 	LogHandler             func(message string, args ...interface{})
 	MessageReceivedHandler func(*data.Message) (string, error)
 }
@@ -62,7 +63,7 @@ const (
 	INVALID   = State(-1)
 	ESTABLISH = State(iota)
 	AUTH
-	AUTH2
+	AUTHLOGIN
 	MAIL
 	RCPT
 	DATA
@@ -74,7 +75,7 @@ var StateMap = map[State]string{
 	INVALID:   "INVALID",
 	ESTABLISH: "ESTABLISH",
 	AUTH:      "AUTH",
-	AUTH2:     "AUTH2",
+	AUTHLOGIN: "AUTHLOGIN",
 	MAIL:      "MAIL",
 	RCPT:      "RCPT",
 	DATA:      "DATA",
@@ -90,8 +91,6 @@ func NewProtocol(cfg *config.Config) *Protocol {
 		message: &data.SMTPMessage{},
 	}
 }
-
-// TODO replace ".." lines with . in data
 
 func (proto *Protocol) logf(message string, args ...interface{}) {
 	message = strings.Join([]string{"[PROTO: %s]", message}, " ")
@@ -142,14 +141,17 @@ func (proto *Protocol) Parse(line string) (string, *Reply) {
 // ProcessData handles content received (with newlines stripped) while
 // in the SMTP DATA state
 func (proto *Protocol) ProcessData(line string) (reply *Reply) {
+
 	proto.message.Data += line + "\n"
 
 	if strings.HasSuffix(proto.message.Data, "\r\n.\r\n") {
+		proto.message.Data = strings.Replace(proto.message.Data, "\r\n..", "\r\n.", -1)
+
 		proto.logf("Got EOF, storing message and switching to MAIL state")
 		proto.message.Data = strings.TrimSuffix(proto.message.Data, "\r\n.\r\n")
 		proto.state = MAIL
 
-		msg := data.ParseSMTPMessage(proto.message, proto.conf.Hostname)
+		msg := proto.message.Parse(proto.conf.Hostname)
 
 		if proto.MessageReceivedHandler != nil {
 			id, err := proto.MessageReceivedHandler(msg)
@@ -210,11 +212,11 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		proto.logf("Got authentication response: '%s', switching to MAIL state", command.args)
 		proto.state = MAIL
 		return &Reply{235, []string{"Authentication successful"}}
-	case AUTH2 == proto.state: // TODO rename AUTH2 state...
+	case AUTHLOGIN == proto.state:
 		proto.logf("Got LOGIN authentication response: '%s', switching to AUTH state", command.args)
 		proto.state = AUTH
 		return &Reply{334, []string{"UGFzc3dvcmQ6"}}
-	case MAIL == proto.state: // TODO rename/split state
+	case MAIL == proto.state:
 		switch command.verb {
 		case "AUTH":
 			proto.logf("Got AUTH command, staying in MAIL state")
@@ -224,7 +226,7 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 				return &Reply{235, []string{"Authentication successful"}}
 			case "LOGIN" == command.args:
 				proto.logf("Got LOGIN authentication, switching to AUTH state")
-				proto.state = AUTH2
+				proto.state = AUTHLOGIN
 				return &Reply{334, []string{"VXNlcm5hbWU6"}}
 			case "PLAIN" == command.args:
 				proto.logf("Got PLAIN authentication (no args), switching to AUTH2 state")
@@ -249,9 +251,9 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 			proto.message.From = from
 			proto.state = RCPT
 			return ReplySenderOk(from)
-		case "HELO": // TODO feels hacky
+		case "HELO":
 			return proto.HELO(command.args)
-		case "EHLO": // TODO feels hacky?
+		case "EHLO":
 			return proto.EHLO(command.args)
 		default:
 			proto.logf("Got unknown command for MAIL state: '%s'", command)

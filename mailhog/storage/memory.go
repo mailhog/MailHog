@@ -5,15 +5,17 @@ import (
 	"github.com/ian-kent/Go-MailHog/mailhog/data"
 )
 
-type Memory struct {
+// InMemory is an in memory storage backend
+type InMemory struct {
 	Config        *config.Config
 	Messages      map[string]*data.Message
 	MessageIndex  []string
 	MessageRIndex map[string]int
 }
 
-func CreateMemory(c *config.Config) *Memory {
-	return &Memory{
+// CreateInMemory creates a new in memory storage backend
+func CreateInMemory(c *config.Config) *InMemory {
+	return &InMemory{
 		Config:        c,
 		Messages:      make(map[string]*data.Message, 0),
 		MessageIndex:  make([]string, 0),
@@ -21,39 +23,44 @@ func CreateMemory(c *config.Config) *Memory {
 	}
 }
 
-func (memory *Memory) Store(m *data.Message) (string, error) {
-	memory.Messages[m.Id] = m
-	memory.MessageIndex = append(memory.MessageIndex, m.Id)
-	memory.MessageRIndex[m.Id] = len(memory.MessageIndex) - 1
-	return m.Id, nil
+// Store stores a message and returns its storage ID
+func (memory *InMemory) Store(m *data.Message) (string, error) {
+	memory.Messages[string(m.ID)] = m
+	memory.MessageIndex = append(memory.MessageIndex, string(m.ID))
+	memory.MessageRIndex[string(m.ID)] = len(memory.MessageIndex) - 1
+	return string(m.ID), nil
 }
 
-func (memory *Memory) List(start int, limit int) ([]*data.Message, error) {
+// List lists stored messages by index
+func (memory *InMemory) List(start int, limit int) ([]*data.Message, error) {
 	if limit > len(memory.MessageIndex) {
 		limit = len(memory.MessageIndex)
 	}
-	messages := make([]*data.Message, 0)
+	var messages []*data.Message
 	for _, m := range memory.MessageIndex[start:limit] {
 		messages = append(messages, memory.Messages[m])
 	}
 	return messages, nil
 }
 
-func (memory *Memory) DeleteOne(id string) error {
-	index := memory.MessageRIndex[id]
-	delete(memory.Messages, id)
+// DeleteOne deletes an individual message by storage ID
+func (memory *InMemory) DeleteOne(id string) error {
+	index := memory.MessageRIndex[string(id)]
+	delete(memory.Messages, string(id))
 	memory.MessageIndex = append(memory.MessageIndex[:index], memory.MessageIndex[index+1:]...)
-	delete(memory.MessageRIndex, id)
+	delete(memory.MessageRIndex, string(id))
 	return nil
 }
 
-func (memory *Memory) DeleteAll() error {
+// DeleteAll deletes all in memory messages
+func (memory *InMemory) DeleteAll() error {
 	memory.Messages = make(map[string]*data.Message, 0)
 	memory.MessageIndex = make([]string, 0)
 	memory.MessageRIndex = make(map[string]int, 0)
 	return nil
 }
 
-func (memory *Memory) Load(id string) (*data.Message, error) {
-	return memory.Messages[id], nil
+// Load returns an individual message by storage ID
+func (memory *InMemory) Load(id string) (*data.Message, error) {
+	return memory.Messages[string(id)], nil
 }

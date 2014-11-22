@@ -129,17 +129,17 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
   $scope.refresh();
 
   $scope.selectMessage = function(message) {
-  	if($scope.cache[message.Id]) {
-  		$scope.preview = $scope.cache[message.Id];
+  	if($scope.cache[message.ID]) {
+  		$scope.preview = $scope.cache[message.ID];
       reflow();
   	} else {
   		$scope.preview = message;
-      var e = $scope.startEvent("Loading message", message.Id, "glyphicon-download-alt");
-	  	$http.get('/api/v1/messages/' + message.Id).success(function(data) {
-	  	  $scope.cache[message.Id] = data;
+      var e = $scope.startEvent("Loading message", message.ID, "glyphicon-download-alt");
+	  	$http.get('/api/v1/messages/' + message.ID).success(function(data) {
+	  	  $scope.cache[message.ID] = data;
 	      data.previewHTML = $sce.trustAsHtml($scope.getMessageHTML(data));
   		  $scope.preview = data;
-  		  preview = $scope.cache[message.Id];
+  		  preview = $scope.cache[message.ID];
         reflow();
         e.done();
 	    });
@@ -224,9 +224,9 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
     var message = $scope.releasing;
     $scope.releasing = null;
 
-    var e = $scope.startEvent("Releasing message", message.Id, "glyphicon-share");
+    var e = $scope.startEvent("Releasing message", message.ID, "glyphicon-share");
 
-    $http.post('/api/v1/messages/' + message.Id + '/release', {
+    $http.post('/api/v1/messages/' + message.ID + '/release', {
       email: $('#release-message-email').val(),
       host: $('#release-message-smtp-host').val(),
       port: $('#release-message-smtp-port').val(),
@@ -259,8 +259,8 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
   }
 
   $scope.deleteOne = function(message) {
-    var e = $scope.startEvent("Deleting message", message.Id, "glyphicon-remove");
-  	$http.delete('/api/v1/messages/' + message.Id).success(function() {
+    var e = $scope.startEvent("Deleting message", message.ID, "glyphicon-remove");
+  	$http.delete('/api/v1/messages/' + message.ID).success(function() {
   		if($scope.preview._id == message._id) $scope.preview = null;
   		$scope.refresh();
       e.done();

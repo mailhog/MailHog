@@ -2,14 +2,15 @@ package api
 
 import (
 	"encoding/json"
+	"net/smtp"
+	"strconv"
+
 	"github.com/ian-kent/Go-MailHog/mailhog/config"
 	"github.com/ian-kent/Go-MailHog/mailhog/data"
 	"github.com/ian-kent/Go-MailHog/mailhog/storage"
 	"github.com/ian-kent/go-log/log"
 	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/ian-kent/gotcha/http"
-	"net/smtp"
-	"strconv"
 )
 
 type APIv1 struct {
@@ -92,8 +93,8 @@ func (apiv1 *APIv1) messages(session *http.Session) {
 		bytes, _ := json.Marshal(messages)
 		session.Response.Headers.Add("Content-Type", "text/json")
 		session.Response.Write(bytes)
-	case *storage.Memory:
-		messages, _ := apiv1.config.Storage.(*storage.Memory).List(0, 1000)
+	case *storage.InMemory:
+		messages, _ := apiv1.config.Storage.(*storage.InMemory).List(0, 1000)
 		bytes, _ := json.Marshal(messages)
 		session.Response.Headers.Add("Content-Type", "text/json")
 		session.Response.Write(bytes)
@@ -112,8 +113,8 @@ func (apiv1 *APIv1) message(session *http.Session) {
 		bytes, _ := json.Marshal(message)
 		session.Response.Headers.Add("Content-Type", "text/json")
 		session.Response.Write(bytes)
-	case *storage.Memory:
-		message, _ := apiv1.config.Storage.(*storage.Memory).Load(id)
+	case *storage.InMemory:
+		message, _ := apiv1.config.Storage.(*storage.InMemory).Load(id)
 		bytes, _ := json.Marshal(message)
 		session.Response.Headers.Add("Content-Type", "text/json")
 		session.Response.Write(bytes)
@@ -138,8 +139,8 @@ func (apiv1 *APIv1) download(session *http.Session) {
 			}
 		}
 		session.Response.Write([]byte("\r\n" + message.Content.Body))
-	case *storage.Memory:
-		message, _ := apiv1.config.Storage.(*storage.Memory).Load(id)
+	case *storage.InMemory:
+		message, _ := apiv1.config.Storage.(*storage.InMemory).Load(id)
 		for h, l := range message.Content.Headers {
 			for _, v := range l {
 				session.Response.Write([]byte(h + ": " + v + "\r\n"))
@@ -169,8 +170,8 @@ func (apiv1 *APIv1) download_part(session *http.Session) {
 			}
 		}
 		session.Response.Write([]byte("\r\n" + message.MIME.Parts[part].Body))
-	case *storage.Memory:
-		message, _ := apiv1.config.Storage.(*storage.Memory).Load(id)
+	case *storage.InMemory:
+		message, _ := apiv1.config.Storage.(*storage.InMemory).Load(id)
 		for h, l := range message.MIME.Parts[part].Headers {
 			for _, v := range l {
 				session.Response.Headers.Add(h, v)
@@ -189,8 +190,8 @@ func (apiv1 *APIv1) delete_all(session *http.Session) {
 	switch apiv1.config.Storage.(type) {
 	case *storage.MongoDB:
 		apiv1.config.Storage.(*storage.MongoDB).DeleteAll()
-	case *storage.Memory:
-		apiv1.config.Storage.(*storage.Memory).DeleteAll()
+	case *storage.InMemory:
+		apiv1.config.Storage.(*storage.InMemory).DeleteAll()
 	default:
 		session.Response.Status = 500
 		return
@@ -206,8 +207,8 @@ func (apiv1 *APIv1) release_one(session *http.Session) {
 	switch apiv1.config.Storage.(type) {
 	case *storage.MongoDB:
 		msg, _ = apiv1.config.Storage.(*storage.MongoDB).Load(id)
-	case *storage.Memory:
-		msg, _ = apiv1.config.Storage.(*storage.Memory).Load(id)
+	case *storage.InMemory:
+		msg, _ = apiv1.config.Storage.(*storage.InMemory).Load(id)
 	default:
 		session.Response.Status = 500
 		return
@@ -224,7 +225,7 @@ func (apiv1 *APIv1) release_one(session *http.Session) {
 	}
 
 	log.Printf("Releasing to %s (via %s:%s)", cfg.Email, cfg.Host, cfg.Port)
-	log.Printf("Got message: %s", msg.Id)
+	log.Printf("Got message: %s", msg.ID)
 
 	bytes := make([]byte, 0)
 	for h, l := range msg.Content.Headers {
@@ -251,8 +252,8 @@ func (apiv1 *APIv1) delete_one(session *http.Session) {
 	switch apiv1.config.Storage.(type) {
 	case *storage.MongoDB:
 		apiv1.config.Storage.(*storage.MongoDB).DeleteOne(id)
-	case *storage.Memory:
-		apiv1.config.Storage.(*storage.Memory).DeleteOne(id)
+	case *storage.InMemory:
+		apiv1.config.Storage.(*storage.InMemory).DeleteOne(id)
 	default:
 		session.Response.Status = 500
 	}

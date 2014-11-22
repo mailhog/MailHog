@@ -1,18 +1,40 @@
 package data
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"log"
 	"regexp"
 	"strings"
 	"time"
-
-	"labix.org/v2/mgo/bson"
 )
 
+// MessageID represents the ID of an SMTP message including the hostname part
+type MessageID string
+
+// NewMessageID generates a new message ID
+func NewMessageID(hostname string) (MessageID, error) {
+	size := 32
+
+	rb := make([]byte, size)
+	_, err := rand.Read(rb)
+
+	if err != nil {
+		return MessageID(""), err
+	}
+
+	rs := base64.URLEncoding.EncodeToString(rb)
+
+	return MessageID(rs + "@" + hostname), nil
+}
+
+// Messages represents an array of Messages
+// - TODO is this even required?
 type Messages []Message
 
+// Message represents a parsed SMTP message
 type Message struct {
-	Id      string
+	ID      MessageID
 	From    *Path
 	To      []*Path
 	Content *Content
@@ -20,6 +42,7 @@ type Message struct {
 	MIME    *MIMEBody // FIXME refactor to use Content.MIME
 }
 
+// Path represents an SMTP forward-path or return-path
 type Path struct {
 	Relays  []string
 	Mailbox string
@@ -27,6 +50,7 @@ type Path struct {
 	Params  string
 }
 
+// Content represents the body content of an SMTP message
 type Content struct {
 	Headers map[string][]string
 	Body    string
@@ -34,6 +58,7 @@ type Content struct {
 	MIME    *MIMEBody
 }
 
+// SMTPMessage represents a raw SMTP message
 type SMTPMessage struct {
 	From string
 	To   []string
@@ -41,17 +66,21 @@ type SMTPMessage struct {
 	Helo string
 }
 
+// MIMEBody represents a collection of MIME parts
 type MIMEBody struct {
 	Parts []*Content
 }
 
-func ParseSMTPMessage(m *SMTPMessage, hostname string) *Message {
-	arr := make([]*Path, 0)
+// Parse converts a raw SMTP message to a parsed MIME message
+func (m *SMTPMessage) Parse(hostname string) *Message {
+	var arr []*Path
 	for _, path := range m.To {
 		arr = append(arr, PathFromString(path))
 	}
+
+	id, _ := NewMessageID(hostname)
 	msg := &Message{
-		Id:      bson.NewObjectId().Hex(),
+		ID:      id,
 		From:    PathFromString(m.From),
 		To:      arr,
 		Content: ContentFromString(m.Data),
@@ -63,12 +92,13 @@ func ParseSMTPMessage(m *SMTPMessage, hostname string) *Message {
 		msg.MIME = msg.Content.ParseMIMEBody()
 	}
 
-	msg.Content.Headers["Message-ID"] = []string{msg.Id + "@" + hostname}
-	msg.Content.Headers["Received"] = []string{"from " + m.Helo + " by " + hostname + " (Go-MailHog)\r\n          id " + msg.Id + "@" + hostname + "; " + time.Now().Format(time.RFC1123Z)}
+	msg.Content.Headers["Message-ID"] = []string{string(id)}
+	msg.Content.Headers["Received"] = []string{"from " + m.Helo + " by " + hostname + " (Go-MailHog)\r\n          id " + string(id) + "; " + time.Now().Format(time.RFC1123Z)}
 	msg.Content.Headers["Return-Path"] = []string{"<" + m.From + ">"}
 	return msg
 }
 
+// IsMIME detects a valid MIME header
 func (content *Content) IsMIME() bool {
 	header, ok := content.Headers["Content-Type"]
 	if !ok {
@@ -77,15 +107,16 @@ func (content *Content) IsMIME() bool {
 	return strings.HasPrefix(header[0], "multipart/")
 }
 
+// ParseMIMEBody parses SMTP message content into multiple MIME parts
 func (content *Content) ParseMIMEBody() *MIMEBody {
-	parts := make([]*Content, 0)
+	var parts []*Content
 
 	if hdr, ok := content.Headers["Content-Type"]; ok {
 		if len(hdr) > 0 {
 			re := regexp.MustCompile("boundary=\"([^\"]+)\"")
 			match := re.FindStringSubmatch(hdr[0])
 			if len(match) < 2 {
-				log.Printf("Boundary not found: %s")
+				log.Printf("Boundary not found: %s", hdr[0])
 			}
 			log.Printf("Got boundary: %s", match[1])
 
@@ -109,8 +140,9 @@ func (content *Content) ParseMIMEBody() *MIMEBody {
 	}
 }
 
+// PathFromString parses a forward-path or reverse-path into its parts
 func PathFromString(path string) *Path {
-	relays := make([]string, 0)
+	var relays []string
 	email := path
 	if strings.Contains(path, ":") {
 		x := strings.SplitN(path, ":", 2)
@@ -134,6 +166,7 @@ func PathFromString(path string) *Path {
 	}
 }
 
+// ContentFromString parses SMTP content into separate headers and body
 func ContentFromString(data string) *Content {
 	log.Printf("Parsing Content from string: '%s'", data)
 	x := strings.SplitN(data, "\r\n\r\n", 2)
@@ -161,11 +194,10 @@ func ContentFromString(data string) *Content {
 			Headers: h,
 			Body:    body,
 		}
-	} else {
-		return &Content{
-			Size:    len(data),
-			Headers: h,
-			Body:    x[0],
-		}
+	}
+	return &Content{
+		Size:    len(data),
+		Headers: h,
+		Body:    x[0],
 	}
 }

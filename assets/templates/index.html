@@ -173,7 +173,7 @@
             </span>
           </td>
           <td>
-            {{ tryDecodeMime(message.Content.Headers.Subject.0) }}
+            {{ tryDecodeMime(message.Content.Headers["Subject"][0]) }}
           </td>
           <td>
             {{ date(message.Created) }}

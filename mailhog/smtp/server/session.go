@@ -42,12 +42,13 @@ func (c *Session) acceptMessageHandler(msg *data.Message) (id string, err error)
 	case *storage.MongoDB:
 		c.logf("Storing message using MongoDB")
 		id, err = c.conf.Storage.(*storage.MongoDB).Store(msg)
-	case *storage.Memory:
+	case *storage.InMemory:
 		c.logf("Storing message using Memory")
-		id, err = c.conf.Storage.(*storage.Memory).Store(msg)
+		id, err = c.conf.Storage.(*storage.InMemory).Store(msg)
 	default:
 		err = errors.New("Unknown storage stype")
 	}
+	c.conf.MessageChan <- msg
 	return
 }
 

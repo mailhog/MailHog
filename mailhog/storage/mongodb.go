@@ -1,19 +1,22 @@
 package storage
 
 import (
+	"log"
+
 	"github.com/ian-kent/Go-MailHog/mailhog/config"
 	"github.com/ian-kent/Go-MailHog/mailhog/data"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"log"
 )
 
+// MongoDB represents MongoDB backed storage backend
 type MongoDB struct {
 	Session    *mgo.Session
 	Config     *config.Config
 	Collection *mgo.Collection
 }
 
+// CreateMongoDB creates a MongoDB backed storage backend
 func CreateMongoDB(c *config.Config) *MongoDB {
 	log.Printf("Connecting to MongoDB: %s\n", c.MongoUri)
 	session, err := mgo.Dial(c.MongoUri)
@@ -28,15 +31,17 @@ func CreateMongoDB(c *config.Config) *MongoDB {
 	}
 }
 
+// Store stores a message in MongoDB and returns its storage ID
 func (mongo *MongoDB) Store(m *data.Message) (string, error) {
 	err := mongo.Collection.Insert(m)
 	if err != nil {
 		log.Printf("Error inserting message: %s", err)
 		return "", err
 	}
-	return m.Id, nil
+	return string(m.ID), nil
 }
 
+// List returns a list of messages by index
 func (mongo *MongoDB) List(start int, limit int) (*data.Messages, error) {
 	messages := &data.Messages{}
 	err := mongo.Collection.Find(bson.M{}).Skip(start).Limit(limit).Select(bson.M{
@@ -55,16 +60,19 @@ func (mongo *MongoDB) List(start int, limit int) (*data.Messages, error) {
 	return messages, nil
 }
 
+// DeleteOne deletes an individual message by storage ID
 func (mongo *MongoDB) DeleteOne(id string) error {
 	_, err := mongo.Collection.RemoveAll(bson.M{"id": id})
 	return err
 }
 
+// DeleteAll deletes all messages stored in MongoDB
 func (mongo *MongoDB) DeleteAll() error {
 	_, err := mongo.Collection.RemoveAll(bson.M{})
 	return err
 }
 
+// Load loads an individual message by storage ID
 func (mongo *MongoDB) Load(id string) (*data.Message, error) {
 	result := &data.Message{}
 	err := mongo.Collection.Find(bson.M{"id": id}).One(&result)
