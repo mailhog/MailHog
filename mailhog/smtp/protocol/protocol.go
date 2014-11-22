@@ -23,10 +23,11 @@ type Protocol struct {
 	message  *data.SMTPMessage
 	hostname string
 
-	LogHandler               func(message string, args ...interface{})
-	MessageReceivedHandler   func(*data.Message) (string, error)
-	ValidateSenderHandler    func(from string) bool
-	ValidateRecipientHandler func(to string) bool
+	LogHandler                    func(message string, args ...interface{})
+	MessageReceivedHandler        func(*data.Message) (string, error)
+	ValidateSenderHandler         func(from string) bool
+	ValidateRecipientHandler      func(to string) bool
+	ValidateAuthenticationHandler func(mechanism string, args ...string) bool
 }
 
 // NewProtocol returns a new SMTP state machine in INVALID state
@@ -182,6 +183,11 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 				return ReplyAuthResponse("PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4=")
 			case strings.HasPrefix(command.args, "EXTERNAL "):
 				proto.logf("Got EXTERNAL authentication: %s", strings.TrimPrefix(command.args, "EXTERNAL "))
+				if proto.ValidateAuthenticationHandler != nil {
+					if !proto.ValidateAuthenticationHandler("EXTERNAL", command.args) {
+						// TODO error reply
+					}
+				}
 				return ReplyAuthOk()
 			default:
 				return ReplyUnsupportedAuth()

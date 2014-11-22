@@ -28,9 +28,10 @@ func Accept(conn *net.TCPConn, conf *config.Config) {
 	proto := protocol.NewProtocol()
 	session := &Session{conn, proto, conf, false, ""}
 	proto.LogHandler = session.logf
-	proto.MessageReceivedHandler = session.acceptMessageHandler
+	proto.MessageReceivedHandler = session.acceptMessage
 	proto.ValidateSenderHandler = session.validateSender
 	proto.ValidateRecipientHandler = session.validateRecipient
+	proto.ValidateAuthenticationHandler = session.validateAuthentication
 
 	session.logf("Starting session")
 	session.Write(proto.Start(conf.Hostname))
@@ -39,6 +40,9 @@ func Accept(conn *net.TCPConn, conf *config.Config) {
 	session.logf("Session ended")
 }
 
+func (c *Session) validateAuthentication(mechanism string, args ...string) bool {
+	return true
+}
 func (c *Session) validateRecipient(to string) bool {
 	return true
 }
@@ -47,7 +51,7 @@ func (c *Session) validateSender(from string) bool {
 	return true
 }
 
-func (c *Session) acceptMessageHandler(msg *data.Message) (id string, err error) {
+func (c *Session) acceptMessage(msg *data.Message) (id string, err error) {
 	switch c.conf.Storage.(type) {
 	case *storage.MongoDB:
 		c.logf("Storing message using MongoDB")
