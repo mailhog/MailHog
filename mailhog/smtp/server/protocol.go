@@ -11,74 +11,20 @@ import (
 	"github.com/ian-kent/Go-MailHog/mailhog/data"
 )
 
-// Protocol is a state machine representing an SMTP session
-type Protocol struct {
-	state    State
-	message  *data.SMTPMessage
-	hostname string
-
-	MessageIDHandler       func() (string, error)
-	LogHandler             func(message string, args ...interface{})
-	MessageReceivedHandler func(*data.Message) (string, error)
-}
-
 // Command is a struct representing an SMTP command (verb + arguments)
 type Command struct {
 	verb string
 	args string
 }
 
-// Reply is a struct representing an SMTP reply (status code + lines)
-type Reply struct {
-	status int
-	lines  []string
-}
+// Protocol is a state machine representing an SMTP session
+type Protocol struct {
+	state    State
+	message  *data.SMTPMessage
+	hostname string
 
-// ReplyOk creates a 250 Ok reply
-func ReplyOk() *Reply { return &Reply{250, []string{"Ok"}} }
-
-// ReplyBye creates a 221 Bye reply
-func ReplyBye() *Reply { return &Reply{221, []string{"Bye"}} }
-
-// ReplyUnrecognisedCommand creates a 500 Unrecognised command reply
-func ReplyUnrecognisedCommand() *Reply { return &Reply{500, []string{"Unrecognised command"}} }
-
-// ReplySenderOk creates a 250 Sender ok reply
-func ReplySenderOk(sender string) *Reply { return &Reply{250, []string{"Sender " + sender + " ok"}} }
-
-// ReplyRecipientOk creates a 250 Sender ok reply
-func ReplyRecipientOk(recipient string) *Reply {
-	return &Reply{250, []string{"Recipient " + recipient + " ok"}}
-}
-
-// ReplyError creates a 500 error reply
-func ReplyError(err error) *Reply { return &Reply{550, []string{err.Error()}} }
-
-// State represents the state of an SMTP conversation
-type State int
-
-// SMTP message conversation states
-const (
-	INVALID   = State(-1)
-	ESTABLISH = State(iota)
-	AUTH
-	AUTHLOGIN
-	MAIL
-	RCPT
-	DATA
-	DONE
-)
-
-// StateMap provides string representations of SMTP conversation states
-var StateMap = map[State]string{
-	INVALID:   "INVALID",
-	ESTABLISH: "ESTABLISH",
-	AUTH:      "AUTH",
-	AUTHLOGIN: "AUTHLOGIN",
-	MAIL:      "MAIL",
-	RCPT:      "RCPT",
-	DATA:      "DATA",
-	DONE:      "DONE",
+	LogHandler             func(message string, args ...interface{})
+	MessageReceivedHandler func(*data.Message) (string, error)
 }
 
 // NewProtocol returns a new SMTP state machine in INVALID state
@@ -105,10 +51,7 @@ func (proto *Protocol) logf(message string, args ...interface{}) {
 func (proto *Protocol) Start(hostname string) *Reply {
 	proto.state = ESTABLISH
 	proto.hostname = hostname
-	return &Reply{
-		status: 220,
-		lines:  []string{hostname + " ESMTP Go-MailHog"},
-	}
+	return ReplyIdent(hostname + " ESMTP Go-MailHog")
 }
 
 // Parse parses a line string and returns any remaining line string
@@ -118,20 +61,22 @@ func (proto *Protocol) Start(hostname string) *Reply {
 func (proto *Protocol) Parse(line string) (string, *Reply) {
 	var reply *Reply
 
-	for strings.Contains(line, "\n") {
-		parts := strings.SplitN(line, "\n", 2)
+	if !strings.Contains(line, "\n") {
+		return line, reply
+	}
 
-		if len(parts) == 2 {
-			line = parts[1]
-		} else {
-			line = ""
-		}
+	parts := strings.SplitN(line, "\n", 2)
 
-		if proto.state == DATA {
-			return line, proto.ProcessData(parts[0])
-		}
+	if len(parts) == 2 {
+		line = parts[1]
+	} else {
+		line = ""
+	}
 
-		return line, proto.ProcessCommand(parts[0])
+	if proto.state == DATA {
+		reply = proto.ProcessData(parts[0])
+	} else {
+		reply = proto.ProcessCommand(parts[0])
 	}
 
 	return line, reply
@@ -152,17 +97,16 @@ func (proto *Protocol) ProcessData(line string) (reply *Reply) {
 
 		msg := proto.message.Parse(proto.hostname)
 
-		if proto.MessageReceivedHandler != nil {
-			id, err := proto.MessageReceivedHandler(msg)
-			if err != nil {
-				proto.logf("Error storing message: %s", err)
-				reply = &Reply{452, []string{"Unable to store message"}}
-			} else {
-				reply = &Reply{250, []string{"Ok: queued as " + id}}
-			}
-		} else {
-			reply = &Reply{452, []string{"No storage backend"}}
+		if proto.MessageReceivedHandler == nil {
+			return ReplyStorageFailed("No storage backend")
 		}
+
+		id, err := proto.MessageReceivedHandler(msg)
+		if err != nil {
+			proto.logf("Error storing message: %s", err)
+			return ReplyStorageFailed("Unable to store message")
+		}
+		return ReplyOk("Ok: queued as " + id)
 	}
 
 	return
@@ -210,11 +154,11 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 	case AUTH == proto.state:
 		proto.logf("Got authentication response: '%s', switching to MAIL state", command.args)
 		proto.state = MAIL
-		return &Reply{235, []string{"Authentication successful"}}
+		return ReplyAuthOk()
 	case AUTHLOGIN == proto.state:
 		proto.logf("Got LOGIN authentication response: '%s', switching to AUTH state", command.args)
 		proto.state = AUTH
-		return &Reply{334, []string{"UGFzc3dvcmQ6"}}
+		return ReplyAuthResponse("UGFzc3dvcmQ6")
 	case MAIL == proto.state:
 		switch command.verb {
 		case "AUTH":
@@ -222,24 +166,24 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 			switch {
 			case strings.HasPrefix(command.args, "PLAIN "):
 				proto.logf("Got PLAIN authentication: %s", strings.TrimPrefix(command.args, "PLAIN "))
-				return &Reply{235, []string{"Authentication successful"}}
+				return ReplyAuthOk()
 			case "LOGIN" == command.args:
 				proto.logf("Got LOGIN authentication, switching to AUTH state")
 				proto.state = AUTHLOGIN
-				return &Reply{334, []string{"VXNlcm5hbWU6"}}
+				return ReplyAuthResponse("VXNlcm5hbWU6")
 			case "PLAIN" == command.args:
 				proto.logf("Got PLAIN authentication (no args), switching to AUTH2 state")
 				proto.state = AUTH
-				return &Reply{334, []string{}}
+				return ReplyAuthResponse("")
 			case "CRAM-MD5" == command.args:
 				proto.logf("Got CRAM-MD5 authentication, switching to AUTH state")
 				proto.state = AUTH
-				return &Reply{334, []string{"PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4="}}
+				return ReplyAuthResponse("PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4=")
 			case strings.HasPrefix(command.args, "EXTERNAL "):
 				proto.logf("Got EXTERNAL authentication: %s", strings.TrimPrefix(command.args, "EXTERNAL "))
-				return &Reply{235, []string{"Authentication successful"}}
+				return ReplyAuthOk()
 			default:
-				return &Reply{504, []string{"Unsupported authentication mechanism"}}
+				return ReplyUnsupportedAuth()
 			}
 		case "MAIL":
 			proto.logf("Got MAIL command, switching to RCPT state")
@@ -272,7 +216,7 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		case "DATA":
 			proto.logf("Got DATA command, switching to DATA state")
 			proto.state = DATA
-			return &Reply{354, []string{"End data with <CR><LF>.<CR><LF>"}}
+			return ReplyDataResponse()
 		default:
 			proto.logf("Got unknown command for RCPT state: '%s'", command)
 			return ReplyUnrecognisedCommand()
@@ -287,7 +231,7 @@ func (proto *Protocol) HELO(args string) (reply *Reply) {
 	proto.logf("Got HELO command, switching to MAIL state")
 	proto.state = MAIL
 	proto.message.Helo = args
-	return &Reply{250, []string{"Hello " + args}}
+	return ReplyOk("Hello " + args)
 }
 
 // EHLO creates a reply to a EHLO command
@@ -295,7 +239,7 @@ func (proto *Protocol) EHLO(args string) (reply *Reply) {
 	proto.logf("Got EHLO command, switching to MAIL state")
 	proto.state = MAIL
 	proto.message.Helo = args
-	return &Reply{250, []string{"Hello " + args, "PIPELINING", "AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN"}}
+	return ReplyOk("Hello "+args, "PIPELINING", "AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN")
 }
 
 // ParseMAIL returns the forward-path from a MAIL command argument
