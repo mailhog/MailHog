@@ -5,9 +5,9 @@ import (
 	"net/smtp"
 	"strconv"
 
-	"github.com/ian-kent/Go-MailHog/mailhog/config"
-	"github.com/ian-kent/Go-MailHog/mailhog/data"
-	"github.com/ian-kent/Go-MailHog/mailhog/storage"
+	"github.com/ian-kent/Go-MailHog/config"
+	"github.com/ian-kent/Go-MailHog/data"
+	"github.com/ian-kent/Go-MailHog/storage"
 	"github.com/ian-kent/go-log/log"
 	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/ian-kent/gotcha/http"

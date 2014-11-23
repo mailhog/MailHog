@@ -7,9 +7,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/ian-kent/Go-MailHog/mailhog/data"
-	"github.com/ian-kent/Go-MailHog/mailhog/storage"
+	"github.com/ian-kent/Go-MailHog/data"
 	"github.com/ian-kent/Go-MailHog/smtp/protocol"
+	"github.com/ian-kent/Go-MailHog/storage"
 )
 
 // Session represents a SMTP session using net.TCPConn

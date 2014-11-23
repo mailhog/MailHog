@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/ian-kent/Go-MailHog/mailhog/config"
-	"github.com/ian-kent/Go-MailHog/mailhog/storage"
-	"github.com/stretchr/testify/assert"
 	"net"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/ian-kent/Go-MailHog/config"
+	"github.com/ian-kent/Go-MailHog/storage"
+	"github.com/stretchr/testify/assert"
 )
 
 // FIXME requires a running instance of MailHog

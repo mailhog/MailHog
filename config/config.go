@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/ian-kent/Go-MailHog/mailhog/data"
-	"github.com/ian-kent/Go-MailHog/mailhog/storage"
+	"github.com/ian-kent/Go-MailHog/data"
+	"github.com/ian-kent/Go-MailHog/storage"
 )
 
 func DefaultConfig() *Config {
