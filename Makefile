@@ -4,7 +4,7 @@ all: deps bindata fmt
 	go install ./MailHog
 
 bindata:
-	go-bindata -o MailHog-UI/assets/assets.go -pkg assets MailHog-UI/assets/...
+	go-bindata -o MailHog-UI/assets/assets.go -pkg assets -prefix MailHog-UI/ MailHog-UI/assets/...
 
 release: release-deps
 	gox -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}"

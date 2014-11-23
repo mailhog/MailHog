@@ -1,14 +1,21 @@
 package http
 
 import (
-	"github.com/ian-kent/gotcha/http"
-	"html/template"
+	"github.com/ian-kent/Go-MailHog/MailHog-Server/config"
+	"github.com/ian-kent/go-log/log"
+	gotcha "github.com/ian-kent/gotcha/app"
 )
 
-func Index(session *http.Session) {
-	html, _ := session.RenderTemplate("index.html")
+func Listen(cfg *config.Config, Asset func(string) ([]byte, error), exitCh chan int, registerCallback func(*gotcha.App)) {
+	log.Info("[HTTP] Binding to address: %s", cfg.HTTPBindAddr)
 
-	session.Stash["Page"] = "Browse"
-	session.Stash["Content"] = template.HTML(html)
-	session.Render("layout.html")
+	var app = gotcha.Create(Asset)
+	app.Config.Listen = cfg.HTTPBindAddr
+
+	registerCallback(app)
+
+	app.Start()
+
+	<-make(chan int)
+	exitCh <- 1
 }
