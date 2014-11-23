@@ -161,6 +161,7 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		return ReplyOk()
 	case "QUIT" == command.verb:
 		proto.logf("Got QUIT verb, staying in %s state", StateMap[proto.state])
+		proto.state = DONE
 		return ReplyBye()
 	case ESTABLISH == proto.state:
 		switch command.verb {

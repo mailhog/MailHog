@@ -3,6 +3,7 @@ package protocol
 // http://www.rfc-editor.org/rfc/rfc5321.txt
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/ian-kent/Go-MailHog/mailhog/data"
@@ -83,6 +84,90 @@ func TestHELO(t *testing.T) {
 	})
 }
 
+func TestDATA(t *testing.T) {
+	Convey("DATA should accept data", t, func() {
+		proto := NewProtocol()
+		proto.MessageReceivedHandler = func(msg *data.Message) (string, error) {
+			return "abc", nil
+		}
+		proto.Start()
+		proto.HELO("localhost")
+		proto.Command(&Command{"MAIL", "FROM:<test>"})
+		proto.Command(&Command{"RCPT", "TO:<test>"})
+		reply := proto.Command(&Command{"DATA", ""})
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 354)
+		So(reply.Lines(), ShouldResemble, []string{"354 End data with <CR><LF>.<CR><LF>\n"})
+		So(proto.state, ShouldEqual, DATA)
+		reply = proto.ProcessData("Hi")
+		So(reply, ShouldBeNil)
+		So(proto.state, ShouldEqual, DATA)
+		So(proto.message.Data, ShouldEqual, "Hi\n")
+		reply = proto.ProcessData("How are you?")
+		So(reply, ShouldBeNil)
+		So(proto.state, ShouldEqual, DATA)
+		So(proto.message.Data, ShouldEqual, "Hi\nHow are you?\n")
+		reply = proto.ProcessData("\r\n.\r")
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 250)
+		So(proto.state, ShouldEqual, MAIL)
+		So(reply.Lines(), ShouldResemble, []string{"250 Ok: queued as abc\n"})
+	})
+	Convey("Should return error if missing storage backend", t, func() {
+		proto := NewProtocol()
+		proto.Start()
+		proto.HELO("localhost")
+		proto.Command(&Command{"MAIL", "FROM:<test>"})
+		proto.Command(&Command{"RCPT", "TO:<test>"})
+		reply := proto.Command(&Command{"DATA", ""})
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 354)
+		So(reply.Lines(), ShouldResemble, []string{"354 End data with <CR><LF>.<CR><LF>\n"})
+		So(proto.state, ShouldEqual, DATA)
+		reply = proto.ProcessData("Hi")
+		So(reply, ShouldBeNil)
+		So(proto.state, ShouldEqual, DATA)
+		So(proto.message.Data, ShouldEqual, "Hi\n")
+		reply = proto.ProcessData("How are you?")
+		So(reply, ShouldBeNil)
+		So(proto.state, ShouldEqual, DATA)
+		So(proto.message.Data, ShouldEqual, "Hi\nHow are you?\n")
+		reply = proto.ProcessData("\r\n.\r")
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 452)
+		So(proto.state, ShouldEqual, MAIL)
+		So(reply.Lines(), ShouldResemble, []string{"452 No storage backend\n"})
+	})
+	Convey("Should return error if storage backend fails", t, func() {
+		proto := NewProtocol()
+		proto.MessageReceivedHandler = func(msg *data.Message) (string, error) {
+			return "", errors.New("abc")
+		}
+		proto.Start()
+		proto.HELO("localhost")
+		proto.Command(&Command{"MAIL", "FROM:<test>"})
+		proto.Command(&Command{"RCPT", "TO:<test>"})
+		reply := proto.Command(&Command{"DATA", ""})
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 354)
+		So(reply.Lines(), ShouldResemble, []string{"354 End data with <CR><LF>.<CR><LF>\n"})
+		So(proto.state, ShouldEqual, DATA)
+		reply = proto.ProcessData("Hi")
+		So(reply, ShouldBeNil)
+		So(proto.state, ShouldEqual, DATA)
+		So(proto.message.Data, ShouldEqual, "Hi\n")
+		reply = proto.ProcessData("How are you?")
+		So(reply, ShouldBeNil)
+		So(proto.state, ShouldEqual, DATA)
+		So(proto.message.Data, ShouldEqual, "Hi\nHow are you?\n")
+		reply = proto.ProcessData("\r\n.\r")
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 452)
+		So(proto.state, ShouldEqual, MAIL)
+		So(reply.Lines(), ShouldResemble, []string{"452 Unable to store message\n"})
+	})
+}
+
 func TestRSET(t *testing.T) {
 	Convey("RSET should reset the state correctly", t, func() {
 		proto := NewProtocol()
@@ -101,6 +186,40 @@ func TestRSET(t *testing.T) {
 		So(proto.state, ShouldEqual, MAIL)
 		So(proto.message.From, ShouldEqual, "")
 		So(len(proto.message.To), ShouldEqual, 0)
+	})
+}
+
+func TestNOOP(t *testing.T) {
+	Convey("NOOP shouldn't modify the state", t, func() {
+		proto := NewProtocol()
+		proto.Start()
+		proto.HELO("localhost")
+		proto.Command(&Command{"MAIL", "FROM:<test>"})
+		proto.Command(&Command{"RCPT", "TO:<test>"})
+		So(proto.state, ShouldEqual, RCPT)
+		So(proto.message.From, ShouldEqual, "test")
+		So(len(proto.message.To), ShouldEqual, 1)
+		So(proto.message.To[0], ShouldEqual, "test")
+		reply := proto.Command(&Command{"NOOP", ""})
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 250)
+		So(reply.Lines(), ShouldResemble, []string{"250 Ok\n"})
+		So(proto.state, ShouldEqual, RCPT)
+		So(proto.message.From, ShouldEqual, "test")
+		So(len(proto.message.To), ShouldEqual, 1)
+		So(proto.message.To[0], ShouldEqual, "test")
+	})
+}
+
+func TestQUIT(t *testing.T) {
+	Convey("QUIT should modify the state correctly", t, func() {
+		proto := NewProtocol()
+		proto.Start()
+		reply := proto.Command(&Command{"QUIT", ""})
+		So(proto.state, ShouldEqual, DONE)
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 221)
+		So(reply.Lines(), ShouldResemble, []string{"221 Bye\n"})
 	})
 }
 
