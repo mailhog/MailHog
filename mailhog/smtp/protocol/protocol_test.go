@@ -27,11 +27,13 @@ func TestProtocol(t *testing.T) {
 		handlerCalled := false
 		proto.LogHandler = func(message string, args ...interface{}) {
 			handlerCalled = true
-			So(message, ShouldEqual, "[PROTO: %s] Started session, switching to ESTABLISH state")
-			So(len(args), ShouldEqual, 1)
+			So(message, ShouldEqual, "[PROTO: %s] Test message %s %s")
+			So(len(args), ShouldEqual, 3)
 			So(args[0], ShouldEqual, "INVALID")
+			So(args[1], ShouldEqual, "test arg 1")
+			So(args[2], ShouldEqual, "test arg 2")
 		}
-		proto.Start()
+		proto.logf("Test message %s %s", "test arg 1", "test arg 2")
 		So(handlerCalled, ShouldBeTrue)
 	})
 
