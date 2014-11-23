@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/ian-kent/Go-MailHog/mailhog/data"
 	"github.com/ian-kent/Go-MailHog/mailhog/storage"
 )
 
@@ -22,7 +23,7 @@ type Config struct {
 	MongoUri     string
 	MongoDb      string
 	MongoColl    string
-	MessageChan  chan interface{}
+	MessageChan  chan *data.Message
 	Storage      storage.Storage
 	Assets       func(asset string) ([]byte, error)
 }

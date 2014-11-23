@@ -7,26 +7,27 @@ import (
 	"log"
 	"strings"
 
-	"github.com/ian-kent/Go-MailHog/mailhog/config"
 	"github.com/ian-kent/Go-MailHog/mailhog/data"
 	"github.com/ian-kent/Go-MailHog/mailhog/smtp/protocol"
+	"github.com/ian-kent/Go-MailHog/mailhog/storage"
 )
 
 // Session represents a SMTP session using net.TCPConn
 type Session struct {
 	conn          io.ReadWriteCloser
 	proto         *protocol.Protocol
-	conf          *config.Config
+	storage       storage.Storage
+	messageChan   chan *data.Message
 	remoteAddress string
 	isTLS         bool
 	line          string
 }
 
 // Accept starts a new SMTP session using io.ReadWriteCloser
-func Accept(remoteAddress string, conn io.ReadWriteCloser, conf *config.Config) {
+func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Storage, messageChan chan *data.Message, hostname string) {
 	proto := protocol.NewProtocol()
-	proto.Hostname = conf.Hostname
-	session := &Session{conn, proto, conf, remoteAddress, false, ""}
+	proto.Hostname = hostname
+	session := &Session{conn, proto, storage, messageChan, remoteAddress, false, ""}
 	proto.LogHandler = session.logf
 	proto.MessageReceivedHandler = session.acceptMessage
 	proto.ValidateSenderHandler = session.validateSender
@@ -54,8 +55,8 @@ func (c *Session) validateSender(from string) bool {
 
 func (c *Session) acceptMessage(msg *data.Message) (id string, err error) {
 	c.logf("Storing message %s", msg.ID)
-	id, err = c.conf.Storage.Store(msg)
-	c.conf.MessageChan <- msg
+	id, err = c.storage.Store(msg)
+	c.messageChan <- msg
 	return
 }
 
@@ -72,8 +73,10 @@ func (c *Session) Read() bool {
 
 	if n == 0 {
 		c.logf("Connection closed by remote host\n")
+		io.Closer(c.conn).Close() // not sure this is necessary?
 		return false
 	}
+
 	if err != nil {
 		c.logf("Error reading from socket: %s\n", err)
 		return false
@@ -86,13 +89,15 @@ func (c *Session) Read() bool {
 
 	c.line += text
 
-	line, reply := c.proto.Parse(c.line)
-	c.line = line
+	for strings.Contains(c.line, "\n") {
+		line, reply := c.proto.Parse(c.line)
+		c.line = line
 
-	if reply != nil {
-		c.Write(reply)
-		if reply.Status == 221 {
-			io.Closer(c.conn).Close()
+		if reply != nil {
+			c.Write(reply)
+			if reply.Status == 221 {
+				io.Closer(c.conn).Close()
+			}
 		}
 	}
 

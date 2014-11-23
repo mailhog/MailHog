@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/ian-kent/Go-MailHog/mailhog/config"
+	"github.com/ian-kent/Go-MailHog/mailhog/data"
 	mhhttp "github.com/ian-kent/Go-MailHog/mailhog/http"
 	"github.com/ian-kent/Go-MailHog/mailhog/http/api"
 	smtp "github.com/ian-kent/Go-MailHog/mailhog/smtp/server"
@@ -42,7 +43,7 @@ func configure() {
 		MongoDb:      mongodb,
 		MongoColl:    mongocoll,
 		Assets:       Asset,
-		MessageChan:  make(chan interface{}),
+		MessageChan:  make(chan *data.Message),
 	}
 
 	if storage_type == "mongodb" {
@@ -123,6 +124,12 @@ func smtp_listen() *net.TCPListener {
 		}
 		defer conn.Close()
 
-		go smtp.Accept(conn.(*net.TCPConn).RemoteAddr().String(), io.ReadWriteCloser(conn), conf)
+		go smtp.Accept(
+			conn.(*net.TCPConn).RemoteAddr().String(),
+			io.ReadWriteCloser(conn),
+			conf.Storage,
+			conf.MessageChan,
+			conf.Hostname,
+		)
 	}
 }
