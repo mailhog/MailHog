@@ -87,12 +87,7 @@ func (proto *Protocol) Parse(line string) (string, *Reply) {
 	}
 
 	parts := strings.SplitN(line, "\n", 2)
-
-	if len(parts) == 2 {
-		line = parts[1]
-	} else {
-		line = ""
-	}
+	line = parts[1]
 
 	// TODO collapse AUTH states into separate processing
 	if proto.state == DATA {
@@ -280,6 +275,10 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 			proto.message.To = append(proto.message.To, to)
 			proto.state = RCPT
 			return ReplyRecipientOk(to)
+		case "HELO":
+			return proto.HELO(command.args)
+		case "EHLO":
+			return proto.EHLO(command.args)
 		case "DATA":
 			proto.logf("Got DATA command, switching to DATA state")
 			proto.state = DATA
