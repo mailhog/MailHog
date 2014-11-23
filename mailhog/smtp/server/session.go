@@ -38,8 +38,8 @@ func Accept(conn *net.TCPConn, conf *config.Config) {
 	session.logf("Session ended")
 }
 
-func (c *Session) validateAuthentication(mechanism string, args ...string) bool {
-	return true
+func (c *Session) validateAuthentication(mechanism string, args ...string) (errorReply *protocol.Reply, ok bool) {
+	return nil, true
 }
 
 func (c *Session) validateRecipient(to string) bool {

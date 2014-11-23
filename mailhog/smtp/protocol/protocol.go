@@ -24,7 +24,7 @@ type Protocol struct {
 	hostname string
 
 	// LogHandler is called for each log message. If nil, log messages will
-	// be output using fmt.Printf instead.
+	// be output using log.Printf instead.
 	LogHandler func(message string, args ...interface{})
 	// MessageReceivedHandler is called for each message accepted by the
 	// SMTP protocol. It must return a MessageID or error. If nil, messages
@@ -39,7 +39,7 @@ type Protocol struct {
 	// ValidateAuthenticationhandler should return true if the authentication
 	// parameters are valid, otherwise false. If nil, all authentication
 	// attempts will be accepted.
-	ValidateAuthenticationHandler func(mechanism string, args ...string) bool
+	ValidateAuthenticationHandler func(mechanism string, args ...string) (errorReply *Reply, ok bool)
 }
 
 // NewProtocol returns a new SMTP state machine in INVALID state
@@ -167,14 +167,37 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 			proto.logf("Got unknown command for ESTABLISH state: '%s'", command.verb)
 			return ReplyUnrecognisedCommand()
 		}
-	case AUTH == proto.state:
-		proto.logf("Got authentication response: '%s', switching to MAIL state", command.args)
+	case AUTHPLAIN == proto.state:
+		proto.logf("Got PLAIN authentication response: '%s', switching to MAIL state", command.args)
 		proto.state = MAIL
+		if proto.ValidateAuthenticationHandler != nil {
+			if reply, ok := proto.ValidateAuthenticationHandler("CRAM-MD5", command.args); !ok {
+				return reply
+			}
+		}
 		return ReplyAuthOk()
 	case AUTHLOGIN == proto.state:
-		proto.logf("Got LOGIN authentication response: '%s', switching to AUTH state", command.args)
-		proto.state = AUTH
+		proto.logf("Got LOGIN authentication response: '%s', switching to AUTHLOGIN2 state", command.args)
+		proto.state = AUTHLOGIN2
 		return ReplyAuthResponse("UGFzc3dvcmQ6")
+	case AUTHLOGIN2 == proto.state:
+		proto.logf("Got LOGIN authentication response: '%s', switching to MAIL state", command.args)
+		proto.state = MAIL
+		if proto.ValidateAuthenticationHandler != nil {
+			if reply, ok := proto.ValidateAuthenticationHandler("CRAM-MD5", command.args); !ok {
+				return reply
+			}
+		}
+		return ReplyAuthOk()
+	case AUTHCRAMMD5 == proto.state:
+		proto.logf("Got CRAM-MD5 authentication response: '%s', switching to MAIL state", command.args)
+		proto.state = MAIL
+		if proto.ValidateAuthenticationHandler != nil {
+			if reply, ok := proto.ValidateAuthenticationHandler("CRAM-MD5", command.args); !ok {
+				return reply
+			}
+		}
+		return ReplyAuthOk()
 	case MAIL == proto.state:
 		switch command.verb {
 		case "AUTH":
@@ -182,6 +205,11 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 			switch {
 			case strings.HasPrefix(command.args, "PLAIN "):
 				proto.logf("Got PLAIN authentication: %s", strings.TrimPrefix(command.args, "PLAIN "))
+				if proto.ValidateAuthenticationHandler != nil {
+					if reply, ok := proto.ValidateAuthenticationHandler("PLAIN", strings.TrimPrefix(command.args, "PLAIN ")); !ok {
+						return reply
+					}
+				}
 				return ReplyAuthOk()
 			case "LOGIN" == command.args:
 				proto.logf("Got LOGIN authentication, switching to AUTH state")
@@ -189,17 +217,17 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 				return ReplyAuthResponse("VXNlcm5hbWU6")
 			case "PLAIN" == command.args:
 				proto.logf("Got PLAIN authentication (no args), switching to AUTH2 state")
-				proto.state = AUTH
+				proto.state = AUTHPLAIN
 				return ReplyAuthResponse("")
 			case "CRAM-MD5" == command.args:
 				proto.logf("Got CRAM-MD5 authentication, switching to AUTH state")
-				proto.state = AUTH
+				proto.state = AUTHCRAMMD5
 				return ReplyAuthResponse("PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4=")
 			case strings.HasPrefix(command.args, "EXTERNAL "):
 				proto.logf("Got EXTERNAL authentication: %s", strings.TrimPrefix(command.args, "EXTERNAL "))
 				if proto.ValidateAuthenticationHandler != nil {
-					if !proto.ValidateAuthenticationHandler("EXTERNAL", command.args) {
-						// TODO error reply
+					if reply, ok := proto.ValidateAuthenticationHandler("EXTERNAL", strings.TrimPrefix(command.args, "EXTERNAL ")); !ok {
+						return reply
 					}
 				}
 				return ReplyAuthOk()
