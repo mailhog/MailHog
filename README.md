@@ -1,4 +1,4 @@
-Go-MailHog [ ![Download](https://api.bintray.com/packages/ian-kent/generic/Go-MailHog/images/download.svg) ](https://bintray.com/ian-kent/generic/Go-MailHog/_latestVersion)
+Go-MailHog [ ![Download](https://api.bintray.com/packages/ian-kent/generic/Go-MailHog/images/download.svg) ](https://bintray.com/ian-kent/generic/Go-MailHog/_latestVersion) [![GoDoc](https://godoc.org/github.com/ian-kent/Go-MailHog?status.svg)](https://godoc.org/github.com/ian-kent/Go-MailHog)
 =========
 
 Inspired by [MailCatcher](http://mailcatcher.me/), easier to install.
