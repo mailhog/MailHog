@@ -1,9 +1,6 @@
 package protocol
 
-import (
-	"strconv"
-	"strings"
-)
+import "strconv"
 
 // http://www.rfc-editor.org/rfc/rfc5321.txt
 
@@ -19,7 +16,7 @@ func (r Reply) Lines() []string {
 
 	if len(r.lines) == 0 {
 		l := strconv.Itoa(r.Status)
-		lines = append(lines, l)
+		lines = append(lines, l+"\n")
 		return lines
 	}
 
@@ -30,8 +27,6 @@ func (r Reply) Lines() []string {
 		} else {
 			l = strconv.Itoa(r.Status) + "-" + line + "\n"
 		}
-		logText := strings.Replace(l, "\n", "\\n", -1)
-		logText = strings.Replace(logText, "\r", "\\r", -1)
 		lines = append(lines, l)
 	}
 
