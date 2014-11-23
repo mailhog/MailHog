@@ -19,9 +19,11 @@ type Command struct {
 
 // Protocol is a state machine representing an SMTP session
 type Protocol struct {
-	state    State
-	message  *data.SMTPMessage
-	hostname string
+	state   State
+	message *data.SMTPMessage
+
+	Hostname string
+	Ident    string
 
 	// LogHandler is called for each log message. If nil, log messages will
 	// be output using log.Printf instead.
@@ -46,8 +48,10 @@ type Protocol struct {
 // handler is called when a message is received and should return a message ID
 func NewProtocol() *Protocol {
 	return &Protocol{
-		state:   INVALID,
-		message: &data.SMTPMessage{},
+		state:    INVALID,
+		message:  &data.SMTPMessage{},
+		Hostname: "",
+		Ident:    "ESMTP Go-MailHog",
 	}
 }
 
@@ -64,10 +68,10 @@ func (proto *Protocol) logf(message string, args ...interface{}) {
 
 // Start begins an SMTP conversation with a 220 reply, placing the state
 // machine in ESTABLISH state.
-func (proto *Protocol) Start(hostname string) *Reply {
+func (proto *Protocol) Start() *Reply {
+	proto.logf("Started session, switching to ESTABLISH state")
 	proto.state = ESTABLISH
-	proto.hostname = hostname
-	return ReplyIdent(hostname + " ESMTP Go-MailHog")
+	return ReplyIdent(proto.Hostname + " " + proto.Ident)
 }
 
 // Parse parses a line string and returns any remaining line string
@@ -90,6 +94,7 @@ func (proto *Protocol) Parse(line string) (string, *Reply) {
 		line = ""
 	}
 
+	// TODO collapse AUTH states into separate processing
 	if proto.state == DATA {
 		reply = proto.ProcessData(parts[0])
 	} else {
@@ -111,7 +116,7 @@ func (proto *Protocol) ProcessData(line string) (reply *Reply) {
 		proto.message.Data = strings.TrimSuffix(proto.message.Data, "\r\n.\r\n")
 		proto.state = MAIL
 
-		msg := proto.message.Parse(proto.hostname)
+		msg := proto.message.Parse(proto.Hostname)
 
 		if proto.MessageReceivedHandler == nil {
 			return ReplyStorageFailed("No storage backend")

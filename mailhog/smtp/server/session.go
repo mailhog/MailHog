@@ -24,6 +24,7 @@ type Session struct {
 // Accept starts a new SMTP session using net.TCPConn
 func Accept(conn *net.TCPConn, conf *config.Config) {
 	proto := protocol.NewProtocol()
+	proto.Hostname = conf.Hostname
 	session := &Session{conn, proto, conf, false, ""}
 	proto.LogHandler = session.logf
 	proto.MessageReceivedHandler = session.acceptMessage
@@ -32,7 +33,7 @@ func Accept(conn *net.TCPConn, conf *config.Config) {
 	proto.ValidateAuthenticationHandler = session.validateAuthentication
 
 	session.logf("Starting session")
-	session.Write(proto.Start(conf.Hostname))
+	session.Write(proto.Start())
 	for session.Read() == true {
 	}
 	session.logf("Session ended")
