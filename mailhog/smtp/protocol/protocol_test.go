@@ -120,10 +120,10 @@ func TestParse(t *testing.T) {
 	Convey("Parse can call ProcessData", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		proto.Command(&Command{"EHLO", "localhost"})
-		proto.Command(&Command{"MAIL", "From:<test>"})
-		proto.Command(&Command{"RCPT", "To:<test>"})
-		proto.Command(&Command{"DATA", ""})
+		proto.Command(ParseCommand("EHLO localhost"))
+		proto.Command(ParseCommand("MAIL From:<test>"))
+		proto.Command(ParseCommand("RCPT To:<test>"))
+		proto.Command(ParseCommand("DATA"))
 		So(proto.state, ShouldEqual, DATA)
 
 		line, reply := proto.Parse("Hi\n")
@@ -150,7 +150,7 @@ func TestUnknownCommands(t *testing.T) {
 	Convey("Unknown command in INVALID state", t, func() {
 		proto := NewProtocol()
 		So(proto.state, ShouldEqual, INVALID)
-		reply := proto.Command(&Command{"OINK", ""})
+		reply := proto.Command(ParseCommand("OINK"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 500)
 		So(reply.Lines(), ShouldResemble, []string{"500 Unrecognised command\n"})
@@ -159,7 +159,7 @@ func TestUnknownCommands(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		So(proto.state, ShouldEqual, ESTABLISH)
-		reply := proto.Command(&Command{"OINK", ""})
+		reply := proto.Command(ParseCommand("OINK"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 500)
 		So(reply.Lines(), ShouldResemble, []string{"500 Unrecognised command\n"})
@@ -167,9 +167,9 @@ func TestUnknownCommands(t *testing.T) {
 	Convey("Unknown command in MAIL state", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		proto.Command(&Command{"EHLO", "localhost"})
+		proto.Command(ParseCommand("EHLO localhost"))
 		So(proto.state, ShouldEqual, MAIL)
-		reply := proto.Command(&Command{"OINK", ""})
+		reply := proto.Command(ParseCommand("OINK"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 500)
 		So(reply.Lines(), ShouldResemble, []string{"500 Unrecognised command\n"})
@@ -177,10 +177,10 @@ func TestUnknownCommands(t *testing.T) {
 	Convey("Unknown command in RCPT state", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		proto.Command(&Command{"EHLO", "localhost"})
-		proto.Command(&Command{"MAIL", "FROM:<test>"})
+		proto.Command(ParseCommand("EHLO localhost"))
+		proto.Command(ParseCommand("MAIL FROM:<test>"))
 		So(proto.state, ShouldEqual, RCPT)
-		reply := proto.Command(&Command{"OINK", ""})
+		reply := proto.Command(ParseCommand("OINK"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 500)
 		So(reply.Lines(), ShouldResemble, []string{"500 Unrecognised command\n"})
@@ -192,7 +192,7 @@ func TestESTABLISHCommands(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		So(proto.state, ShouldEqual, ESTABLISH)
-		reply := proto.Command(&Command{"EHLO", "localhost"})
+		reply := proto.Command(ParseCommand("EHLO localhost"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 	})
@@ -200,7 +200,7 @@ func TestESTABLISHCommands(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		So(proto.state, ShouldEqual, ESTABLISH)
-		reply := proto.Command(&Command{"HELO", "localhost"})
+		reply := proto.Command(ParseCommand("HELO localhost"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 	})
@@ -208,7 +208,7 @@ func TestESTABLISHCommands(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		So(proto.state, ShouldEqual, ESTABLISH)
-		reply := proto.Command(&Command{"RSET", ""})
+		reply := proto.Command(ParseCommand("RSET"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 	})
@@ -216,7 +216,7 @@ func TestESTABLISHCommands(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		So(proto.state, ShouldEqual, ESTABLISH)
-		reply := proto.Command(&Command{"NOOP", ""})
+		reply := proto.Command(ParseCommand("NOOP"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 	})
@@ -224,7 +224,7 @@ func TestESTABLISHCommands(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		So(proto.state, ShouldEqual, ESTABLISH)
-		reply := proto.Command(&Command{"QUIT", ""})
+		reply := proto.Command(ParseCommand("QUIT"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 221)
 	})
@@ -232,7 +232,7 @@ func TestESTABLISHCommands(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		So(proto.state, ShouldEqual, ESTABLISH)
-		reply := proto.Command(&Command{"MAIL", ""})
+		reply := proto.Command(ParseCommand("MAIL"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 500)
 		So(reply.Lines(), ShouldResemble, []string{"500 Unrecognised command\n"})
@@ -241,7 +241,7 @@ func TestESTABLISHCommands(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		So(proto.state, ShouldEqual, ESTABLISH)
-		reply := proto.Command(&Command{"RCPT", ""})
+		reply := proto.Command(ParseCommand("RCPT"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 500)
 		So(reply.Lines(), ShouldResemble, []string{"500 Unrecognised command\n"})
@@ -250,7 +250,7 @@ func TestESTABLISHCommands(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		So(proto.state, ShouldEqual, ESTABLISH)
-		reply := proto.Command(&Command{"DATA", ""})
+		reply := proto.Command(ParseCommand("DATA"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 500)
 		So(reply.Lines(), ShouldResemble, []string{"500 Unrecognised command\n"})
@@ -275,7 +275,7 @@ func TestEHLO(t *testing.T) {
 		proto.Start()
 		So(proto.state, ShouldEqual, ESTABLISH)
 		So(proto.message.Helo, ShouldEqual, "")
-		reply := proto.Command(&Command{"EHLO", "localhost"})
+		reply := proto.Command(ParseCommand("EHLO localhost"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 		So(reply.Lines(), ShouldResemble, []string{"250-Hello localhost\n", "250-PIPELINING\n", "250 AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN\n"})
@@ -285,10 +285,10 @@ func TestEHLO(t *testing.T) {
 	Convey("HELO should work in MAIL state", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		proto.Command(&Command{"HELO", "localhost"})
+		proto.Command(ParseCommand("HELO localhost"))
 		So(proto.state, ShouldEqual, MAIL)
 		So(proto.message.Helo, ShouldEqual, "localhost")
-		reply := proto.Command(&Command{"EHLO", "localhost"})
+		reply := proto.Command(ParseCommand("EHLO localhost"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 		So(reply.Lines(), ShouldResemble, []string{"250-Hello localhost\n", "250-PIPELINING\n", "250 AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN\n"})
@@ -298,11 +298,11 @@ func TestEHLO(t *testing.T) {
 	Convey("HELO should work in RCPT state", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		proto.Command(&Command{"HELO", "localhost"})
-		proto.Command(&Command{"MAIL", "From:<test>"})
+		proto.Command(ParseCommand("HELO localhost"))
+		proto.Command(ParseCommand("MAIL From:<test>"))
 		So(proto.state, ShouldEqual, RCPT)
 		So(proto.message.Helo, ShouldEqual, "localhost")
-		reply := proto.Command(&Command{"EHLO", "localhost"})
+		reply := proto.Command(ParseCommand("EHLO localhost"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 		So(reply.Lines(), ShouldResemble, []string{"250-Hello localhost\n", "250-PIPELINING\n", "250 AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN\n"})
@@ -329,7 +329,7 @@ func TestHELO(t *testing.T) {
 		proto.Start()
 		So(proto.state, ShouldEqual, ESTABLISH)
 		So(proto.message.Helo, ShouldEqual, "")
-		reply := proto.Command(&Command{"HELO", "localhost"})
+		reply := proto.Command(ParseCommand("HELO localhost"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 		So(reply.Lines(), ShouldResemble, []string{"250 Hello localhost\n"})
@@ -339,10 +339,10 @@ func TestHELO(t *testing.T) {
 	Convey("HELO should work in MAIL state", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		proto.Command(&Command{"HELO", "localhost"})
+		proto.Command(ParseCommand("HELO localhost"))
 		So(proto.state, ShouldEqual, MAIL)
 		So(proto.message.Helo, ShouldEqual, "localhost")
-		reply := proto.Command(&Command{"HELO", "localhost"})
+		reply := proto.Command(ParseCommand("HELO localhost"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 		So(reply.Lines(), ShouldResemble, []string{"250 Hello localhost\n"})
@@ -352,11 +352,11 @@ func TestHELO(t *testing.T) {
 	Convey("HELO should work in RCPT state", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		proto.Command(&Command{"HELO", "localhost"})
-		proto.Command(&Command{"MAIL", "From:<test>"})
+		proto.Command(ParseCommand("HELO localhost"))
+		proto.Command(ParseCommand("MAIL From:<test>"))
 		So(proto.state, ShouldEqual, RCPT)
 		So(proto.message.Helo, ShouldEqual, "localhost")
-		reply := proto.Command(&Command{"HELO", "localhost"})
+		reply := proto.Command(ParseCommand("HELO localhost"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 		So(reply.Lines(), ShouldResemble, []string{"250 Hello localhost\n"})
@@ -375,9 +375,9 @@ func TestDATA(t *testing.T) {
 		}
 		proto.Start()
 		proto.HELO("localhost")
-		proto.Command(&Command{"MAIL", "FROM:<test>"})
-		proto.Command(&Command{"RCPT", "TO:<test>"})
-		reply := proto.Command(&Command{"DATA", ""})
+		proto.Command(ParseCommand("MAIL FROM:<test>"))
+		proto.Command(ParseCommand("RCPT TO:<test>"))
+		reply := proto.Command(ParseCommand("DATA"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 354)
 		So(reply.Lines(), ShouldResemble, []string{"354 End data with <CR><LF>.<CR><LF>\n"})
@@ -401,9 +401,9 @@ func TestDATA(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		proto.HELO("localhost")
-		proto.Command(&Command{"MAIL", "FROM:<test>"})
-		proto.Command(&Command{"RCPT", "TO:<test>"})
-		reply := proto.Command(&Command{"DATA", ""})
+		proto.Command(ParseCommand("MAIL FROM:<test>"))
+		proto.Command(ParseCommand("RCPT TO:<test>"))
+		reply := proto.Command(ParseCommand("DATA"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 354)
 		So(reply.Lines(), ShouldResemble, []string{"354 End data with <CR><LF>.<CR><LF>\n"})
@@ -431,9 +431,9 @@ func TestDATA(t *testing.T) {
 		}
 		proto.Start()
 		proto.HELO("localhost")
-		proto.Command(&Command{"MAIL", "FROM:<test>"})
-		proto.Command(&Command{"RCPT", "TO:<test>"})
-		reply := proto.Command(&Command{"DATA", ""})
+		proto.Command(ParseCommand("MAIL FROM:<test>"))
+		proto.Command(ParseCommand("RCPT TO:<test>"))
+		reply := proto.Command(ParseCommand("DATA"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 354)
 		So(reply.Lines(), ShouldResemble, []string{"354 End data with <CR><LF>.<CR><LF>\n"})
@@ -460,13 +460,13 @@ func TestRSET(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		proto.HELO("localhost")
-		proto.Command(&Command{"MAIL", "FROM:<test>"})
-		proto.Command(&Command{"RCPT", "TO:<test>"})
+		proto.Command(ParseCommand("MAIL FROM:<test>"))
+		proto.Command(ParseCommand("RCPT TO:<test>"))
 		So(proto.state, ShouldEqual, RCPT)
 		So(proto.message.From, ShouldEqual, "test")
 		So(len(proto.message.To), ShouldEqual, 1)
 		So(proto.message.To[0], ShouldEqual, "test")
-		reply := proto.Command(&Command{"RSET", ""})
+		reply := proto.Command(ParseCommand("RSET"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 		So(reply.Lines(), ShouldResemble, []string{"250 Ok\n"})
@@ -481,13 +481,13 @@ func TestNOOP(t *testing.T) {
 		proto := NewProtocol()
 		proto.Start()
 		proto.HELO("localhost")
-		proto.Command(&Command{"MAIL", "FROM:<test>"})
-		proto.Command(&Command{"RCPT", "TO:<test>"})
+		proto.Command(ParseCommand("MAIL FROM:<test>"))
+		proto.Command(ParseCommand("RCPT TO:<test>"))
 		So(proto.state, ShouldEqual, RCPT)
 		So(proto.message.From, ShouldEqual, "test")
 		So(len(proto.message.To), ShouldEqual, 1)
 		So(proto.message.To[0], ShouldEqual, "test")
-		reply := proto.Command(&Command{"NOOP", ""})
+		reply := proto.Command(ParseCommand("NOOP"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 		So(reply.Lines(), ShouldResemble, []string{"250 Ok\n"})
@@ -502,7 +502,7 @@ func TestQUIT(t *testing.T) {
 	Convey("QUIT should modify the state correctly", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		reply := proto.Command(&Command{"QUIT", ""})
+		reply := proto.Command(ParseCommand("QUIT"))
 		So(proto.state, ShouldEqual, DONE)
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 221)
@@ -539,9 +539,9 @@ func TestParseMAIL(t *testing.T) {
 	Convey("Error should be returned via Command", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		proto.Command(&Command{"HELO", "localhost"})
+		proto.Command(ParseCommand("HELO localhost"))
 		So(proto.state, ShouldEqual, MAIL)
-		reply := proto.Command(&Command{"MAIL", "oink"})
+		reply := proto.Command(ParseCommand("MAIL oink"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 550)
 		So(reply.Lines(), ShouldResemble, []string{"550 Invalid syntax in MAIL command\n"})
@@ -556,9 +556,9 @@ func TestParseMAIL(t *testing.T) {
 			return true
 		}
 		proto.Start()
-		proto.Command(&Command{"HELO", "localhost"})
+		proto.Command(ParseCommand("HELO localhost"))
 		So(proto.state, ShouldEqual, MAIL)
-		reply := proto.Command(&Command{"MAIL", "From:<oink@mailhog.example>"})
+		reply := proto.Command(ParseCommand("MAIL From:<oink@mailhog.example>"))
 		So(handlerCalled, ShouldBeTrue)
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
@@ -574,9 +574,9 @@ func TestParseMAIL(t *testing.T) {
 			return false
 		}
 		proto.Start()
-		proto.Command(&Command{"HELO", "localhost"})
+		proto.Command(ParseCommand("HELO localhost"))
 		So(proto.state, ShouldEqual, MAIL)
-		reply := proto.Command(&Command{"MAIL", "From:<oink@mailhog.example>"})
+		reply := proto.Command(ParseCommand("MAIL From:<oink@mailhog.example>"))
 		So(handlerCalled, ShouldBeTrue)
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 550)
@@ -614,10 +614,10 @@ func TestParseRCPT(t *testing.T) {
 	Convey("Error should be returned via Command", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		proto.Command(&Command{"HELO", "localhost"})
-		proto.Command(&Command{"MAIL", "FROM:<test>"})
+		proto.Command(ParseCommand("HELO localhost"))
+		proto.Command(ParseCommand("MAIL FROM:<test>"))
 		So(proto.state, ShouldEqual, RCPT)
-		reply := proto.Command(&Command{"RCPT", "oink"})
+		reply := proto.Command(ParseCommand("RCPT oink"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 550)
 		So(reply.Lines(), ShouldResemble, []string{"550 Invalid syntax in RCPT command\n"})
@@ -632,10 +632,10 @@ func TestParseRCPT(t *testing.T) {
 			return true
 		}
 		proto.Start()
-		proto.Command(&Command{"HELO", "localhost"})
-		proto.Command(&Command{"MAIL", "FROM:<test>"})
+		proto.Command(ParseCommand("HELO localhost"))
+		proto.Command(ParseCommand("MAIL FROM:<test>"))
 		So(proto.state, ShouldEqual, RCPT)
-		reply := proto.Command(&Command{"RCPT", "To:<oink@mailhog.example>"})
+		reply := proto.Command(ParseCommand("RCPT To:<oink@mailhog.example>"))
 		So(handlerCalled, ShouldBeTrue)
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
@@ -651,10 +651,10 @@ func TestParseRCPT(t *testing.T) {
 			return false
 		}
 		proto.Start()
-		proto.Command(&Command{"HELO", "localhost"})
-		proto.Command(&Command{"MAIL", "FROM:<test>"})
+		proto.Command(ParseCommand("HELO localhost"))
+		proto.Command(ParseCommand("MAIL FROM:<test>"))
 		So(proto.state, ShouldEqual, RCPT)
-		reply := proto.Command(&Command{"RCPT", "To:<oink@mailhog.example>"})
+		reply := proto.Command(ParseCommand("RCPT To:<oink@mailhog.example>"))
 		So(handlerCalled, ShouldBeTrue)
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 550)
@@ -667,7 +667,7 @@ func TestAuth(t *testing.T) {
 	Convey("AUTH should be listed in EHLO response", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		reply := proto.Command(&Command{"EHLO", "localhost"})
+		reply := proto.Command(ParseCommand("EHLO localhost"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 250)
 		So(reply.Lines(), ShouldResemble, []string{"250-Hello localhost\n", "250-PIPELINING\n", "250 AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN\n"})
@@ -676,13 +676,15 @@ func TestAuth(t *testing.T) {
 	Convey("Invalid mechanism should be rejected", t, func() {
 		proto := NewProtocol()
 		proto.Start()
-		proto.Command(&Command{"EHLO", "localhost"})
-		reply := proto.Command(&Command{"AUTH", "OINK"})
+		proto.Command(ParseCommand("EHLO localhost"))
+		reply := proto.Command(ParseCommand("AUTH OINK"))
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 504)
 		So(reply.Lines(), ShouldResemble, []string{"504 Unsupported authentication mechanism\n"})
 	})
+}
 
+func TestAuthExternal(t *testing.T) {
 	Convey("AUTH EXTERNAL should call ValidateAuthenticationHandler", t, func() {
 		proto := NewProtocol()
 		handlerCalled := false
@@ -694,8 +696,11 @@ func TestAuth(t *testing.T) {
 			return nil, true
 		}
 		proto.Start()
-		proto.Command(&Command{"EHLO", "localhost"})
-		proto.Command(&Command{"AUTH", "EXTERNAL oink!"})
+		proto.Command(ParseCommand("EHLO localhost"))
+		reply := proto.Command(ParseCommand("AUTH EXTERNAL oink!"))
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 235)
+		So(reply.Lines(), ShouldResemble, []string{"235 Authentication successful\n"})
 		So(handlerCalled, ShouldBeTrue)
 	})
 
@@ -707,8 +712,90 @@ func TestAuth(t *testing.T) {
 			return ReplyError(errors.New("OINK :(")), false
 		}
 		proto.Start()
-		proto.Command(&Command{"EHLO", "localhost"})
-		reply := proto.Command(&Command{"AUTH", "EXTERNAL oink!"})
+		proto.Command(ParseCommand("EHLO localhost"))
+		reply := proto.Command(ParseCommand("AUTH EXTERNAL oink!"))
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 550)
+		So(reply.Lines(), ShouldResemble, []string{"550 OINK :(\n"})
+		So(handlerCalled, ShouldBeTrue)
+	})
+}
+
+func TestAuthPlain(t *testing.T) {
+	Convey("Inline AUTH PLAIN should call ValidateAuthenticationHandler", t, func() {
+		proto := NewProtocol()
+		handlerCalled := false
+		proto.ValidateAuthenticationHandler = func(mechanism string, args ...string) (*Reply, bool) {
+			handlerCalled = true
+			So(mechanism, ShouldEqual, "PLAIN")
+			So(len(args), ShouldEqual, 1)
+			So(args[0], ShouldEqual, "oink!")
+			return nil, true
+		}
+		proto.Start()
+		proto.Command(ParseCommand("EHLO localhost"))
+		reply := proto.Command(ParseCommand("AUTH PLAIN oink!"))
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 235)
+		So(reply.Lines(), ShouldResemble, []string{"235 Authentication successful\n"})
+		So(handlerCalled, ShouldBeTrue)
+	})
+
+	Convey("Inline AUTH PLAIN ValidateAuthenticationHandler errors should be returned", t, func() {
+		proto := NewProtocol()
+		handlerCalled := false
+		proto.ValidateAuthenticationHandler = func(mechanism string, args ...string) (*Reply, bool) {
+			handlerCalled = true
+			return ReplyError(errors.New("OINK :(")), false
+		}
+		proto.Start()
+		proto.Command(ParseCommand("EHLO localhost"))
+		reply := proto.Command(ParseCommand("AUTH PLAIN oink!"))
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 550)
+		So(reply.Lines(), ShouldResemble, []string{"550 OINK :(\n"})
+		So(handlerCalled, ShouldBeTrue)
+	})
+
+	Convey("Two part AUTH PLAIN should call ValidateAuthenticationHandler", t, func() {
+		proto := NewProtocol()
+		handlerCalled := false
+		proto.ValidateAuthenticationHandler = func(mechanism string, args ...string) (*Reply, bool) {
+			handlerCalled = true
+			So(mechanism, ShouldEqual, "PLAIN")
+			So(len(args), ShouldEqual, 1)
+			So(args[0], ShouldEqual, "oink!")
+			return nil, true
+		}
+		proto.Start()
+		proto.Command(ParseCommand("EHLO localhost"))
+		reply := proto.Command(ParseCommand("AUTH PLAIN"))
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 334)
+		So(reply.Lines(), ShouldResemble, []string{"334 \n"})
+
+		_, reply = proto.Parse("oink!\n")
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 235)
+		So(reply.Lines(), ShouldResemble, []string{"235 Authentication successful\n"})
+		So(handlerCalled, ShouldBeTrue)
+	})
+
+	Convey("Two part AUTH PLAIN ValidateAuthenticationHandler errors should be returned", t, func() {
+		proto := NewProtocol()
+		handlerCalled := false
+		proto.ValidateAuthenticationHandler = func(mechanism string, args ...string) (*Reply, bool) {
+			handlerCalled = true
+			return ReplyError(errors.New("OINK :(")), false
+		}
+		proto.Start()
+		proto.Command(ParseCommand("EHLO localhost"))
+		reply := proto.Command(ParseCommand("AUTH PLAIN"))
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 334)
+		So(reply.Lines(), ShouldResemble, []string{"334 \n"})
+
+		_, reply = proto.Parse("oink!\n")
 		So(reply, ShouldNotBeNil)
 		So(reply.Status, ShouldEqual, 550)
 		So(reply.Lines(), ShouldResemble, []string{"550 OINK :(\n"})

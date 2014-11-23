@@ -15,6 +15,20 @@ import (
 type Command struct {
 	verb string
 	args string
+	orig string
+}
+
+// ParseCommand returns a Command from the line string
+func ParseCommand(line string) *Command {
+	words := strings.Split(line, " ")
+	command := strings.ToUpper(words[0])
+	args := strings.Join(words[1:len(words)], " ")
+
+	return &Command{
+		verb: command,
+		args: args,
+		orig: line,
+	}
 }
 
 // Protocol is a state machine representing an SMTP session
@@ -139,7 +153,7 @@ func (proto *Protocol) ProcessCommand(line string) (reply *Reply) {
 	args := strings.Join(words[1:len(words)], " ")
 	proto.logf("In state %d, got command '%s', args '%s'", proto.state, command, args)
 
-	cmd := &Command{command, args}
+	cmd := ParseCommand(strings.TrimSuffix(line, "\r\n"))
 	return proto.Command(cmd)
 }
 
@@ -172,7 +186,7 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		proto.logf("Got PLAIN authentication response: '%s', switching to MAIL state", command.args)
 		proto.state = MAIL
 		if proto.ValidateAuthenticationHandler != nil {
-			if reply, ok := proto.ValidateAuthenticationHandler("CRAM-MD5", command.args); !ok {
+			if reply, ok := proto.ValidateAuthenticationHandler("PLAIN", command.orig); !ok {
 				return reply
 			}
 		}
@@ -185,7 +199,7 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		proto.logf("Got LOGIN authentication response: '%s', switching to MAIL state", command.args)
 		proto.state = MAIL
 		if proto.ValidateAuthenticationHandler != nil {
-			if reply, ok := proto.ValidateAuthenticationHandler("CRAM-MD5", command.args); !ok {
+			if reply, ok := proto.ValidateAuthenticationHandler("LOGIN", command.orig); !ok {
 				return reply
 			}
 		}
@@ -194,7 +208,7 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		proto.logf("Got CRAM-MD5 authentication response: '%s', switching to MAIL state", command.args)
 		proto.state = MAIL
 		if proto.ValidateAuthenticationHandler != nil {
-			if reply, ok := proto.ValidateAuthenticationHandler("CRAM-MD5", command.args); !ok {
+			if reply, ok := proto.ValidateAuthenticationHandler("CRAM-MD5", command.orig); !ok {
 				return reply
 			}
 		}
