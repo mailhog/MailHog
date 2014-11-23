@@ -662,3 +662,56 @@ func TestParseRCPT(t *testing.T) {
 		So(proto.state, ShouldEqual, RCPT)
 	})
 }
+
+func TestAuth(t *testing.T) {
+	Convey("AUTH should be listed in EHLO response", t, func() {
+		proto := NewProtocol()
+		proto.Start()
+		reply := proto.Command(&Command{"EHLO", "localhost"})
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 250)
+		So(reply.Lines(), ShouldResemble, []string{"250-Hello localhost\n", "250-PIPELINING\n", "250 AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN\n"})
+	})
+
+	Convey("Invalid mechanism should be rejected", t, func() {
+		proto := NewProtocol()
+		proto.Start()
+		proto.Command(&Command{"EHLO", "localhost"})
+		reply := proto.Command(&Command{"AUTH", "OINK"})
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 504)
+		So(reply.Lines(), ShouldResemble, []string{"504 Unsupported authentication mechanism\n"})
+	})
+
+	Convey("AUTH EXTERNAL should call ValidateAuthenticationHandler", t, func() {
+		proto := NewProtocol()
+		handlerCalled := false
+		proto.ValidateAuthenticationHandler = func(mechanism string, args ...string) (*Reply, bool) {
+			handlerCalled = true
+			So(mechanism, ShouldEqual, "EXTERNAL")
+			So(len(args), ShouldEqual, 1)
+			So(args[0], ShouldEqual, "oink!")
+			return nil, true
+		}
+		proto.Start()
+		proto.Command(&Command{"EHLO", "localhost"})
+		proto.Command(&Command{"AUTH", "EXTERNAL oink!"})
+		So(handlerCalled, ShouldBeTrue)
+	})
+
+	Convey("AUTH EXTERNAL ValidateAuthenticationHandler errors should be returned", t, func() {
+		proto := NewProtocol()
+		handlerCalled := false
+		proto.ValidateAuthenticationHandler = func(mechanism string, args ...string) (*Reply, bool) {
+			handlerCalled = true
+			return ReplyError(errors.New("OINK :(")), false
+		}
+		proto.Start()
+		proto.Command(&Command{"EHLO", "localhost"})
+		reply := proto.Command(&Command{"AUTH", "EXTERNAL oink!"})
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 550)
+		So(reply.Lines(), ShouldResemble, []string{"550 OINK :(\n"})
+		So(handlerCalled, ShouldBeTrue)
+	})
+}
