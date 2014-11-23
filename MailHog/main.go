@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/ian-kent/Go-MailHog/MailHog-UI/assets"
 	"github.com/ian-kent/Go-MailHog/config"
 	"github.com/ian-kent/Go-MailHog/data"
 	mhhttp "github.com/ian-kent/Go-MailHog/http"
@@ -42,7 +43,7 @@ func configure() {
 		MongoUri:     mongouri,
 		MongoDb:      mongodb,
 		MongoColl:    mongocoll,
-		Assets:       Asset,
+		Assets:       assets.Asset,
 		MessageChan:  make(chan *data.Message),
 	}
 
@@ -83,7 +84,7 @@ func main() {
 func web_listen() {
 	log.Info("[HTTP] Binding to address: %s", conf.HTTPBindAddr)
 
-	var app = gotcha.Create(Asset)
+	var app = gotcha.Create(assets.Asset)
 	app.Config.Listen = conf.HTTPBindAddr
 
 	app.On(events.BeforeHandler, func(session *http.Session, next func()) {
