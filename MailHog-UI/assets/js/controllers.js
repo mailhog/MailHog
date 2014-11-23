@@ -163,6 +163,21 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
     }, 10);
   }
 
+  $scope.tryDecodeContent = function(message, content) {
+    var charset = "UTF-8"
+    if(message.Content.Headers["Content-Type"][0]) {
+      // TODO
+    }
+
+    if(message.Content.Headers["Content-Transfer-Encoding"][0]) {
+      if(message.Content.Headers["Content-Transfer-Encoding"][0] == "quoted-printable") {
+        content = unescapeFromQuotedPrintable(content, charset)
+      }
+    }
+
+    return content
+  }
+
   $scope.getMessagePlain = function(message) {
     var l = $scope.findMatchingMIME(message, "text/plain");
     if(l != null && l !== "undefined") {

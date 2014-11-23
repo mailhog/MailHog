@@ -228,7 +228,7 @@
     </ul>
     <div class="tab-content">
       <div ng-if="hasHTML(preview)" ng-class="{ active: hasHTML(preview) }" class="tab-pane" id="preview-html" ng-bind-html="preview.previewHTML"></div>
-      <div class="tab-pane" ng-class="{ active: !hasHTML(preview) }" id="preview-plain">{{ getMessagePlain(preview) }}</div>
+      <div class="tab-pane" ng-class="{ active: !hasHTML(preview) }" id="preview-plain">{{ tryDecodeContent(preview, getMessagePlain(preview)) }}</div>
       <div class="tab-pane" id="preview-source">{{ getSource(preview) }}</div>
       <div class="tab-pane" id="preview-mime">
         <div ng-repeat="part in preview.MIME.Parts" class="mime-part">
