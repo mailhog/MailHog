@@ -802,3 +802,108 @@ func TestAuthPlain(t *testing.T) {
 		So(handlerCalled, ShouldBeTrue)
 	})
 }
+
+func TestAuthCramMD5(t *testing.T) {
+	Convey("Two part AUTH CRAM-MD5 should call ValidateAuthenticationHandler", t, func() {
+		proto := NewProtocol()
+		handlerCalled := false
+		proto.ValidateAuthenticationHandler = func(mechanism string, args ...string) (*Reply, bool) {
+			handlerCalled = true
+			So(mechanism, ShouldEqual, "CRAM-MD5")
+			So(len(args), ShouldEqual, 1)
+			So(args[0], ShouldEqual, "oink!")
+			return nil, true
+		}
+		proto.Start()
+		proto.Command(ParseCommand("EHLO localhost"))
+		reply := proto.Command(ParseCommand("AUTH CRAM-MD5"))
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 334)
+		So(reply.Lines(), ShouldResemble, []string{"334 PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4=\n"})
+
+		_, reply = proto.Parse("oink!\n")
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 235)
+		So(reply.Lines(), ShouldResemble, []string{"235 Authentication successful\n"})
+		So(handlerCalled, ShouldBeTrue)
+	})
+
+	Convey("Two part AUTH CRAM-MD5 ValidateAuthenticationHandler errors should be returned", t, func() {
+		proto := NewProtocol()
+		handlerCalled := false
+		proto.ValidateAuthenticationHandler = func(mechanism string, args ...string) (*Reply, bool) {
+			handlerCalled = true
+			return ReplyError(errors.New("OINK :(")), false
+		}
+		proto.Start()
+		proto.Command(ParseCommand("EHLO localhost"))
+		reply := proto.Command(ParseCommand("AUTH CRAM-MD5"))
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 334)
+		So(reply.Lines(), ShouldResemble, []string{"334 PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4=\n"})
+
+		_, reply = proto.Parse("oink!\n")
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 550)
+		So(reply.Lines(), ShouldResemble, []string{"550 OINK :(\n"})
+		So(handlerCalled, ShouldBeTrue)
+	})
+}
+
+func TestAuthLogin(t *testing.T) {
+	Convey("AUTH LOGIN should call ValidateAuthenticationHandler", t, func() {
+		proto := NewProtocol()
+		handlerCalled := false
+		proto.ValidateAuthenticationHandler = func(mechanism string, args ...string) (*Reply, bool) {
+			handlerCalled = true
+			So(mechanism, ShouldEqual, "LOGIN")
+			So(len(args), ShouldEqual, 2)
+			So(args[0], ShouldEqual, "username!")
+			So(args[1], ShouldEqual, "password!")
+			return nil, true
+		}
+		proto.Start()
+		proto.Command(ParseCommand("EHLO localhost"))
+		reply := proto.Command(ParseCommand("AUTH LOGIN"))
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 334)
+		So(reply.Lines(), ShouldResemble, []string{"334 VXNlcm5hbWU6\n"})
+
+		_, reply = proto.Parse("username!\n")
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 334)
+		So(reply.Lines(), ShouldResemble, []string{"334 UGFzc3dvcmQ6\n"})
+
+		_, reply = proto.Parse("password!\n")
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 235)
+		So(reply.Lines(), ShouldResemble, []string{"235 Authentication successful\n"})
+		So(handlerCalled, ShouldBeTrue)
+	})
+
+	Convey("AUTH LOGIN ValidateAuthenticationHandler errors should be returned", t, func() {
+		proto := NewProtocol()
+		handlerCalled := false
+		proto.ValidateAuthenticationHandler = func(mechanism string, args ...string) (*Reply, bool) {
+			handlerCalled = true
+			return ReplyError(errors.New("OINK :(")), false
+		}
+		proto.Start()
+		proto.Command(ParseCommand("EHLO localhost"))
+		reply := proto.Command(ParseCommand("AUTH LOGIN"))
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 334)
+		So(reply.Lines(), ShouldResemble, []string{"334 VXNlcm5hbWU6\n"})
+
+		_, reply = proto.Parse("username!\n")
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 334)
+		So(reply.Lines(), ShouldResemble, []string{"334 UGFzc3dvcmQ6\n"})
+
+		_, reply = proto.Parse("password!\n")
+		So(reply, ShouldNotBeNil)
+		So(reply.Status, ShouldEqual, 550)
+		So(reply.Lines(), ShouldResemble, []string{"550 OINK :(\n"})
+		So(handlerCalled, ShouldBeTrue)
+	})
+}

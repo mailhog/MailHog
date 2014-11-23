@@ -36,6 +36,8 @@ type Protocol struct {
 	state   State
 	message *data.SMTPMessage
 
+	lastCommand *Command
+
 	Hostname string
 	Ident    string
 
@@ -159,6 +161,9 @@ func (proto *Protocol) ProcessCommand(line string) (reply *Reply) {
 
 // Command applies an SMTP verb and arguments to the state machine
 func (proto *Protocol) Command(command *Command) (reply *Reply) {
+	defer func() {
+		proto.lastCommand = command
+	}()
 	switch {
 	case "RSET" == command.verb:
 		proto.logf("Got RSET command, switching to MAIL state")
@@ -199,7 +204,7 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		proto.logf("Got LOGIN authentication response: '%s', switching to MAIL state", command.args)
 		proto.state = MAIL
 		if proto.ValidateAuthenticationHandler != nil {
-			if reply, ok := proto.ValidateAuthenticationHandler("LOGIN", command.orig); !ok {
+			if reply, ok := proto.ValidateAuthenticationHandler("LOGIN", proto.lastCommand.orig, command.orig); !ok {
 				return reply
 			}
 		}
