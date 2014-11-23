@@ -3,113 +3,41 @@ package server
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestMAILParsing(t *testing.T) {
-	from, err := ParseMAIL("From:<foo@bar>")
-	assert.Equal(t, from, "foo@bar")
-	assert.Nil(t, err)
+func TestValidateAuthentication(t *testing.T) {
+	Convey("validateAuthentication is always successful", t, func() {
+		c := &Session{}
 
-	from, err = ParseMAIL("From:<foo@bar.com>")
-	assert.Equal(t, from, "foo@bar.com")
-	assert.Nil(t, err)
+		err, ok := c.validateAuthentication("OINK")
+		So(err, ShouldBeNil)
+		So(ok, ShouldBeTrue)
 
-	from, err = ParseMAIL("From:<foo>")
-	assert.Equal(t, from, "foo")
-	assert.Nil(t, err)
+		err, ok = c.validateAuthentication("OINK", "arg1")
+		So(err, ShouldBeNil)
+		So(ok, ShouldBeTrue)
 
-	from, err = ParseMAIL("To:<foo@bar>")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid sender")
-
-	from, err = ParseMAIL("To:<foo@bar.com>")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid sender")
-
-	from, err = ParseMAIL("To:<foo>")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid sender")
-
-	from, err = ParseMAIL("INVALID")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid sender")
-
-	from, err = ParseMAIL("From:INVALID")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid sender")
-
-	from, err = ParseMAIL("From:foo")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid sender")
-
-	from, err = ParseMAIL("From:foo@bar")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid sender")
-
-	from, err = ParseMAIL("From: <foo@bar>")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid sender")
+		err, ok = c.validateAuthentication("OINK", "arg1", "arg2")
+		So(err, ShouldBeNil)
+		So(ok, ShouldBeTrue)
+	})
 }
 
-func TestRCPTParsing(t *testing.T) {
-	from, err := ParseRCPT("To:<foo@bar>")
-	assert.Equal(t, from, "foo@bar")
-	assert.Nil(t, err)
+func TestValidateRecipient(t *testing.T) {
+	Convey("validateRecipient is always successful", t, func() {
+		c := &Session{}
 
-	from, err = ParseRCPT("To:<foo@bar.com>")
-	assert.Equal(t, from, "foo@bar.com")
-	assert.Nil(t, err)
+		So(c.validateRecipient("OINK"), ShouldBeTrue)
+		So(c.validateRecipient("foo@bar.mailhog"), ShouldBeTrue)
+	})
+}
 
-	from, err = ParseRCPT("To:<foo>")
-	assert.Equal(t, from, "foo")
-	assert.Nil(t, err)
+func TestValidateSender(t *testing.T) {
+	Convey("validateSender is always successful", t, func() {
+		c := &Session{}
 
-	from, err = ParseRCPT("From:<foo@bar>")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid recipient")
-
-	from, err = ParseRCPT("From:<foo@bar.com>")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid recipient")
-
-	from, err = ParseRCPT("From:<foo>")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid recipient")
-
-	from, err = ParseRCPT("INVALID")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid recipient")
-
-	from, err = ParseRCPT("To:INVALID")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid recipient")
-
-	from, err = ParseRCPT("To:foo")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid recipient")
-
-	from, err = ParseRCPT("To:foo@bar")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid recipient")
-
-	from, err = ParseRCPT("To: <foo@bar>")
-	assert.Equal(t, from, "")
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "Invalid recipient")
+		So(c.validateSender("OINK"), ShouldBeTrue)
+		So(c.validateSender("foo@bar.mailhog"), ShouldBeTrue)
+	})
 }
