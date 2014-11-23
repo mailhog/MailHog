@@ -3,7 +3,6 @@ package storage
 import (
 	"log"
 
-	"github.com/ian-kent/Go-MailHog/mailhog/config"
 	"github.com/ian-kent/Go-MailHog/mailhog/data"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -12,22 +11,20 @@ import (
 // MongoDB represents MongoDB backed storage backend
 type MongoDB struct {
 	Session    *mgo.Session
-	Config     *config.Config
 	Collection *mgo.Collection
 }
 
 // CreateMongoDB creates a MongoDB backed storage backend
-func CreateMongoDB(c *config.Config) *MongoDB {
-	log.Printf("Connecting to MongoDB: %s\n", c.MongoUri)
-	session, err := mgo.Dial(c.MongoUri)
+func CreateMongoDB(uri, db, coll string) *MongoDB {
+	log.Printf("Connecting to MongoDB: %s\n", uri)
+	session, err := mgo.Dial(uri)
 	if err != nil {
 		log.Printf("Error connecting to MongoDB: %s", err)
 		return nil
 	}
 	return &MongoDB{
 		Session:    session,
-		Config:     c,
-		Collection: session.DB(c.MongoDb).C(c.MongoColl),
+		Collection: session.DB(db).C(coll),
 	}
 }
 

@@ -1,7 +1,5 @@
 package protocol
 
-// http://www.rfc-editor.org/rfc/rfc5321.txt
-
 // State represents the state of an SMTP conversation
 type State int
 

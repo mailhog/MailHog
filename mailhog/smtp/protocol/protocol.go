@@ -23,10 +23,22 @@ type Protocol struct {
 	message  *data.SMTPMessage
 	hostname string
 
-	LogHandler                    func(message string, args ...interface{})
-	MessageReceivedHandler        func(*data.Message) (string, error)
-	ValidateSenderHandler         func(from string) bool
-	ValidateRecipientHandler      func(to string) bool
+	// LogHandler is called for each log message. If nil, log messages will
+	// be output using fmt.Printf instead.
+	LogHandler func(message string, args ...interface{})
+	// MessageReceivedHandler is called for each message accepted by the
+	// SMTP protocol. It must return a MessageID or error. If nil, messages
+	// will be rejected with an error.
+	MessageReceivedHandler func(*data.Message) (string, error)
+	// ValidateSenderHandler should return true if the sender is valid,
+	// otherwise false. If nil, all senders will be accepted.
+	ValidateSenderHandler func(from string) bool
+	// ValidateRecipientHandler should return true if the recipient is valid,
+	// otherwise false. If nil, all recipients will be accepted.
+	ValidateRecipientHandler func(to string) bool
+	// ValidateAuthenticationhandler should return true if the authentication
+	// parameters are valid, otherwise false. If nil, all authentication
+	// attempts will be accepted.
 	ValidateAuthenticationHandler func(mechanism string, args ...string) bool
 }
 
@@ -50,7 +62,8 @@ func (proto *Protocol) logf(message string, args ...interface{}) {
 	}
 }
 
-// Start begins an SMTP conversation with a 220 reply
+// Start begins an SMTP conversation with a 220 reply, placing the state
+// machine in ESTABLISH state.
 func (proto *Protocol) Start(hostname string) *Reply {
 	proto.state = ESTABLISH
 	proto.hostname = hostname
@@ -60,7 +73,8 @@ func (proto *Protocol) Start(hostname string) *Reply {
 // Parse parses a line string and returns any remaining line string
 // and a reply, if a command was found. Parse does nothing until a
 // new line is found.
-// - TODO move this to a buffer inside proto?
+// - TODO decide whether to move this to a buffer inside Protocol
+//   sort of like it this way, since it gives control back to the caller
 func (proto *Protocol) Parse(line string) (string, *Reply) {
 	var reply *Reply
 
@@ -266,7 +280,7 @@ func ParseMAIL(mail string) (string, error) {
 	r := regexp.MustCompile("(?i:From):<([^>]+)>")
 	match := r.FindStringSubmatch(mail)
 	if len(match) != 2 {
-		return "", errors.New("Invalid sender")
+		return "", errors.New("Invalid sender " + mail)
 	}
 	return match[1], nil
 }
@@ -276,7 +290,7 @@ func ParseRCPT(rcpt string) (string, error) {
 	r := regexp.MustCompile("(?i:To):<([^>]+)>")
 	match := r.FindStringSubmatch(rcpt)
 	if len(match) != 2 {
-		return "", errors.New("Invalid recipient")
+		return "", errors.New("Invalid recipient " + rcpt)
 	}
 	return match[1], nil
 }

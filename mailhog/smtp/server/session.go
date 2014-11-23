@@ -3,7 +3,6 @@ package server
 // http://www.rfc-editor.org/rfc/rfc5321.txt
 
 import (
-	"errors"
 	"log"
 	"net"
 	"strings"
@@ -11,7 +10,6 @@ import (
 	"github.com/ian-kent/Go-MailHog/mailhog/config"
 	"github.com/ian-kent/Go-MailHog/mailhog/data"
 	"github.com/ian-kent/Go-MailHog/mailhog/smtp/protocol"
-	"github.com/ian-kent/Go-MailHog/mailhog/storage"
 )
 
 // Session represents a SMTP session using net.TCPConn
@@ -43,6 +41,7 @@ func Accept(conn *net.TCPConn, conf *config.Config) {
 func (c *Session) validateAuthentication(mechanism string, args ...string) bool {
 	return true
 }
+
 func (c *Session) validateRecipient(to string) bool {
 	return true
 }
@@ -52,16 +51,8 @@ func (c *Session) validateSender(from string) bool {
 }
 
 func (c *Session) acceptMessage(msg *data.Message) (id string, err error) {
-	switch c.conf.Storage.(type) {
-	case *storage.MongoDB:
-		c.logf("Storing message using MongoDB")
-		id, err = c.conf.Storage.(*storage.MongoDB).Store(msg)
-	case *storage.InMemory:
-		c.logf("Storing message using Memory")
-		id, err = c.conf.Storage.(*storage.InMemory).Store(msg)
-	default:
-		err = errors.New("Unknown storage stype")
-	}
+	c.logf("Storing message %s", msg.ID)
+	id, err = c.conf.Storage.Store(msg)
 	c.conf.MessageChan <- msg
 	return
 }

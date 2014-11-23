@@ -1,5 +1,9 @@
 package config
 
+import (
+	"github.com/ian-kent/Go-MailHog/mailhog/storage"
+)
+
 func DefaultConfig() *Config {
 	return &Config{
 		SMTPBindAddr: "0.0.0.0:1025",
@@ -19,6 +23,6 @@ type Config struct {
 	MongoDb      string
 	MongoColl    string
 	MessageChan  chan interface{}
-	Storage      interface{}
+	Storage      storage.Storage
 	Assets       func(asset string) ([]byte, error)
 }

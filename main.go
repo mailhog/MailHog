@@ -46,17 +46,17 @@ func configure() {
 
 	if storage_type == "mongodb" {
 		log.Println("Using MongoDB message storage")
-		s := storage.CreateMongoDB(conf)
+		s := storage.CreateMongoDB(conf.MongoUri, conf.MongoDb, conf.MongoColl)
 		if s == nil {
 			log.Println("MongoDB storage unavailable, reverting to in-memory storage")
-			conf.Storage = storage.CreateInMemory(conf)
+			conf.Storage = storage.CreateInMemory()
 		} else {
 			log.Println("Connected to MongoDB")
 			conf.Storage = s
 		}
 	} else if storage_type == "memory" {
 		log.Println("Using in-memory message storage")
-		conf.Storage = storage.CreateInMemory(conf)
+		conf.Storage = storage.CreateInMemory()
 	} else {
 		log.Fatalf("Invalid storage type %s", storage_type)
 	}

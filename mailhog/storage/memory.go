@@ -1,22 +1,17 @@
 package storage
 
-import (
-	"github.com/ian-kent/Go-MailHog/mailhog/config"
-	"github.com/ian-kent/Go-MailHog/mailhog/data"
-)
+import "github.com/ian-kent/Go-MailHog/mailhog/data"
 
 // InMemory is an in memory storage backend
 type InMemory struct {
-	Config        *config.Config
 	Messages      map[string]*data.Message
 	MessageIndex  []string
 	MessageRIndex map[string]int
 }
 
 // CreateInMemory creates a new in memory storage backend
-func CreateInMemory(c *config.Config) *InMemory {
+func CreateInMemory() *InMemory {
 	return &InMemory{
-		Config:        c,
 		Messages:      make(map[string]*data.Message, 0),
 		MessageIndex:  make([]string, 0),
 		MessageRIndex: make(map[string]int, 0),
@@ -32,15 +27,16 @@ func (memory *InMemory) Store(m *data.Message) (string, error) {
 }
 
 // List lists stored messages by index
-func (memory *InMemory) List(start int, limit int) ([]*data.Message, error) {
+func (memory *InMemory) List(start int, limit int) (*data.Messages, error) {
 	if limit > len(memory.MessageIndex) {
 		limit = len(memory.MessageIndex)
 	}
-	var messages []*data.Message
+	var messages []data.Message
 	for _, m := range memory.MessageIndex[start:limit] {
-		messages = append(messages, memory.Messages[m])
+		messages = append(messages, *memory.Messages[m])
 	}
-	return messages, nil
+	msgs := data.Messages(messages)
+	return &msgs, nil
 }
 
 // DeleteOne deletes an individual message by storage ID
