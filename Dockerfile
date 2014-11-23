@@ -6,6 +6,6 @@ EXPOSE 8025
 RUN apt-get update -qq
 RUN apt-get install -qqy ca-certificates
 
-ADD Go-MailHog /tmp/
+ADD MailHog /tmp/
 
-CMD ["./tmp/Go-MailHog"]
+CMD ["./tmp/MailHog"]
