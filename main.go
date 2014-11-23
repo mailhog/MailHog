@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io"
 	"net"
 	"os"
 
@@ -122,6 +123,6 @@ func smtp_listen() *net.TCPListener {
 		}
 		defer conn.Close()
 
-		go smtp.Accept(conn.(*net.TCPConn), conf)
+		go smtp.Accept(conn.(*net.TCPConn).RemoteAddr().String(), io.ReadWriteCloser(conn), conf)
 	}
 }

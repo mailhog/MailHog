@@ -3,8 +3,8 @@ package server
 // http://www.rfc-editor.org/rfc/rfc5321.txt
 
 import (
+	"io"
 	"log"
-	"net"
 	"strings"
 
 	"github.com/ian-kent/Go-MailHog/mailhog/config"
@@ -14,18 +14,19 @@ import (
 
 // Session represents a SMTP session using net.TCPConn
 type Session struct {
-	conn  *net.TCPConn
-	proto *protocol.Protocol
-	conf  *config.Config
-	isTLS bool
-	line  string
+	conn          io.ReadWriteCloser
+	proto         *protocol.Protocol
+	conf          *config.Config
+	remoteAddress string
+	isTLS         bool
+	line          string
 }
 
-// Accept starts a new SMTP session using net.TCPConn
-func Accept(conn *net.TCPConn, conf *config.Config) {
+// Accept starts a new SMTP session using io.ReadWriteCloser
+func Accept(remoteAddress string, conn io.ReadWriteCloser, conf *config.Config) {
 	proto := protocol.NewProtocol()
 	proto.Hostname = conf.Hostname
-	session := &Session{conn, proto, conf, false, ""}
+	session := &Session{conn, proto, conf, remoteAddress, false, ""}
 	proto.LogHandler = session.logf
 	proto.MessageReceivedHandler = session.acceptMessage
 	proto.ValidateSenderHandler = session.validateSender
@@ -60,14 +61,14 @@ func (c *Session) acceptMessage(msg *data.Message) (id string, err error) {
 
 func (c *Session) logf(message string, args ...interface{}) {
 	message = strings.Join([]string{"[SMTP %s]", message}, " ")
-	args = append([]interface{}{c.conn.RemoteAddr()}, args...)
+	args = append([]interface{}{c.remoteAddress}, args...)
 	log.Printf(message, args...)
 }
 
 // Read reads from the underlying net.TCPConn
 func (c *Session) Read() bool {
 	buf := make([]byte, 1024)
-	n, err := c.conn.Read(buf)
+	n, err := io.Reader(c.conn).Read(buf)
 
 	if n == 0 {
 		c.logf("Connection closed by remote host\n")
@@ -91,7 +92,7 @@ func (c *Session) Read() bool {
 	if reply != nil {
 		c.Write(reply)
 		if reply.Status == 221 {
-			c.conn.Close()
+			io.Closer(c.conn).Close()
 		}
 	}
 
@@ -105,6 +106,6 @@ func (c *Session) Write(reply *protocol.Reply) {
 		logText := strings.Replace(l, "\n", "\\n", -1)
 		logText = strings.Replace(logText, "\r", "\\r", -1)
 		c.logf("Sent %d bytes: '%s'", len(l), logText)
-		c.conn.Write([]byte(l))
+		io.Writer(c.conn).Write([]byte(l))
 	}
 }
