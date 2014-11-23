@@ -163,7 +163,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="message in messages | filter:searchText" ng-click="selectMessage(message)" ng-class="{ selected: message.Id == preview.Id }">
+        <tr ng-repeat="message in messages | filter:searchText" ng-click="selectMessage(message)" ng-class="{ selected: message.ID == preview.ID }">
           <td>
             {{ message.From.Mailbox }}@{{ message.From.Domain }}
           </td>
