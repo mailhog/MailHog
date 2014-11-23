@@ -1,7 +1,15 @@
 DEPS = $(go list -f '{{range .TestImports}}{{.}} {{end}}' ./...)
 
-all: deps bindata fmt
+all: deps bindata fmt combined
+
+combined:
 	go install ./MailHog
+
+server:
+	go install ./MailHog-Server
+
+ui:
+	go install ./MailHog-UI
 
 bindata:
 	go-bindata -o MailHog-UI/assets/assets.go -pkg assets -prefix MailHog-UI/ MailHog-UI/assets/...
@@ -25,4 +33,4 @@ test-deps:
 release-deps:
 	go get github.com/mitchellh/gox
 
-.PNONY: all bindata release fmt test-deps release-deps
+.PNONY: all combined server ui bindata release fmt test-deps release-deps
