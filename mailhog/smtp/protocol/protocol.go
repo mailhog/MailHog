@@ -50,7 +50,7 @@ func NewProtocol() *Protocol {
 	return &Protocol{
 		state:    INVALID,
 		message:  &data.SMTPMessage{},
-		Hostname: "",
+		Hostname: "mailhog.example",
 		Ident:    "ESMTP Go-MailHog",
 	}
 }
@@ -313,7 +313,7 @@ func ParseMAIL(mail string) (string, error) {
 	r := regexp.MustCompile("(?i:From):<([^>]+)>")
 	match := r.FindStringSubmatch(mail)
 	if len(match) != 2 {
-		return "", errors.New("Invalid sender " + mail)
+		return "", errors.New("Invalid syntax in MAIL command")
 	}
 	return match[1], nil
 }
@@ -323,7 +323,7 @@ func ParseRCPT(rcpt string) (string, error) {
 	r := regexp.MustCompile("(?i:To):<([^>]+)>")
 	match := r.FindStringSubmatch(rcpt)
 	if len(match) != 2 {
-		return "", errors.New("Invalid recipient " + rcpt)
+		return "", errors.New("Invalid syntax in RCPT command")
 	}
 	return match[1], nil
 }
