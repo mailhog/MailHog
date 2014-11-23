@@ -42,11 +42,11 @@ func CreateAPIv1(conf *config.Config, app *gotcha.App) *APIv1 {
 
 	r.Get("/api/v1/messages/?", apiv1.messages)
 	r.Delete("/api/v1/messages/?", apiv1.delete_all)
-	r.Get("/api/v1/messages/(?P<id>[^\\?]+)/?", apiv1.message)
-	r.Delete("/api/v1/messages/(?P<id>[^\\?]+)/?", apiv1.delete_one)
-	r.Get("/api/v1/messages/(?P<id>[^\\?]+)/download/?", apiv1.download)
-	r.Get("/api/v1/messages/(?P<id>[^\\?]+)/mime/part/(\\d+)/download/?", apiv1.download_part)
-	r.Post("/api/v1/messages/(?P<id>[^\\?]+)/release/?", apiv1.release_one)
+	r.Get("/api/v1/messages/(?P<id>[^/]+)/?", apiv1.message)
+	r.Delete("/api/v1/messages/(?P<id>[^/]+)/?", apiv1.delete_one)
+	r.Get("/api/v1/messages/(?P<id>[^/]+)/download/?", apiv1.download)
+	r.Get("/api/v1/messages/(?P<id>[^/]+)/mime/part/(\\d+)/download/?", apiv1.download_part)
+	r.Post("/api/v1/messages/(?P<id>[^/]+)/release/?", apiv1.release_one)
 	r.Get("/api/v1/events/?", apiv1.eventstream)
 
 	go func() {
