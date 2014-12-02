@@ -92,8 +92,9 @@ func TestAcceptMessage(t *testing.T) {
 		handlerCalled := false
 		go func() {
 			handlerCalled = true
-			m := <-mChan
+			<-mChan
 			//FIXME breaks some tests (in drone.io)
+			//m := <-mChan
 			//So(m, ShouldNotBeNil)
 			wg.Done()
 		}()
