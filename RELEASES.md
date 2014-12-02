@@ -1,6 +1,14 @@
 Go-MailHog Releases
 ===================
 
+### [v0.07](https://github.com/ian-kent/Go-MailHog/releases/tag/0.07)
+
+- Fix #6 - Make SMTP verbs case-insensitive
+
+### [v0.06](https://github.com/ian-kent/Go-MailHog/releases/tag/0.06)
+
+- Fix #5 - Support leading tab in multiline headers
+
 ### [v0.05](https://github.com/ian-kent/Go-MailHog/releases/tag/0.05)
 
 - Add #4 - UI support for RFC2047 encoded headers

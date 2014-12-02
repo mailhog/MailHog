@@ -58,8 +58,7 @@ You can configure Go-MailHog using command line options or environment variables
 
 Clone this repository to ```$GOPATH/src/github.com/ian-kent/Go-MailHog``` and type ```make deps```.
 
-Run tests using ```make test```. You'll need a copy of MailHog running for tests to pass.
-(Tests currently fail using in-memory storage, use MongoDB!)
+Run tests using ```make test``` or ```goconvey```.
 
 If you make any changes, run ```go fmt ./...``` before submitting a pull request.
 
