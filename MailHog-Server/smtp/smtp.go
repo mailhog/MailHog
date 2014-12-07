@@ -6,7 +6,6 @@ import (
 	"net"
 
 	"github.com/ian-kent/Go-MailHog/MailHog-Server/config"
-	"github.com/ian-kent/Go-MailHog/smtp/server"
 )
 
 func Listen(cfg *config.Config, exitCh chan int) *net.TCPListener {
@@ -25,7 +24,7 @@ func Listen(cfg *config.Config, exitCh chan int) *net.TCPListener {
 		}
 		defer conn.Close()
 
-		go server.Accept(
+		go Accept(
 			conn.(*net.TCPConn).RemoteAddr().String(),
 			io.ReadWriteCloser(conn),
 			cfg.Storage,

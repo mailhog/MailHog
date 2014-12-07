@@ -6,9 +6,9 @@ import (
 
 	"github.com/ian-kent/Go-MailHog/MailHog-Server/api"
 	"github.com/ian-kent/Go-MailHog/MailHog-Server/config"
+	"github.com/ian-kent/Go-MailHog/MailHog-Server/smtp"
 	"github.com/ian-kent/Go-MailHog/MailHog-UI/assets"
 	"github.com/ian-kent/Go-MailHog/http"
-	"github.com/ian-kent/Go-MailHog/smtp"
 	"github.com/ian-kent/go-log/log"
 	gotcha "github.com/ian-kent/gotcha/app"
 )
