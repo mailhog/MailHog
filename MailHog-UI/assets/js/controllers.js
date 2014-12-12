@@ -181,7 +181,7 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
   $scope.getMessagePlain = function(message) {
     var l = $scope.findMatchingMIME(message, "text/plain");
     if(l != null && l !== "undefined") {
-      return l.Body;
+      return $scope.tryDecode(l);
     }
     return message.Content.Body;
 	}
@@ -217,11 +217,18 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
   $scope.getMessageHTML = function(message) {
     var l = $scope.findMatchingMIME(message, "text/html");
     if(l != null && l !== "undefined") {
-      return l.Body;
+      return $scope.tryDecode(l);
     }
   	return "<HTML not found>";
 	}
 
+  $scope.tryDecode = function(l){
+    if(l.Headers && l.Headers["Content-Type"] && l.Headers["Content-Transfer-Encoding"]){
+      return $scope.tryDecodeContent({Content:l},l.Body.replace(/=[\r\n]+/gm,""));
+    }else{
+      return l.Body;
+    }
+  };
   $scope.date = function(timestamp) {
   	return (new Date(timestamp)).toString();
   };
