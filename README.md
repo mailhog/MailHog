@@ -13,13 +13,13 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 
 ### Getting started
 
-Either:
-
-* [Download the latest release](RELEASES.md) of Go-MailHog for your platform
-* Use Docker or AWS Elastic Beanstalk to deploy Go-MailHog with the example [Dockerfile](Dockerfile)
-
-By default, the SMTP server will start on port 1025, the HTTP server will start
-on port 8025, and in-memory message storage will be used.
+1. Either:
+  * [Download the latest release](RELEASES.md) of Go-MailHog for your platform
+  * [Read the deployment guide](DEPLOY.md) for other deployment options
+2. [Configure MailHog](CONFIG.md), or use the default settings:
+  * the SMTP server will start on port 1025
+  * the HTTP server will start on port 8025
+  * in-memory message storage will be used.
 
 ### Features
 
@@ -39,20 +39,6 @@ on port 8025, and in-memory message storage will be used.
 * No installation required
 
 ![Screenshot of MailHog web interface](/images/MailHog.png "MailHog web interface")
-
-### Configuration
-
-You can configure Go-MailHog using command line options or environment variables:
-
-| Environment         | Command line  | Default         | Description
-| ------------------- | ------------- | --------------- | -----------
-| MH_HOSTNAME         | -hostname     | mailhog.example | Hostname to use for EHLO/HELO and message IDs
-| MH_HTTP_BIND_ADDR   | -httpbindaddr | 0.0.0.0:8025    | Interface and port for HTTP server to bind to
-| MH_MONGO_COLLECTION | -mongocoll    | messages        | MongoDB collection name for message storage
-| MH_MONGO_DB         | -mongodb      | mailhog         | MongoDB database name for message storage
-| MH_MONGO_URI        | -mongouri     | 127.0.0.1:27017 | MongoDB host and port
-| MH_SMTP_BIND_ADDR   | -smtpbindaddr | 0.0.0.0:1025    | Interface and port for SMTP server to bind to
-| MH_STORAGE          | -storage      | memory          | Set message storage: memory / mongodb
 
 ### Contributing
 
