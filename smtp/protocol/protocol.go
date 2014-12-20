@@ -58,6 +58,15 @@ type Protocol struct {
 	// parameters are valid, otherwise false. If nil, all authentication
 	// attempts will be accepted.
 	ValidateAuthenticationHandler func(mechanism string, args ...string) (errorReply *Reply, ok bool)
+
+	// RejectBrokenRCPTSyntax controls whether the protocol accepts technically
+	// invalid syntax for the RCPT command. Set to true, the RCPT syntax requires
+	// no space between `TO:` and the opening `<`
+	RejectBrokenRCPTSyntax bool
+	// RejectBrokenMAILSyntax controls whether the protocol accepts technically
+	// invalid syntax for the MAIL command. Set to true, the MAIL syntax requires
+	// no space between `FROM:` and the opening `<`
+	RejectBrokenMAILSyntax bool
 }
 
 // NewProtocol returns a new SMTP state machine in INVALID state
@@ -256,7 +265,7 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 			}
 		case "MAIL":
 			proto.logf("Got MAIL command, switching to RCPT state")
-			from, err := ParseMAIL(command.args)
+			from, err := proto.ParseMAIL(command.args)
 			if err != nil {
 				return ReplyError(err)
 			}
@@ -281,7 +290,7 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		switch command.verb {
 		case "RCPT":
 			proto.logf("Got RCPT command")
-			to, err := ParseRCPT(command.args)
+			to, err := proto.ParseRCPT(command.args)
 			if err != nil {
 				return ReplyError(err)
 			}
@@ -328,8 +337,13 @@ func (proto *Protocol) EHLO(args string) (reply *Reply) {
 }
 
 // ParseMAIL returns the forward-path from a MAIL command argument
-func ParseMAIL(mail string) (string, error) {
-	r := regexp.MustCompile("(?i:From):<([^>]+)>")
+func (proto *Protocol) ParseMAIL(mail string) (string, error) {
+	var r *regexp.Regexp
+	if proto.RejectBrokenMAILSyntax {
+		r = regexp.MustCompile("(?i:From):<([^>]+)>")
+	} else {
+		r = regexp.MustCompile("(?i:From):\\s*<([^>]+)>")
+	}
 	match := r.FindStringSubmatch(mail)
 	if len(match) != 2 {
 		return "", errors.New("Invalid syntax in MAIL command")
@@ -338,8 +352,13 @@ func ParseMAIL(mail string) (string, error) {
 }
 
 // ParseRCPT returns the return-path from a RCPT command argument
-func ParseRCPT(rcpt string) (string, error) {
-	r := regexp.MustCompile("(?i:To):<([^>]+)>")
+func (proto *Protocol) ParseRCPT(rcpt string) (string, error) {
+	var r *regexp.Regexp
+	if proto.RejectBrokenRCPTSyntax {
+		r = regexp.MustCompile("(?i:To):<([^>]+)>")
+	} else {
+		r = regexp.MustCompile("(?i:To):\\s*<([^>]+)>")
+	}
 	match := r.FindStringSubmatch(rcpt)
 	if len(match) != 2 {
 		return "", errors.New("Invalid syntax in RCPT command")
