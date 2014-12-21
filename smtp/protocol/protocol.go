@@ -336,30 +336,35 @@ func (proto *Protocol) EHLO(args string) (reply *Reply) {
 	return ReplyOk("Hello "+args, "PIPELINING", "AUTH EXTERNAL CRAM-MD5 LOGIN PLAIN")
 }
 
+var parseMailBrokenRegexp = regexp.MustCompile("(?i:From):\\s*<([^>]+)>")
+var parseMailRFCRegexp = regexp.MustCompile("(?i:From):<([^>]+)>")
+
 // ParseMAIL returns the forward-path from a MAIL command argument
 func (proto *Protocol) ParseMAIL(mail string) (string, error) {
-	var r *regexp.Regexp
+	var match []string
 	if proto.RejectBrokenMAILSyntax {
-		r = regexp.MustCompile("(?i:From):<([^>]+)>")
+		match = parseMailRFCRegexp.FindStringSubmatch(mail)
 	} else {
-		r = regexp.MustCompile("(?i:From):\\s*<([^>]+)>")
+		match = parseMailBrokenRegexp.FindStringSubmatch(mail)
 	}
-	match := r.FindStringSubmatch(mail)
+
 	if len(match) != 2 {
 		return "", errors.New("Invalid syntax in MAIL command")
 	}
 	return match[1], nil
 }
 
+var parseRcptBrokenRegexp = regexp.MustCompile("(?i:To):\\s*<([^>]+)>")
+var parseRcptRFCRegexp = regexp.MustCompile("(?i:To):<([^>]+)>")
+
 // ParseRCPT returns the return-path from a RCPT command argument
 func (proto *Protocol) ParseRCPT(rcpt string) (string, error) {
-	var r *regexp.Regexp
+	var match []string
 	if proto.RejectBrokenRCPTSyntax {
-		r = regexp.MustCompile("(?i:To):<([^>]+)>")
+		match = parseRcptRFCRegexp.FindStringSubmatch(rcpt)
 	} else {
-		r = regexp.MustCompile("(?i:To):\\s*<([^>]+)>")
+		match = parseRcptBrokenRegexp.FindStringSubmatch(rcpt)
 	}
-	match := r.FindStringSubmatch(rcpt)
 	if len(match) != 2 {
 		return "", errors.New("Invalid syntax in RCPT command")
 	}
