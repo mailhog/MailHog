@@ -11,18 +11,16 @@ import (
 	"github.com/ian-kent/go-log/log"
 	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/ian-kent/gotcha/http"
+
+	"github.com/ian-kent/goose"
 )
 
 type APIv1 struct {
-	config         *config.Config
-	eventlisteners []*EventListener
-	app            *gotcha.App
+	config *config.Config
+	app    *gotcha.App
 }
 
-type EventListener struct {
-	session *http.Session
-	ch      chan []byte
-}
+var stream *goose.EventStream
 
 type ReleaseConfig struct {
 	Email string
@@ -33,11 +31,11 @@ type ReleaseConfig struct {
 func CreateAPIv1(conf *config.Config, app *gotcha.App) *APIv1 {
 	log.Println("Creating API v1")
 	apiv1 := &APIv1{
-		config:         conf,
-		eventlisteners: make([]*EventListener, 0),
-		app:            app,
+		config: conf,
+		app:    app,
 	}
 
+	stream = goose.NewEventStream()
 	r := app.Router
 
 	r.Get("/api/v1/messages/?", apiv1.messages)
@@ -68,19 +66,13 @@ func CreateAPIv1(conf *config.Config, app *gotcha.App) *APIv1 {
 func (apiv1 *APIv1) broadcast(json string) {
 	log.Println("[APIv1] BROADCAST /api/v1/events")
 	b := []byte(json)
-	for _, l := range apiv1.eventlisteners {
-		log.Printf("Sending to connection: %s\n", l.session.Request.RemoteAddr)
-		l.ch <- b
-	}
+	stream.Notify("data", b)
 }
 
 func (apiv1 *APIv1) eventstream(session *http.Session) {
 	log.Println("[APIv1] GET /api/v1/events")
 
-	apiv1.eventlisteners = append(apiv1.eventlisteners, &EventListener{
-		session,
-		session.Response.EventStream(),
-	})
+	stream.AddReceiver(session.Response.GetWriter())
 }
 
 func (apiv1 *APIv1) messages(session *http.Session) {

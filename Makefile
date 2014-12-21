@@ -24,6 +24,7 @@ deps:
 	go get github.com/ian-kent/gotcha/gotcha
 	go get github.com/ian-kent/go-log/log
 	go get github.com/ian-kent/envconf
+	go get github.com/ian-kent/goose
 	go get github.com/jteeuwen/go-bindata/...
 	go get labix.org/v2/mgo
 	# added to fix travis issues
