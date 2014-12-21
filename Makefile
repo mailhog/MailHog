@@ -15,7 +15,7 @@ bindata:
 	go-bindata -o MailHog-UI/assets/assets.go -pkg assets -prefix MailHog-UI/ MailHog-UI/assets/...
 
 release: release-deps
-	gox -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}"
+	gox -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}" ./MailHog
 
 fmt:
 	go fmt ./...

@@ -1,6 +1,18 @@
 Go-MailHog Releases
 ===================
 
+### [v0.08](https://github.com/ian-kent/Go-MailHog/releases/0.08)
+
+- Extract SMTP protocol into isolated library
+- Better protocol tests
+- Add hooks for manipulating protocol behaviour
+- Merge #14 - fix display of multipart messges, thanks @derwassi
+- Merge #17 - fix API v1 docs, thanks @geerlingguy
+- Fix #11 - add build documentation
+- Fix #12 - support broken MAIL/RCPT syntax
+- Fix #16 - add deployment documentation
+- Fix #18 - better server-sent event support using [goose](https://github.com/ian-kent/goose)
+
 ### [v0.07](https://github.com/ian-kent/Go-MailHog/releases/tag/0.07)
 
 - Fix #6 - Make SMTP verbs case-insensitive
