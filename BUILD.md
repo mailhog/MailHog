@@ -21,3 +21,9 @@ The build should be updated to use `go generate` (added in Go 1.4) to
 preprocess static assets into go source files.
 
 However, this will break backwards compatibility with Go 1.2/1.3.
+
+### Building a release
+
+Releases are built using [gox](https://github.com/mitchellh/gox).
+
+Run `make release` to cross-compile for all available platforms.
