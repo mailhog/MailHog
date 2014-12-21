@@ -44,6 +44,8 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 
 Clone this repository to ```$GOPATH/src/github.com/ian-kent/Go-MailHog``` and type ```make deps```.
 
+See the [Building MailHog](BUILD.md) guide.
+
 Requires Go 1.2+ to build.
 
 Run tests using ```make test``` or ```goconvey```.
