@@ -1,5 +1,5 @@
-Bulding MailHog
-===============
+Building MailHog
+================
 
 MailHog is built using `make`, and using [this Makefile](Makefile).
 
