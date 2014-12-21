@@ -97,6 +97,7 @@ func (c *Session) Read() bool {
 			c.Write(reply)
 			if reply.Status == 221 {
 				io.Closer(c.conn).Close()
+				return false
 			}
 		}
 	}
