@@ -1,6 +1,10 @@
 MailHog Releases
 ================
 
+### [v0.09](https://github.com/mailhog/MailHog/releases/0.08)
+
+- Fix #8 - add Chaos Monkey ([Jim](JIM.md)) to support failure testing
+
 ### [v0.08](https://github.com/mailhog/MailHog/releases/0.08)
 
 - Extract SMTP protocol into isolated library
