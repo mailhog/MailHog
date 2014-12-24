@@ -4,7 +4,7 @@ Building MailHog
 MailHog is built using `make`, and using [this Makefile](Makefile).
 
 If you aren't making any code changes, you can install MailHog using
-`go get github.com/ian-kent/Go-MailHog`, since [assets.go](MailHog-UI/assets/assets.go)
+`go get github.com/mailhog/MailHog`, since [assets.go](MailHog-UI/assets/assets.go)
 is already pre-compiled and committed to this repository.
 
 ### Why do I need a Makefile?

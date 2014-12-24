@@ -1,4 +1,4 @@
-Go-MailHog [ ![Download](https://api.bintray.com/packages/ian-kent/generic/Go-MailHog/images/download.svg) ](https://bintray.com/ian-kent/generic/Go-MailHog/_latestVersion) [![GoDoc](https://godoc.org/github.com/ian-kent/Go-MailHog?status.svg)](https://godoc.org/github.com/ian-kent/Go-MailHog) [![Build Status](https://travis-ci.org/ian-kent/Go-MailHog.svg?branch=master)](https://travis-ci.org/ian-kent/Go-MailHog)
+Go-MailHog [ ![Download](https://api.bintray.com/packages/ian-kent/generic/Go-MailHog/images/download.svg) ](https://bintray.com/ian-kent/generic/Go-MailHog/_latestVersion) [![GoDoc](https://godoc.org/github.com/mailhog/MailHog?status.svg)](https://godoc.org/github.com/mailhog/MailHog) [![Build Status](https://travis-ci.org/ian-kent/Go-MailHog.svg?branch=master)](https://travis-ci.org/ian-kent/Go-MailHog)
 =========
 
 Inspired by [MailCatcher](http://mailcatcher.me/), easier to install.
@@ -44,7 +44,7 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 
 ### Contributing
 
-Clone this repository to ```$GOPATH/src/github.com/ian-kent/Go-MailHog``` and type ```make deps```.
+Clone this repository to ```$GOPATH/src/github.com/mailhog/MailHog``` and type ```make deps```.
 
 See the [Building MailHog](BUILD.md) guide.
 

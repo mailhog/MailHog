@@ -1,7 +1,7 @@
 Go-MailHog Releases
 ===================
 
-### [v0.08](https://github.com/ian-kent/Go-MailHog/releases/0.08)
+### [v0.08](https://github.com/mailhog/MailHog/releases/0.08)
 
 - Extract SMTP protocol into isolated library
 - Better protocol tests
@@ -13,19 +13,19 @@ Go-MailHog Releases
 - Fix #16 - add deployment documentation
 - Fix #18 - better server-sent event support using [goose](https://github.com/ian-kent/goose)
 
-### [v0.07](https://github.com/ian-kent/Go-MailHog/releases/tag/0.07)
+### [v0.07](https://github.com/mailhog/MailHog/releases/tag/0.07)
 
 - Fix #6 - Make SMTP verbs case-insensitive
 
-### [v0.06](https://github.com/ian-kent/Go-MailHog/releases/tag/0.06)
+### [v0.06](https://github.com/mailhog/MailHog/releases/tag/0.06)
 
 - Fix #5 - Support leading tab in multiline headers
 
-### [v0.05](https://github.com/ian-kent/Go-MailHog/releases/tag/0.05)
+### [v0.05](https://github.com/mailhog/MailHog/releases/tag/0.05)
 
 - Add #4 - UI support for RFC2047 encoded headers
 
-### [v0.04](https://github.com/ian-kent/Go-MailHog/releases/tag/0.04)
+### [v0.04](https://github.com/mailhog/MailHog/releases/tag/0.04)
 
 * Configure from environment
 * Include example Dockerfile
@@ -34,7 +34,7 @@ Go-MailHog Releases
 * Fix #3 - incorrect handling of RSET
 
 
-### [v0.03](https://github.com/ian-kent/Go-MailHog/releases/tag/0.03)
+### [v0.03](https://github.com/mailhog/MailHog/releases/tag/0.03)
 
 * Download message in .eml format
 * Cleaned up v1 API
@@ -48,7 +48,7 @@ Go-MailHog Releases
   * Release messages to real SMTP servers
 * Switch to [go-bindata](https://github.com/jteeuwen/go-bindata) for asset embedding
 
-### [v0.02](https://github.com/ian-kent/Go-MailHog/releases/tag/0.02)
+### [v0.02](https://github.com/mailhog/MailHog/releases/tag/0.02)
 
 * Better support for ESMTP (RFC5321)
 * Support for SMTP AUTH (RFC4954) and PIPELINING (RFC2920)
@@ -58,7 +58,7 @@ Go-MailHog Releases
 * In-memory message storage
 * MongoDB storage for message persistence
 
-### [v0.01](https://github.com/ian-kent/Go-MailHog/releases/tag/0.01)
+### [v0.01](https://github.com/mailhog/MailHog/releases/tag/0.01)
 
 * Basic support for SMTP and HTTP servers
 * Accepts SMTP messages
