@@ -29,6 +29,8 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
   * Supports RFC2047 encoded headers
 * Real-time updates using EventSource
 * Release messages to real SMTP servers
+* Chaos Monkey for failure testing
+  * See [Introduction to Jim](JIM.md) for more information
 * HTTP API to list, retrieve and delete messages
   * See [APIv1 documentation](APIv1.md) for more information
 * Multipart MIME support

@@ -40,7 +40,7 @@ func TestAccept(t *testing.T) {
 	Convey("Accept should handle a connection", t, func() {
 		frw := &fakeRw{}
 		mChan := make(chan *data.Message)
-		Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost")
+		Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost", nil)
 	})
 }
 
@@ -52,7 +52,7 @@ func TestSocketError(t *testing.T) {
 			},
 		}
 		mChan := make(chan *data.Message)
-		Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost")
+		Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost", nil)
 	})
 }
 
@@ -98,7 +98,7 @@ func TestAcceptMessage(t *testing.T) {
 			//So(m, ShouldNotBeNil)
 			wg.Done()
 		}()
-		Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost")
+		Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost", nil)
 		wg.Wait()
 		So(handlerCalled, ShouldBeTrue)
 	})

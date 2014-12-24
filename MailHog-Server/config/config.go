@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 
+	"github.com/ian-kent/Go-MailHog/MailHog-Server/monkey"
 	"github.com/ian-kent/Go-MailHog/data"
 	"github.com/ian-kent/Go-MailHog/storage"
 	"github.com/ian-kent/envconf"
@@ -30,12 +31,15 @@ type Config struct {
 	MongoDb      string
 	MongoColl    string
 	StorageType  string
+	InviteJim    bool
 	Storage      storage.Storage
 	MessageChan  chan *data.Message
 	Assets       func(asset string) ([]byte, error)
+	Monkey       monkey.ChaosMonkey
 }
 
 var cfg = DefaultConfig()
+var jim = &monkey.Jim{}
 
 func Configure() *Config {
 	switch cfg.StorageType {
@@ -56,6 +60,13 @@ func Configure() *Config {
 		log.Fatalf("Invalid storage type %s", cfg.StorageType)
 	}
 
+	if cfg.InviteJim {
+		jim.Configure(func(message string, args ...interface{}) {
+			log.Printf(message, args...)
+		})
+		cfg.Monkey = jim
+	}
+
 	return cfg
 }
 
@@ -67,4 +78,6 @@ func RegisterFlags() {
 	flag.StringVar(&cfg.MongoUri, "mongouri", envconf.FromEnvP("MH_MONGO_URI", "127.0.0.1:27017").(string), "MongoDB URI, e.g. 127.0.0.1:27017")
 	flag.StringVar(&cfg.MongoDb, "mongodb", envconf.FromEnvP("MH_MONGO_DB", "mailhog").(string), "MongoDB database, e.g. mailhog")
 	flag.StringVar(&cfg.MongoColl, "mongocoll", envconf.FromEnvP("MH_MONGO_COLLECTION", "messages").(string), "MongoDB collection, e.g. messages")
+	flag.BoolVar(&cfg.InviteJim, "invite-jim", envconf.FromEnvP("MH_INVITE_JIM", false).(bool), "Decide whether to invite Jim (beware, he causes trouble)")
+	jim.RegisterFlags()
 }

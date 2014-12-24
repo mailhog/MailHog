@@ -22,7 +22,14 @@ func Listen(cfg *config.Config, exitCh chan int) *net.TCPListener {
 			log.Printf("[SMTP] Error accepting connection: %s\n", err)
 			continue
 		}
-		defer conn.Close()
+
+		if cfg.Monkey != nil {
+			ok := cfg.Monkey.Accept(conn)
+			if !ok {
+				conn.Close()
+				continue
+			}
+		}
 
 		go Accept(
 			conn.(*net.TCPConn).RemoteAddr().String(),
@@ -30,6 +37,7 @@ func Listen(cfg *config.Config, exitCh chan int) *net.TCPListener {
 			cfg.Storage,
 			cfg.MessageChan,
 			cfg.Hostname,
+			cfg.Monkey,
 		)
 	}
 }

@@ -7,9 +7,11 @@ import (
 	"log"
 	"strings"
 
+	"github.com/ian-kent/Go-MailHog/MailHog-Server/monkey"
 	"github.com/ian-kent/Go-MailHog/data"
 	"github.com/ian-kent/Go-MailHog/smtp/protocol"
 	"github.com/ian-kent/Go-MailHog/storage"
+	"github.com/ian-kent/linkio"
 )
 
 // Session represents a SMTP session using net.TCPConn
@@ -21,13 +23,32 @@ type Session struct {
 	remoteAddress string
 	isTLS         bool
 	line          string
+	link          *linkio.Link
+
+	reader io.Reader
+	writer io.Writer
+	monkey monkey.ChaosMonkey
 }
 
 // Accept starts a new SMTP session using io.ReadWriteCloser
-func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Storage, messageChan chan *data.Message, hostname string) {
+func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Storage, messageChan chan *data.Message, hostname string, monkey monkey.ChaosMonkey) {
+	defer conn.Close()
+
 	proto := protocol.NewProtocol()
 	proto.Hostname = hostname
-	session := &Session{conn, proto, storage, messageChan, remoteAddress, false, ""}
+	var link *linkio.Link
+	reader := io.Reader(conn)
+	writer := io.Writer(conn)
+	if monkey != nil {
+		linkSpeed := monkey.LinkSpeed()
+		if linkSpeed != nil {
+			link = linkio.NewLink(*linkSpeed * linkio.BytePerSecond)
+			reader = link.NewLinkReader(io.Reader(conn))
+			writer = link.NewLinkWriter(io.Writer(conn))
+		}
+	}
+
+	session := &Session{conn, proto, storage, messageChan, remoteAddress, false, "", link, reader, writer, monkey}
 	proto.LogHandler = session.logf
 	proto.MessageReceivedHandler = session.acceptMessage
 	proto.ValidateSenderHandler = session.validateSender
@@ -37,19 +58,42 @@ func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Stora
 	session.logf("Starting session")
 	session.Write(proto.Start())
 	for session.Read() == true {
+		if monkey != nil && monkey.Disconnect != nil && monkey.Disconnect() {
+			session.conn.Close()
+			break
+		}
 	}
 	session.logf("Session ended")
 }
 
 func (c *Session) validateAuthentication(mechanism string, args ...string) (errorReply *protocol.Reply, ok bool) {
+	if c.monkey != nil {
+		ok := c.monkey.ValidAUTH(mechanism, args...)
+		if !ok {
+			// FIXME better error?
+			return protocol.ReplyUnrecognisedCommand(), false
+		}
+	}
 	return nil, true
 }
 
 func (c *Session) validateRecipient(to string) bool {
+	if c.monkey != nil {
+		ok := c.monkey.ValidRCPT(to)
+		if !ok {
+			return false
+		}
+	}
 	return true
 }
 
 func (c *Session) validateSender(from string) bool {
+	if c.monkey != nil {
+		ok := c.monkey.ValidMAIL(from)
+		if !ok {
+			return false
+		}
+	}
 	return true
 }
 
@@ -69,7 +113,7 @@ func (c *Session) logf(message string, args ...interface{}) {
 // Read reads from the underlying net.TCPConn
 func (c *Session) Read() bool {
 	buf := make([]byte, 1024)
-	n, err := io.Reader(c.conn).Read(buf)
+	n, err := c.reader.Read(buf)
 
 	if n == 0 {
 		c.logf("Connection closed by remote host\n")
@@ -112,6 +156,6 @@ func (c *Session) Write(reply *protocol.Reply) {
 		logText := strings.Replace(l, "\n", "\\n", -1)
 		logText = strings.Replace(logText, "\r", "\\r", -1)
 		c.logf("Sent %d bytes: '%s'", len(l), logText)
-		io.Writer(c.conn).Write([]byte(l))
+		c.writer.Write([]byte(l))
 	}
 }
