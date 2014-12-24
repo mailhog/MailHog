@@ -7,20 +7,24 @@ import (
 	"github.com/ian-kent/go-log/log"
 	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/mailhog/MailHog-Server/api"
-	"github.com/mailhog/MailHog-Server/config"
+	cfgapi "github.com/mailhog/MailHog-Server/config"
 	"github.com/mailhog/MailHog-Server/smtp"
 	"github.com/mailhog/MailHog-UI/assets"
+	cfgui "github.com/mailhog/MailHog-UI/config"
 	"github.com/mailhog/MailHog-UI/web"
 	"github.com/mailhog/http"
 )
 
-var conf *config.Config
+var apiconf *cfgapi.Config
+var uiconf *cfgui.Config
 var exitCh chan int
 
 func configure() {
-	config.RegisterFlags()
+	cfgapi.RegisterFlags()
+	cfgui.RegisterFlags()
 	flag.Parse()
-	conf = config.Configure()
+	apiconf = cfgapi.Configure()
+	uiconf = cfgui.Configure()
 }
 
 func main() {
@@ -28,11 +32,11 @@ func main() {
 
 	exitCh = make(chan int)
 	cb := func(app *gotcha.App) {
-		web.CreateWeb(conf, app)
-		api.CreateAPIv1(conf, app)
+		web.CreateWeb(uiconf, app)
+		api.CreateAPIv1(apiconf, app)
 	}
-	go http.Listen(conf, assets.Asset, exitCh, cb)
-	go smtp.Listen(conf, exitCh)
+	go http.Listen(uiconf.HTTPBindAddr, assets.Asset, exitCh, cb)
+	go smtp.Listen(apiconf, exitCh)
 
 	for {
 		select {
