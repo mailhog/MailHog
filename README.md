@@ -14,9 +14,9 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 ### Getting started
 
 1. Either:
-  * [Download the latest release](RELEASES.md) of MailHog for your platform
-  * [Read the deployment guide](DEPLOY.md) for other deployment options
-2. [Configure MailHog](CONFIG.md), or use the default settings:
+  * [Download the latest release](/docs/RELEASES.md) of MailHog for your platform
+  * [Read the deployment guide](/docs/DEPLOY.md) for other deployment options
+2. [Configure MailHog](/docs/CONFIG.md), or use the default settings:
   * the SMTP server will start on port 1025
   * the HTTP server will start on port 8025
   * in-memory message storage will be used.
@@ -30,9 +30,9 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 * Real-time updates using EventSource
 * Release messages to real SMTP servers
 * Chaos Monkey for failure testing
-  * See [Introduction to Jim](JIM.md) for more information
+  * See [Introduction to Jim](/docs/JIM.md) for more information
 * HTTP API to list, retrieve and delete messages
-  * See [APIv1 documentation](APIv1.md) for more information
+  * See [APIv1 documentation](/docs/APIv1.md) for more information
 * Multipart MIME support
 * Download individual MIME parts
 * In-memory message storage
@@ -40,7 +40,7 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 * Lightweight and portable
 * No installation required
 
-![Screenshot of MailHog web interface](/images/MailHog.png "MailHog web interface")
+![Screenshot of MailHog web interface](/docs/MailHog.png "MailHog web interface")
 
 ### Contributing
 

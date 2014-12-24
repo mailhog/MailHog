@@ -3,10 +3,10 @@ DEPS = $(go list -f '{{range .TestImports}}{{.}} {{end}}' ./...)
 all: deps fmt combined
 
 combined:
-	go install ./MailHog
+	go install .
 
 release: release-deps
-	gox -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}" ./MailHog
+	gox -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}" .
 
 fmt:
 	go fmt ./...
