@@ -1,9 +1,9 @@
 package http
 
 import (
-	"github.com/ian-kent/Go-MailHog/MailHog-Server/config"
 	"github.com/ian-kent/go-log/log"
 	gotcha "github.com/ian-kent/gotcha/app"
+	"github.com/mailhog/MailHog-Server/config"
 )
 
 func Listen(cfg *config.Config, Asset func(string) ([]byte, error), exitCh chan int, registerCallback func(*gotcha.App)) {
