@@ -1,7 +1,7 @@
 Configuring MailHog
 ===================
 
-You can configure Go-MailHog using command line options or environment variables:
+You can configure MailHog using command line options or environment variables:
 
 | Environment         | Command line  | Default         | Description
 | ------------------- | ------------- | --------------- | -----------

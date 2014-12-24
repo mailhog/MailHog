@@ -1,5 +1,5 @@
-Go-MailHog Releases
-===================
+MailHog Releases
+================
 
 ### [v0.08](https://github.com/mailhog/MailHog/releases/0.08)
 

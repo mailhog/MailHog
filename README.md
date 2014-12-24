@@ -1,9 +1,9 @@
-Go-MailHog [ ![Download](https://api.bintray.com/packages/ian-kent/generic/Go-MailHog/images/download.svg) ](https://bintray.com/ian-kent/generic/Go-MailHog/_latestVersion) [![GoDoc](https://godoc.org/github.com/mailhog/MailHog?status.svg)](https://godoc.org/github.com/mailhog/MailHog) [![Build Status](https://travis-ci.org/ian-kent/Go-MailHog.svg?branch=master)](https://travis-ci.org/ian-kent/Go-MailHog)
+MailHog [ ![Download](https://api.bintray.com/packages/ian-kent/generic/Go-MailHog/images/download.svg) ](https://bintray.com/ian-kent/generic/Go-MailHog/_latestVersion) [![GoDoc](https://godoc.org/github.com/mailhog/MailHog?status.svg)](https://godoc.org/github.com/mailhog/MailHog) [![Build Status](https://travis-ci.org/mailhog/MailHog.svg?branch=master)](https://travis-ci.org/mailhog/MailHog)
 =========
 
 Inspired by [MailCatcher](http://mailcatcher.me/), easier to install.
 
-Go-MailHog is a rewritten version of [MailHog](https://github.com/ian-kent/MailHog), which was born out of [M3MTA](https://github.com/ian-kent/M3MTA).
+MailHog is a rewritten version of [MailHog](https://github.com/ian-kent/MailHog), which was born out of [M3MTA](https://github.com/ian-kent/M3MTA).
 
 Go was chosen for portability - MailHog runs without installation on multiple platforms.
 
@@ -14,7 +14,7 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 ### Getting started
 
 1. Either:
-  * [Download the latest release](RELEASES.md) of Go-MailHog for your platform
+  * [Download the latest release](RELEASES.md) of MailHog for your platform
   * [Read the deployment guide](DEPLOY.md) for other deployment options
 2. [Configure MailHog](CONFIG.md), or use the default settings:
   * the SMTP server will start on port 1025

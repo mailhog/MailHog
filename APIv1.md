@@ -1,5 +1,5 @@
-Go-MailHog API v1
-=================
+MailHog API v1
+==============
 
 The v1 API is a RESTful HTTP JSON API.
 

@@ -5,8 +5,8 @@ Deploying MailHog
 
 You can run MailHog locally from the command line.
 
-    go get github.com/ian-kent/MailHog/MailHog
-    MailHog
+    go get github.com/mailhog/MailHog
+    MailHog -h
 
 To configure MailHog, use the environment variables or command line flags
 described in the [README](README.md).
@@ -24,7 +24,7 @@ The example [Dockerfile](Dockerfile) can be used to run MailHog in a [Docker](ht
 
 ### Elastic Beanstalk
 
-You can deploy Go-MailHog using [AWS Elastic Beanstalk](http://aws.amazon.com/elasticbeanstalk/).
+You can deploy MailHog using [AWS Elastic Beanstalk](http://aws.amazon.com/elasticbeanstalk/).
 
 1. Open the Elastic Beanstalk console
 2. Create a zip file containing the Dockerfile and MailHog binary
@@ -32,9 +32,12 @@ You can deploy Go-MailHog using [AWS Elastic Beanstalk](http://aws.amazon.com/el
 4. Launch a new environment and upload the zip file
 
 If you're using in-memory storage, you can only use a single instance of
-Go-MailHog. To use a load balanced EB application, use MongoDB backed storage.
+MailHog. To use a load balanced EB application, use MongoDB backed storage.
 
 To configure your Elastic Beanstalk MailHog instance, either:
 
 * Set environment variables using the Elastic Beanstalk console
 * Edit the Dockerfile to pass in command line arguments
+
+You may face restrictions on outbound SMTP from EC2, for example if you are
+releasing messages to real SMTP servers.
