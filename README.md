@@ -59,3 +59,7 @@ If you make any changes, run ```go fmt ./...``` before submitting a pull request
 Copyright ©‎ 2014, Ian Kent (http://iankent.uk)
 
 Released under MIT license, see [LICENSE](LICENSE.md) for details.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/mailhog/mailhog/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
