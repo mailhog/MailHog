@@ -35,11 +35,13 @@ func main() {
 		cb := func(app *gotcha.App) {
 			web.CreateWeb(uiconf, app)
 			api.CreateAPIv1(apiconf, app)
+			api.CreateAPIv2(apiconf, app)
 		}
 		go http.Listen(uiconf.UIBindAddr, assets.Asset, exitCh, cb)
 	} else {
 		cb1 := func(app *gotcha.App) {
 			api.CreateAPIv1(apiconf, app)
+			api.CreateAPIv2(apiconf, app)
 		}
 		cb2 := func(app *gotcha.App) {
 			web.CreateWeb(uiconf, app)
