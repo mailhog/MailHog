@@ -1,6 +1,14 @@
 MailHog Releases
 ================
 
+### [v0.1.0](https://github.com/mailhog/MailHog/releases/v0.1.0)
+
+- Switch to semantic versioning
+- Rewrite web user interface
+- Deprecate APIv1
+- Rewrite messages endpoint for APIv2
+- Add search to APIv2
+
 ### [v0.09](https://github.com/mailhog/MailHog/releases/0.08)
 
 - Fix #8 - add Chaos Monkey ([Jim](JIM.md)) to support failure testing
