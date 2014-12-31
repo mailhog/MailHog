@@ -22,9 +22,9 @@ and [this Ansible role](https://github.com/geerlingguy/ansible-role-mailhog) by 
 
 The example [Dockerfile](Dockerfile) can be used to run MailHog in a [Docker](https://www.docker.com/) container.
 
-You can run it directly from DockerHub (thanks [humboldtux](https://github.com/humboldtux))
+You can run it directly from Docker Hub (thanks [humboldtux](https://github.com/humboldtux))
 
-    docker run -d -p 1025:1025 -p 8025:8025 humboldtux/mailhog
+    docker run -d -p 1025:1025 -p 8025:8025 mailhog/mailhog
 
 ### Elastic Beanstalk
 
