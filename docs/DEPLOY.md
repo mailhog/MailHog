@@ -22,6 +22,10 @@ and [this Ansible role](https://github.com/geerlingguy/ansible-role-mailhog) by 
 
 The example [Dockerfile](Dockerfile) can be used to run MailHog in a [Docker](https://www.docker.com/) container.
 
+You can run it directly from DockerHub (thanks [humboldtux](https://github.com/humboldtux))
+
+    docker run -d -p 1025:1025 -p 8025:8025 humboldtux/mailhog
+
 ### Elastic Beanstalk
 
 You can deploy MailHog using [AWS Elastic Beanstalk](http://aws.amazon.com/elasticbeanstalk/).
@@ -30,6 +34,9 @@ You can deploy MailHog using [AWS Elastic Beanstalk](http://aws.amazon.com/elast
 2. Create a zip file containing the Dockerfile and MailHog binary
 3. Create a new Elastic Beanstalk application
 4. Launch a new environment and upload the zip file
+
+**Note** You'll need to reconfigure nginx in Elastic Beanstalk to expose both
+ports as TCP, since by default it proxies the first exposed port to port 80 as HTTP.
 
 If you're using in-memory storage, you can only use a single instance of
 MailHog. To use a load balanced EB application, use MongoDB backed storage.
