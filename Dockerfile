@@ -1,11 +1,7 @@
-FROM ubuntu:14.04
+FROM golang:1.4
 
-EXPOSE 1025
-EXPOSE 8025
+RUN go get github.com/mailhog/MailHog
 
-RUN apt-get update -qq
-RUN apt-get install -qqy ca-certificates
+EXPOSE 1025 8025
 
-ADD MailHog /tmp/
-
-CMD ["./tmp/MailHog"]
+ENTRYPOINT ["/go/bin/MailHog"]
