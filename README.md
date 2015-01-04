@@ -3,13 +3,7 @@ MailHog [ ![Download](https://img.shields.io/github/release/mailhog/MailHog.svg)
 
 Inspired by [MailCatcher](http://mailcatcher.me/), easier to install.
 
-MailHog is a rewritten version of [MailHog](https://github.com/ian-kent/MailHog), which was born out of [M3MTA](https://github.com/ian-kent/M3MTA).
-
-Go was chosen for portability - MailHog runs without installation on multiple platforms.
-
-### Requirements
-
-* None!
+Built with Go - MailHog runs without installation on multiple platforms.
 
 ### Getting started
 
@@ -18,9 +12,9 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
   * [Run it from Docker Hub](https://registry.hub.docker.com/u/mailhog/mailhog/) or using the provided [Dockerfile](Dockerfile)
   * [Read the deployment guide](/docs/DEPLOY.md) for other deployment options
 2. [Configure MailHog](/docs/CONFIG.md), or use the default settings:
-  * the SMTP server will start on port 1025
-  * the HTTP server will start on port 8025
-  * in-memory message storage will be used.
+  * the SMTP server starts on port 1025
+  * the HTTP server starts on port 8025
+  * in-memory message storage
 
 ### Features
 
@@ -44,6 +38,8 @@ Go was chosen for portability - MailHog runs without installation on multiple pl
 ![Screenshot of MailHog web interface](/docs/MailHog.png "MailHog web interface")
 
 ### Contributing
+
+MailHog is a rewritten version of [MailHog](https://github.com/ian-kent/MailHog), which was born out of [M3MTA](https://github.com/ian-kent/M3MTA).
 
 Clone this repository to ```$GOPATH/src/github.com/mailhog/MailHog``` and type ```make deps```.
 
