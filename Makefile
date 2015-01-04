@@ -1,5 +1,3 @@
-DEPS = $(go list -f '{{range .TestImports}}{{.}} {{end}}' ./...)
-
 all: deps fmt combined
 
 combined:
