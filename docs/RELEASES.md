@@ -1,6 +1,26 @@
 MailHog Releases
 ================
 
+### [v0.1.3](https://github.com/mailhog/MailHog/releases/v0.1.3)
+- Fix #22 - render non-multipart messages with HTML content type
+- Fix #25 - make web UI resource paths relative
+
+### [v0.1.2](https://github.com/mailhog/MailHog/releases/v0.1.2)
+- Hopefully fix #22 - broken rendering of HTML email
+- Partially implement #15 - authentication for SMTP release
+  - Load outgoing SMTP servers from file
+  - Save outgoing SMTP server when releasing message in UI
+  - Select outgoing SMTP server when release message in UI
+- Make Jim (Chaos Monkey) available via APIv2
+- Add Jim overview and on/off switch to web UI
+
+### [v0.1.1](https://github.com/mailhog/MailHog/releases/v0.1.1)
+- Fix #23 - switch to iframe to fix CSS bug
+- Update to latest AngularJS
+- Update Dockerfile - thanks @humboldtux
+- Fix SMTP AUTH bug (missing from EHLO)
+- Fix SMTP new line parsing
+
 ### [v0.1.0](https://github.com/mailhog/MailHog/releases/v0.1.0)
 
 - Switch to semantic versioning
