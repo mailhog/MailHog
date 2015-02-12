@@ -1,6 +1,9 @@
 MailHog Releases
 ================
 
+### [v0.1.5](https://github.com/mailhog/MailHog/releases/v0.1.5)
+- Fix mailhog/MailHog-UI#3 - squashed subject line
+
 ### [v0.1.4](https://github.com/mailhog/MailHog/releases/v0.1.4)
 - Merge mailhog/data#2 - MIME boundary fixes, thanks @nvcnvn
 - Merge mailhog/MailHog-UI#2 - UI overhaul, thanks @omegahm
