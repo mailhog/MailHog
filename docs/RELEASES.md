@@ -1,6 +1,11 @@
 MailHog Releases
 ================
 
+### [v0.1.4](https://github.com/mailhog/MailHog/releases/v0.1.4)
+- Merge mailhog/data#2 - MIME boundary fixes, thanks @nvcnvn
+- Merge mailhog/MailHog-UI#2 - UI overhaul, thanks @omegahm
+- Fix #31 - updated this file :smile:
+
 ### [v0.1.3](https://github.com/mailhog/MailHog/releases/v0.1.3)
 - Fix #22 - render non-multipart messages with HTML content type
 - Fix #25 - make web UI resource paths relative
