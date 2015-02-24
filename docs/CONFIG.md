@@ -14,6 +14,7 @@ You can configure MailHog using command line options or environment variables:
 | MH_MONGO_URI        | -mongo-uri      | 127.0.0.1:27017 | MongoDB host and port
 | MH_SMTP_BIND_ADDR   | -smtp-bind-addr | 0.0.0.0:1025    | Interface and port for SMTP server to bind to
 | MH_STORAGE          | -storage        | memory          | Set message storage: memory / mongodb
+| MH_OUTGOING_SMTP    | -outgoing-smtp  |                 | JSON file defining outgoing SMTP servers
 
 #### Note on HTTP bind addresses
 
@@ -22,3 +23,29 @@ be used allowing both to co-exist on one port.
 
 The values must match in a string comparison. Resolving to the same host and
 port combination isn't enough.
+
+### Outgoing SMTP configuration
+
+Outgoing SMTP servers can be set in web UI when releasing a message, and can
+be temporarily persisted for later use in the same session.
+
+To make outgoing SMTP servers permanently available, create a JSON file with
+the following structure, and set `MH_OUTGOING_SMTP` or `-outgoing-smtp`.
+
+```json
+{
+    "server name": {
+        "name": "server name",
+        "host": "...",
+        "port": 587,
+        "email": "...",
+        "username": "...",
+        "password": "...",
+        "mechanism": "PLAIN",
+    }
+}
+```
+
+Only `name`, `host` and `port` are required.
+
+`mechanism` can be `PLAIN` or `CRAM-MD5`.
