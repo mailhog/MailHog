@@ -10,6 +10,14 @@ Inspired by [MailCatcher](http://mailcatcher.me/), easier to install.
 
 Built with Go - MailHog runs without installation on multiple platforms.
 
+### Overview
+
+MailHog is an email testing tool for developers:
+
+* Configure your application to use MailHog for SMTP delivery
+* View messages in the web UI, or retrieve them with the JSON API
+* Optionally release messages to real SMTP servers for delivery
+
 ### Getting started
 
 1. Either:
@@ -32,7 +40,7 @@ Built with Go - MailHog runs without installation on multiple platforms.
 * Chaos Monkey for failure testing
   * See [Introduction to Jim](/docs/JIM.md) for more information
 * HTTP API to list, retrieve and delete messages
-  * See [APIv1 documentation](/docs/APIv1.md) for more information
+  * See [APIv1](/docs/APIv1.md) and [APIv2](/docs/APIv2.md) documentation for more information
 * Multipart MIME support
 * Download individual MIME parts
 * In-memory message storage
