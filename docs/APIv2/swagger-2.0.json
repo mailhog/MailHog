@@ -1,0 +1,259 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "2.0.0",
+        "title": "MailHog API"
+    },
+    "paths": {
+        "/api/v2/messages": {
+            "get": {
+                "description": "Retrieve a list of messages\n",
+                "parameters": [
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "description": "Start index",
+                        "required": false,
+                        "type": "number",
+                        "format": "int64",
+                        "default": 0
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of messages",
+                        "required": false,
+                        "type": "number",
+                        "format": "int64",
+                        "default": 50
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "title": "Messages",
+                            "type": "object",
+                            "properties": {
+                                "total": {
+                                    "type": "number",
+                                    "format": "int64",
+                                    "description": "Total number of stored messages"
+                                },
+                                "start": {
+                                    "type": "number",
+                                    "format": "int64",
+                                    "description": "Start index of first returned message"
+                                },
+                                "count": {
+                                    "type": "number",
+                                    "format": "int64",
+                                    "description": "Number of returned messages"
+                                },
+                                "messages": {
+                                    "type": "array",
+                                    "items": {
+                                        "title": "Message",
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "string"
+                                            },
+                                            "from": {
+                                                "title": "Path",
+                                                "type": "object",
+                                                "properties": {
+                                                    "relays": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "mailbox": {
+                                                        "type": "string"
+                                                    },
+                                                    "domain": {
+                                                        "type": "string"
+                                                    },
+                                                    "params": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "to": {
+                                                "type": "array",
+                                                "items": {
+                                                    "title": "Path",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "relays": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "mailbox": {
+                                                            "type": "string"
+                                                        },
+                                                        "domain": {
+                                                            "type": "string"
+                                                        },
+                                                        "params": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "headers": {
+                                                "type": "object"
+                                            },
+                                            "size": {
+                                                "type": "number",
+                                                "format": "int64"
+                                            },
+                                            "created": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/search": {
+            "get": {
+                "description": "Search messages\n",
+                "parameters": [
+                    {
+                        "name": "kind",
+                        "in": "query",
+                        "description": "Kind of search",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "from",
+                            "to",
+                            "containing"
+                        ]
+                    },
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "description": "Start index",
+                        "required": false,
+                        "type": "number",
+                        "format": "int64",
+                        "default": 0
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of messages",
+                        "required": false,
+                        "type": "number",
+                        "format": "int64",
+                        "default": 50
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "title": "Messages",
+                            "type": "object",
+                            "properties": {
+                                "total": {
+                                    "type": "number",
+                                    "format": "int64",
+                                    "description": "Total number of stored messages"
+                                },
+                                "start": {
+                                    "type": "number",
+                                    "format": "int64",
+                                    "description": "Start index of first returned message"
+                                },
+                                "count": {
+                                    "type": "number",
+                                    "format": "int64",
+                                    "description": "Number of returned messages"
+                                },
+                                "messages": {
+                                    "type": "array",
+                                    "items": {
+                                        "title": "Message",
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "string"
+                                            },
+                                            "from": {
+                                                "title": "Path",
+                                                "type": "object",
+                                                "properties": {
+                                                    "relays": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "mailbox": {
+                                                        "type": "string"
+                                                    },
+                                                    "domain": {
+                                                        "type": "string"
+                                                    },
+                                                    "params": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "to": {
+                                                "type": "array",
+                                                "items": {
+                                                    "title": "Path",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "relays": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "mailbox": {
+                                                            "type": "string"
+                                                        },
+                                                        "domain": {
+                                                            "type": "string"
+                                                        },
+                                                        "params": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "headers": {
+                                                "type": "object"
+                                            },
+                                            "size": {
+                                                "type": "number",
+                                                "format": "int64"
+                                            },
+                                            "created": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
