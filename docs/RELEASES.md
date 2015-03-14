@@ -1,6 +1,16 @@
 MailHog Releases
 ================
 
+### [v0.1.6](https://github.com/mailhog/MailHog/releases/v0.1.6)
+- Fix #24 - base64 attachments/mime part downloads
+- Fix #28 - embed js/css/font assets for offline use
+- Fix #29 - overview of MailHog for readme
+- Fix #34 - message list scrolling
+- Fix #35 - message list sorting
+- Fix #36 - document outgoing SMTP server configuration and APIv2
+- Merge mailhog/MailHog-UI#4 - support base64 content transfer encoding, thanks @stekershaw
+- Merge mailhog/Mailhog-UI#5 - single part encoded text/plain, thanks @naoina
+
 ### [v0.1.5](https://github.com/mailhog/MailHog/releases/v0.1.5)
 - Fix mailhog/MailHog-UI#3 - squashed subject line
 
