@@ -41,7 +41,7 @@ the following structure, and set `MH_OUTGOING_SMTP` or `-outgoing-smtp`.
         "email": "...",
         "username": "...",
         "password": "...",
-        "mechanism": "PLAIN",
+        "mechanism": "PLAIN"
     }
 }
 ```
