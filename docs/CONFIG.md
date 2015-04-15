@@ -37,11 +37,11 @@ the following structure, and set `MH_OUTGOING_SMTP` or `-outgoing-smtp`.
     "server name": {
         "name": "server name",
         "host": "...",
-        "port": 587,
+        "port": "587",
         "email": "...",
         "username": "...",
         "password": "...",
-        "mechanism": "PLAIN",
+        "mechanism": "PLAIN"
     }
 }
 ```
