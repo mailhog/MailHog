@@ -4,8 +4,10 @@ import (
 	"flag"
 	"os"
 
+	gohttp "net/http"
+
+	"github.com/gorilla/pat"
 	"github.com/ian-kent/go-log/log"
-	gotcha "github.com/ian-kent/gotcha/app"
 	"github.com/mailhog/MailHog-Server/api"
 	cfgapi "github.com/mailhog/MailHog-Server/config"
 	"github.com/mailhog/MailHog-Server/smtp"
@@ -32,19 +34,19 @@ func main() {
 
 	exitCh = make(chan int)
 	if uiconf.UIBindAddr == apiconf.APIBindAddr {
-		cb := func(app *gotcha.App) {
-			web.CreateWeb(uiconf, app)
-			api.CreateAPIv1(apiconf, app)
-			api.CreateAPIv2(apiconf, app)
+		cb := func(r gohttp.Handler) {
+			web.CreateWeb(uiconf, r.(*pat.Router), assets.Asset)
+			api.CreateAPIv1(apiconf, r.(*pat.Router))
+			api.CreateAPIv2(apiconf, r.(*pat.Router))
 		}
 		go http.Listen(uiconf.UIBindAddr, assets.Asset, exitCh, cb)
 	} else {
-		cb1 := func(app *gotcha.App) {
-			api.CreateAPIv1(apiconf, app)
-			api.CreateAPIv2(apiconf, app)
+		cb1 := func(r gohttp.Handler) {
+			api.CreateAPIv1(apiconf, r.(*pat.Router))
+			api.CreateAPIv2(apiconf, r.(*pat.Router))
 		}
-		cb2 := func(app *gotcha.App) {
-			web.CreateWeb(uiconf, app)
+		cb2 := func(r gohttp.Handler) {
+			web.CreateWeb(uiconf, r.(*pat.Router), assets.Asset)
 		}
 		go http.Listen(apiconf.APIBindAddr, assets.Asset, exitCh, cb1)
 		go http.Listen(uiconf.UIBindAddr, assets.Asset, exitCh, cb2)
