@@ -1,6 +1,16 @@
 MailHog Releases
 ================
 
+### [v0.1.7](https://github.com/mailhog/MailHog/releases/v0.1.7)
+- Add [mhsendmail](https://github.com/mailhog/mhsendmail) sendmail replacement
+- Fix #42 - panic when setting UI bind address
+- Fix #46 - utf8 error in e-mail subject
+- Fix #41 and #50 - underscores replaced with spaces in UI
+- Fix mailhog/MailHog-UI#6 - user defined pagination
+- Merge #43 and #44 - fix documentation, thanks @eirc
+- Merge #48 - fix documentation, thanks @zhubert
+- Merge mailhog/MailHog-Server#1 - avoid duplicate headers, thanks @wienczny
+
 ### [v0.1.6](https://github.com/mailhog/MailHog/releases/v0.1.6)
 - Fix #24 - base64 attachments/mime part downloads
 - Fix #28 - embed js/css/font assets for offline use
