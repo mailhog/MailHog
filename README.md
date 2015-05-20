@@ -56,7 +56,7 @@ MailHog is a rewritten version of [MailHog](https://github.com/ian-kent/MailHog)
 
 Clone this repository to ```$GOPATH/src/github.com/mailhog/MailHog``` and type ```make deps```.
 
-See the [Building MailHog](BUILD.md) guide.
+See the [Building MailHog](/docs/BUILD.md) guide.
 
 Requires Go 1.3+ to build.
 
