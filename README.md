@@ -48,6 +48,16 @@ MailHog is an email testing tool for developers:
 * Lightweight and portable
 * No installation required
 
+#### sendmail
+
+[mhsendmail](https://github.com/mailhog/mhsendmail) is a sendmail replacement for MailHog.
+
+It redirects mail to MailHog using SMTP.
+
+You can also use `MailHog sendmail ...` instead of the separate mhsendmail binary.
+
+#### Web UI
+
 ![Screenshot of MailHog web interface](/docs/MailHog.png "MailHog web interface")
 
 ### Contributing

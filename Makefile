@@ -14,6 +14,7 @@ fmt:
 deps:
 	go get github.com/mailhog/MailHog-Server
 	go get github.com/mailhog/MailHog-UI
+	go get github.com/mailhog/mhsendmail
 	cd ../MailHog-UI; make bindata
 	go get github.com/mailhog/http
 	go get github.com/ian-kent/go-log/log

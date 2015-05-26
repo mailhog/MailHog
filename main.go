@@ -15,6 +15,7 @@ import (
 	cfgui "github.com/mailhog/MailHog-UI/config"
 	"github.com/mailhog/MailHog-UI/web"
 	"github.com/mailhog/http"
+	"github.com/mailhog/mhsendmail/cmd"
 )
 
 var apiconf *cfgapi.Config
@@ -30,6 +31,16 @@ func configure() {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "sendmail" {
+		args := os.Args
+		os.Args = []string{args[0]}
+		if len(args) > 2 {
+			os.Args = append(os.Args, args[2:]...)
+		}
+		cmd.Go()
+		return
+	}
+
 	configure()
 
 	exitCh = make(chan int)
