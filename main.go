@@ -61,3 +61,25 @@ func main() {
 		}
 	}
 }
+
+/*
+
+Add some random content to the end of this file, hopefully tricking GitHub
+into recognising this as a Go repo instead of Makefile.
+
+A gopher, ASCII art style - borrowed from
+https://gist.github.com/belbomemo/b5e7dad10fa567a5fe8a
+
+          ,_---~~~~~----._
+   _,,_,*^____      _____``*g*\"*,
+  / __/ /'     ^.  /      \ ^@q   f
+ [  @f | @))    |  | @))   l  0 _/
+  \`/   \~____ / __ \_____/    \
+   |           _l__l_           I
+   }          [______]           I
+   ]            | | |            |
+   ]             ~ ~             |
+   |                            |
+    |                           |
+
+*/
