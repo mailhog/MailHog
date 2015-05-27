@@ -3,7 +3,7 @@ Authentication
 
 HTTP basic authentication is supported using a password file.
 
-See [example-auth](example-auth) for an example.
+See [example-auth](example-auth) for an example (the password is `test`).
 
 Authentication applies to all HTTP requests, including static content
 and API endpoints.
