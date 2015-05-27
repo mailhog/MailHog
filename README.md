@@ -69,7 +69,7 @@ Clone this repository to ```$GOPATH/src/github.com/mailhog/MailHog``` and type `
 
 See the [Building MailHog](/docs/BUILD.md) guide.
 
-Requires Go 1.3+ to build.
+Requires Go 1.4+ to build.
 
 Run tests using ```make test``` or ```goconvey```.
 
