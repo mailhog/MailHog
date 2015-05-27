@@ -41,6 +41,7 @@ MailHog is an email testing tool for developers:
   * See [Introduction to Jim](/docs/JIM.md) for more information
 * HTTP API to list, retrieve and delete messages
   * See [APIv1](/docs/APIv1.md) and [APIv2](/docs/APIv2.md) documentation for more information
+* [HTTP basic authentication](docs/Auth.md) for MailHog UI and API
 * Multipart MIME support
 * Download individual MIME parts
 * In-memory message storage

@@ -1,4 +1,4 @@
-VERSION=0.1.7
+VERSION=0.2.0
 
 all: deps fmt combined
 
@@ -25,7 +25,7 @@ deps:
 	go get labix.org/v2/mgo
 	# added to fix travis issues
 	go get code.google.com/p/go-uuid/uuid
-	go get code.google.com/p/go.crypto/bcrypt
+	go get golang.org/x/crypto/bcrypt
 
 test-deps:
 	go get github.com/smartystreets/goconvey

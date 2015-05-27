@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	gohttp "net/http"
@@ -14,20 +15,25 @@ import (
 	"github.com/mailhog/MailHog-UI/assets"
 	cfgui "github.com/mailhog/MailHog-UI/config"
 	"github.com/mailhog/MailHog-UI/web"
+	cfgcom "github.com/mailhog/MailHog/config"
 	"github.com/mailhog/http"
 	"github.com/mailhog/mhsendmail/cmd"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var apiconf *cfgapi.Config
 var uiconf *cfgui.Config
+var comconf *cfgcom.Config
 var exitCh chan int
 
 func configure() {
+	cfgcom.RegisterFlags()
 	cfgapi.RegisterFlags()
 	cfgui.RegisterFlags()
 	flag.Parse()
 	apiconf = cfgapi.Configure()
 	uiconf = cfgui.Configure()
+	comconf = cfgcom.Configure()
 }
 
 func main() {
@@ -41,7 +47,27 @@ func main() {
 		return
 	}
 
+	if len(os.Args) > 1 && os.Args[1] == "bcrypt" {
+		var pw string
+		if len(os.Args) > 2 {
+			pw = os.Args[2]
+		} else {
+			// TODO: read from stdin
+		}
+		b, err := bcrypt.GenerateFromPassword([]byte(pw), 4)
+		if err != nil {
+			log.Fatalf("error bcrypting password: %s", err)
+			os.Exit(1)
+		}
+		fmt.Println(string(b))
+		os.Exit(0)
+	}
+
 	configure()
+
+	if comconf.AuthFile != "" {
+		http.AuthFile(comconf.AuthFile)
+	}
 
 	exitCh = make(chan int)
 	if uiconf.UIBindAddr == apiconf.APIBindAddr {
