@@ -1,6 +1,26 @@
 MailHog [ ![Download](https://img.shields.io/github/release/mailhog/MailHog.svg) ](https://github.com/mailhog/MailHog/releases/tag/v0.1.7) [![GoDoc](https://godoc.org/github.com/mailhog/MailHog?status.svg)](https://godoc.org/github.com/mailhog/MailHog) [![Build Status](https://travis-ci.org/mailhog/MailHog.svg?branch=master)](https://travis-ci.org/mailhog/MailHog)
 =========
 
+## AWS Elastic Beanstalk
+
+This fork introduces `.ebextensions` to configure AWS Elastic Beanstalk
+to run MailHog behind a TCP proxy. It recompiles Nginx with TCP proxy
+support. After deployment, the MailHog web interface is accessible on
+port 80 and the SMTP interface on port 1025.
+
+### First deploy
+
+You can deploy MailHog using [AWS Elastic Beanstalk](http://aws.amazon.com/elasticbeanstalk/).
+
+1. Open the Elastic Beanstalk console
+2. Create a zip file containing the Dockerfile, .ebextensions, and MailHog binary
+3. Create a new Elastic Beanstalk application
+4. Launch a new environment and upload the zip file
+5. Add/Set the following environment variables settings for Basic Auth on the web
+UI:
+  * `MAILHOG_USER`
+  * `MAILHOG_PASSWORD`
+
 Inspired by [MailCatcher](http://mailcatcher.me/), easier to install.
 
 * Download and run MailHog
