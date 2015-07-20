@@ -1,5 +1,4 @@
 #!/bin/bash
 
 /usr/bin/mongod --fork --logpath /var/log/mongodb/mongodb.log
-MH_STORAGE=mongodb
-/go/bin/MailHog
+MH_STORAGE=mongodb /go/bin/MailHog
