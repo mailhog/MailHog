@@ -6,5 +6,15 @@ mkdir -p /var/log/mongodb && chown -R mongodb:mongodb /var/log/mongodb
 
 rm -f /data/db/mongod.lock
 
+if test -f /sys/kernel/mm/transparent_hugepage/khugepaged/defrag; then
+  echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
+fi
+if test -f /sys/kernel/mm/transparent_hugepage/defrag; then
+  echo never > /sys/kernel/mm/transparent_hugepage/defrag
+fi
+if test -f /sys/kernel/mm/transparent_hugepage/enabled; then
+  echo never > /sys/kernel/mm/transparent_hugepage/enabled
+fi
+
 /usr/bin/mongod --fork --logpath /var/log/mongodb/mongodb.log --journal
 MH_STORAGE=mongodb /go/bin/MailHog
