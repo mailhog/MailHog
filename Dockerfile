@@ -37,9 +37,6 @@ RUN set -x \
 	&& rm -rf /var/lib/mongodb \
 	&& mv /etc/mongod.conf /etc/mongod.conf.orig
 
-RUN mkdir -p /data/db && chown -R mongodb:mongodb /data/db
-VOLUME /data/db
-
 RUN go get github.com/mailhog/MailHog
 
 ADD docker_cmd /root/docker_cmd
