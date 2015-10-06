@@ -1,6 +1,15 @@
 MailHog Releases
 ================
 
+### [v0.1.8](https://github.com/mailhog/MailHog/releases/v0.1.8)
+- Add `MailHog sendmail` shortcut to `mhsendmail`
+- Add #40 - HTTP basic authentication
+- Add #63 - message size in UI
+- Fix mailhog/MailHog-UI#10 - fix delete for in-memory storage
+- Merge mailhog/MailHog-UI#8 - fix styles for .content positioning, thanks @thejameskyle
+- Merge mailhog/MailHog-UI#9 - fix content types, thanks @danielwhite
+- Merge mailhog/data#4 - factor out use of log package, thanks @ishbir
+
 ### [v0.1.7](https://github.com/mailhog/MailHog/releases/v0.1.7)
 - Add [mhsendmail](https://github.com/mailhog/mhsendmail) sendmail replacement
 - Fix #42 - panic when setting UI bind address
