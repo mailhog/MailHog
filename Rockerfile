@@ -1,0 +1,14 @@
+# build image
+FROM golang:latest
+RUN go get -v github.com/mailhog/MailHog && \
+    cd /go/src && \
+    CGO_ENABLED=0 go build -a -installsuffix cgo -v -o /go/bin/MailHog.o github.com/mailhog/MailHog/main.go
+EXPORT /go/bin/ /target
+
+# run image
+FROM alpine:latest
+IMPORT /target/ /tmp
+RUN cp /tmp/MailHog.o /MailHog
+EXPOSE 1025 8025
+CMD ["/MailHog"]
+TAG mailhog/mailhog:{{ or .VERSION "latest" }}
