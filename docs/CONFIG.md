@@ -15,6 +15,7 @@ You can configure MailHog using command line options or environment variables:
 | MH_SMTP_BIND_ADDR   | -smtp-bind-addr | 0.0.0.0:1025    | Interface and port for SMTP server to bind to
 | MH_STORAGE          | -storage        | memory          | Set message storage: memory / mongodb
 | MH_OUTGOING_SMTP    | -outgoing-smtp  |                 | JSON file defining outgoing SMTP servers
+| MH_UI_WEB_PATH      | -ui-web-path    |                 | WebPath under which the ui is served (without leading or trailing slahes), e.g. 'mailhog'. Value defaults to ''
 
 #### Note on HTTP bind addresses
 

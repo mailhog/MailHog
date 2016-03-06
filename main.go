@@ -34,6 +34,9 @@ func configure() {
 	apiconf = cfgapi.Configure()
 	uiconf = cfgui.Configure()
 	comconf = cfgcom.Configure()
+
+	apiconf.WebPath = comconf.WebPath
+	uiconf.WebPath = comconf.WebPath
 }
 
 func main() {
