@@ -1,11 +1,11 @@
-VERSION=0.1.8
+VERSION=0.1.9
 
 all: deps fmt combined
 
 combined:
 	go install .
 
-release: release-deps
+release: release-deps dockerhub
 	gox -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}" .
 
 fmt:
@@ -50,4 +50,13 @@ tag:
 	cd ../smtp; git tag -a -m 'v${VERSION}' ${VERSION} && git push origin ${VERSION}
 	cd ../storage; git tag -a -m 'v${VERSION}' ${VERSION} && git push origin ${VERSION}
 
-.PNONY: all combined release fmt deps test-deps release-deps
+rocker: rocker-deps
+	rocker build
+
+rocker-deps:
+	go get github.com/grammarly/rocker
+
+dockerhub: rocker
+	docker push mailhog/mailhog
+
+.PNONY: all combined release fmt deps test-deps release-deps pull tag rocker rocker-deps
