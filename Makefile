@@ -24,7 +24,6 @@ deps:
 	go get github.com/jteeuwen/go-bindata/...
 	go get labix.org/v2/mgo
 	# added to fix travis issues
-	go get code.google.com/p/go-uuid/uuid
 	go get golang.org/x/crypto/bcrypt
 
 test-deps:
