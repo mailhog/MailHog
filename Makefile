@@ -42,13 +42,13 @@ pull:
 	cd ../storage; git pull
 
 tag:
-	git tag -a -m 'v${VERSION}' ${VERSION} && git push origin ${VERSION}
-	cd ../data; git tag -a -m 'v${VERSION}' ${VERSION} && git push origin ${VERSION}
-	cd ../http; git tag -a -m 'v${VERSION}' ${VERSION} && git push origin ${VERSION}
-	cd ../MailHog-Server; git tag -a -m 'v${VERSION}' ${VERSION} && git push origin ${VERSION}
-	cd ../MailHog-UI; git tag -a -m 'v${VERSION}' ${VERSION} && git push origin ${VERSION}
-	cd ../smtp; git tag -a -m 'v${VERSION}' ${VERSION} && git push origin ${VERSION}
-	cd ../storage; git tag -a -m 'v${VERSION}' ${VERSION} && git push origin ${VERSION}
+	git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
+	cd ../data; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
+	cd ../http; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
+	cd ../MailHog-Server; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
+	cd ../MailHog-UI; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
+	cd ../smtp; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
+	cd ../storage; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
 
 rocker: rocker-deps
 	rocker build

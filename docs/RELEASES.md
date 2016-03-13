@@ -1,6 +1,13 @@
 MailHog Releases
 ================
 
+### [v0.1.9](https://github.com/mailhog/MailHog/releases/v0.1.9)
+- #76 - optimise docker image size, thanks @missedone
+- #77 - fix ci by removing go-uuid, thanks @missedone
+- #80, mailhog/MailHog-UI#15, mailhog/MailHog-Server#2 - add webpath, thanks @oers
+- mailhog/MailHog-UI#13 - create hyperlinks for URLs in plain text, thanks @GREsau
+- mailhog/MailHog-UI#14 - add no-referrer referrer policy, thanks @djmattyg007
+
 ### [v0.1.8](https://github.com/mailhog/MailHog/releases/v0.1.8)
 - Add `MailHog sendmail` shortcut to `mhsendmail`
 - Add #40 - HTTP basic authentication
