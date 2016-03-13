@@ -5,7 +5,7 @@ all: deps fmt combined
 combined:
 	go install .
 
-release: release-deps dockerhub
+release: tag release-deps dockerhub
 	gox -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}" .
 
 fmt:
