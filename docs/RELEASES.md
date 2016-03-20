@@ -1,6 +1,10 @@
 MailHog Releases
 ================
 
+### [v0.2.0](https://github.com/mailhog/MailHog/releases/v0.2.0)
+- mailhog/storage#1 - fix MongoDB storage bug, and implement search, thanks @HokieTT
+- #13 - implement file based storage backend (currently without search)
+
 ### [v0.1.9](https://github.com/mailhog/MailHog/releases/v0.1.9)
 - #76 - optimise docker image size, thanks @missedone
 - #77 - fix ci by removing go-uuid, thanks @missedone

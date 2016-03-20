@@ -1,4 +1,4 @@
-VERSION=0.1.9
+VERSION=0.2.0
 
 all: deps fmt combined
 
