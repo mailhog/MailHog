@@ -51,7 +51,7 @@ tag:
 	cd ../storage; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
 
 rocker: rocker-deps
-	rocker build
+	rocker build --no-cache
 
 rocker-deps:
 	go get github.com/grammarly/rocker
