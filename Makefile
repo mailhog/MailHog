@@ -22,7 +22,7 @@ deps:
 	go get github.com/ian-kent/goose
 	go get github.com/ian-kent/linkio
 	go get github.com/jteeuwen/go-bindata/...
-	go get labix.org/v2/mgo
+	go get gopkg.in/mgo.v2
 	# added to fix travis issues
 	go get golang.org/x/crypto/bcrypt
 
