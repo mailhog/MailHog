@@ -18,6 +18,9 @@ MailHog can be started as a daemon using supervisord/upstart/etc.
 See [this example init script](https://github.com/geerlingguy/ansible-role-mailhog/blob/master/templates/mailhog.init.j2)
 and [this Ansible role](https://github.com/geerlingguy/ansible-role-mailhog) by [geerlingguy](https://github.com/geerlingguy).
 
+If installed with Homebrew on OSX you can have launchd start mailhog now and restart at login:
+    brew services start mailhog
+
 ### Docker
 
 The example [Dockerfile](Dockerfile) can be used to run MailHog in a [Docker](https://www.docker.com/) container.
