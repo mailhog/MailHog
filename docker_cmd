@@ -1,0 +1,10 @@
+#!/bin/bash
+
+chown -R mongodb:mongodb /data/db
+
+mkdir -p /var/log/mongodb && chown -R mongodb:mongodb /var/log/mongodb
+
+rm -f /data/db/mongod.lock
+
+/usr/bin/mongod --fork --logpath /var/log/mongodb/mongodb.log --journal --smallfiles
+MH_STORAGE=mongodb /go/bin/MailHog &> /dev/null
