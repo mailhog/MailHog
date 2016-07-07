@@ -141,6 +141,13 @@
                         ]
                     },
                     {
+                        "name": "query",
+                        "in": "query",
+                        "description": "Search parameter",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
                         "name": "start",
                         "in": "query",
                         "description": "Start index",
