@@ -76,14 +76,12 @@ func main() {
 	if uiconf.UIBindAddr == apiconf.APIBindAddr {
 		cb := func(r gohttp.Handler) {
 			web.CreateWeb(uiconf, r.(*pat.Router), assets.Asset)
-			api.CreateAPIv1(apiconf, r.(*pat.Router))
-			api.CreateAPIv2(apiconf, r.(*pat.Router))
+			api.CreateAPI(apiconf, r.(*pat.Router))
 		}
 		go http.Listen(uiconf.UIBindAddr, assets.Asset, exitCh, cb)
 	} else {
 		cb1 := func(r gohttp.Handler) {
-			api.CreateAPIv1(apiconf, r.(*pat.Router))
-			api.CreateAPIv2(apiconf, r.(*pat.Router))
+			api.CreateAPI(apiconf, r.(*pat.Router))
 		}
 		cb2 := func(r gohttp.Handler) {
 			web.CreateWeb(uiconf, r.(*pat.Router), assets.Asset)
