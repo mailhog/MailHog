@@ -104,6 +104,12 @@ paths:
           type: string
           enum: [ from, to, containing ]
         -
+          name: query
+          in: query
+          description: Search parameter
+          required: true
+          type: string
+        -
           name: start
           in: query
           description: Start index
