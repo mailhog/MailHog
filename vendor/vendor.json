@@ -195,10 +195,10 @@
 			"revisionTime": "2016-08-01T21:38:24Z"
 		},
 		{
-			"checksumSHA1": "X+UmZuc1xY9x8Bj/qVnQNQnGFV0=",
+			"checksumSHA1": "zTjQOFGy4XTv4L33Kd2FhrV+mbM=",
 			"path": "gopkg.in/mgo.v2/bson",
-			"revision": "01084657862d7b12d3b10ffd0394357abf8f8bc2",
-			"revisionTime": "2016-08-01T21:38:24Z"
+			"revision": "29cc868a5ca65f401ff318143f9408d02f4799cc",
+			"revisionTime": "2016-06-09T18:00:28Z"
 		},
 		{
 			"checksumSHA1": "XQsrqoNT1U0KzLxOFcAZVvqhLfk=",
