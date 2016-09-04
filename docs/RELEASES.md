@@ -1,6 +1,21 @@
 MailHog Releases
 ================
 
+### [v0.2.1](https://github.com/mailhog/MailHog/releases/v0.2.1)
+- Update .travis.yml to Go 1.6 and tip
+- Fix builds broken by out of date mgo import path
+- #82 - fix configuration documentation, thanks @riking
+- #83 - add search query parameter to Swagger JSON, thanks @kkrauth
+- #86 - vendor all dependencies
+- #89 - add missing iso88591_map.js and sjis_map.js
+- #90 - update broken link in documentation, thanks @espen
+- #91 - add assets/js/filesize-3.1.2.min.js
+- #93 - starting MailHog as a service using brew, thanks @espen
+- #95 - fix UTF-8 encoding bug in attachment names
+- #97 - fix header case sensitivity bug
+- #102 - merge multiple PRs adding WebSocket support, thanks @GREsau
+- mailhog/smtp#2 - use file modification time for Created field, thanks @esiqveland
+
 ### [v0.2.0](https://github.com/mailhog/MailHog/releases/v0.2.0)
 - mailhog/storage#1 - fix MongoDB storage bug, and implement search, thanks @HokieTT
 - #13 - implement file based storage backend (currently without search)
