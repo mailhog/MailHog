@@ -25,6 +25,7 @@ var apiconf *cfgapi.Config
 var uiconf *cfgui.Config
 var comconf *cfgcom.Config
 var exitCh chan int
+var version string
 
 func configure() {
 	cfgcom.RegisterFlags()
@@ -40,6 +41,11 @@ func configure() {
 }
 
 func main() {
+	if len(os.Args) > 1 && (os.Args[1] == "-version" || os.Args[1] == "--version") {
+		fmt.Println("MailHog version: " + version)
+		os.Exit(0)
+	}
+
 	if len(os.Args) > 1 && os.Args[1] == "sendmail" {
 		args := os.Args
 		os.Args = []string{args[0]}
