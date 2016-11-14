@@ -6,7 +6,7 @@ combined:
 	go install .
 
 release: tag release-deps dockerhub
-	gox -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}" .
+	gox -ldflags "-X main.version=${VERSION}" -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}" .
 
 fmt:
 	go fmt ./...
