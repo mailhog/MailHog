@@ -50,13 +50,4 @@ tag:
 	cd ../smtp; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
 	cd ../storage; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
 
-rocker: rocker-deps
-	rocker build --no-cache
-
-rocker-deps:
-	go get github.com/grammarly/rocker
-
-dockerhub: rocker
-	docker push mailhog/mailhog
-
-.PNONY: all combined release fmt deps test-deps release-deps pull tag rocker rocker-deps
+.PNONY: all combined release fmt deps test-deps release-deps pull tag
