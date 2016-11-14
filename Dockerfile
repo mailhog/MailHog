@@ -1,4 +1,7 @@
-FROM golang:1.4
+FROM golang:1.7-alpine
+
+RUN apk add --no-cache git \
+	&& rm -rf /var/cache/apk/*
 
 RUN go get github.com/mailhog/MailHog
 
