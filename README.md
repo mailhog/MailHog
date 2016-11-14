@@ -32,6 +32,8 @@ MailHog is an email testing tool for developers:
 
 ### Features
 
+See [MailHog libraries](docs/LIBRARIES.md) for a list of MailHog client libraries.
+
 * ESMTP server implementing RFC5321
 * Support for SMTP AUTH (RFC4954) and PIPELINING (RFC2920)
 * Web interface to view messages (plain text, HTML or source)
