@@ -77,50 +77,50 @@
 		{
 			"checksumSHA1": "3mLt9lHm23gzSdVgjZQmaNxoR2Q=",
 			"path": "github.com/mailhog/MailHog-Server/api",
-			"revision": "0c43753ba6d5865286f0973a811eb7fc7e7353a3",
-			"revisionTime": "2017-04-16T18:46:45Z"
+			"revision": "862ca00c938f895e0a3c7ea408634951f03c33b2",
+			"revisionTime": "2017-04-16T22:27:07Z"
 		},
 		{
 			"checksumSHA1": "fBFfD/YTkxKmuCE7SlEL4/im9nU=",
 			"path": "github.com/mailhog/MailHog-Server/config",
-			"revision": "0c43753ba6d5865286f0973a811eb7fc7e7353a3",
-			"revisionTime": "2017-04-16T18:46:45Z"
+			"revision": "862ca00c938f895e0a3c7ea408634951f03c33b2",
+			"revisionTime": "2017-04-16T22:27:07Z"
 		},
 		{
 			"checksumSHA1": "P0jngUraVKUOjL+uPeTc6XPAAPs=",
 			"path": "github.com/mailhog/MailHog-Server/monkey",
-			"revision": "0c43753ba6d5865286f0973a811eb7fc7e7353a3",
-			"revisionTime": "2017-04-16T18:46:45Z"
+			"revision": "862ca00c938f895e0a3c7ea408634951f03c33b2",
+			"revisionTime": "2017-04-16T22:27:07Z"
 		},
 		{
 			"checksumSHA1": "ShfenzyuLqJ86PzEB4PuP+6v2h0=",
 			"path": "github.com/mailhog/MailHog-Server/smtp",
-			"revision": "0c43753ba6d5865286f0973a811eb7fc7e7353a3",
-			"revisionTime": "2017-04-16T18:46:45Z"
+			"revision": "862ca00c938f895e0a3c7ea408634951f03c33b2",
+			"revisionTime": "2017-04-16T22:27:07Z"
 		},
 		{
 			"checksumSHA1": "c+xf40wui4+o6gvZ+8NRL1oRviY=",
 			"path": "github.com/mailhog/MailHog-Server/websockets",
-			"revision": "0c43753ba6d5865286f0973a811eb7fc7e7353a3",
-			"revisionTime": "2017-04-16T18:46:45Z"
+			"revision": "862ca00c938f895e0a3c7ea408634951f03c33b2",
+			"revisionTime": "2017-04-16T22:27:07Z"
 		},
 		{
 			"checksumSHA1": "At166WzE7Ma17bS+0FOpT8B28dA=",
 			"path": "github.com/mailhog/MailHog-UI/assets",
-			"revision": "d3d5082cb7a3cc2683cf0ff9055792ef75170824",
-			"revisionTime": "2017-04-16T18:44:30Z"
+			"revision": "f258067545dcc54ec15ca2509fe0a887afb24997",
+			"revisionTime": "2017-04-16T22:28:23Z"
 		},
 		{
 			"checksumSHA1": "Sx9nmFV6wOzDqJIALIEEDLJnnEM=",
 			"path": "github.com/mailhog/MailHog-UI/config",
-			"revision": "d3d5082cb7a3cc2683cf0ff9055792ef75170824",
-			"revisionTime": "2017-04-16T18:44:30Z"
+			"revision": "f258067545dcc54ec15ca2509fe0a887afb24997",
+			"revisionTime": "2017-04-16T22:28:23Z"
 		},
 		{
 			"checksumSHA1": "66iQbxUhUQuur+pyVwdK4IqFYXs=",
 			"path": "github.com/mailhog/MailHog-UI/web",
-			"revision": "d3d5082cb7a3cc2683cf0ff9055792ef75170824",
-			"revisionTime": "2017-04-16T18:44:30Z"
+			"revision": "f258067545dcc54ec15ca2509fe0a887afb24997",
+			"revisionTime": "2017-04-16T22:28:23Z"
 		},
 		{
 			"checksumSHA1": "ucMoXRa6ccPO5FyBzhey+N+IOsA=",
@@ -131,8 +131,8 @@
 		{
 			"checksumSHA1": "vyMXU+/pSliAx1yRf6YdKRhF9Ik=",
 			"path": "github.com/mailhog/http",
-			"revision": "f60054419202104f75c0fcaf132ca6e2ceae37f4",
-			"revisionTime": "2016-08-10T07:45:55Z"
+			"revision": "2e653938bf190d0e2fbe4825ce74e5bc149a62f2",
+			"revisionTime": "2017-04-16T22:27:52Z"
 		},
 		{
 			"checksumSHA1": "fAi7lDdIXYe0NIXdDKci8jsCjLc=",
