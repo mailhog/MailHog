@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+var _ = strings.TrimSpace
+
 // -- net.IP value
 type ipValue net.IP
 

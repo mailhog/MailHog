@@ -27,6 +27,8 @@ func (*ipNetValue) Type() string {
 	return "ipNet"
 }
 
+var _ = strings.TrimSpace
+
 func newIPNetValue(val net.IPNet, p *net.IPNet) *ipNetValue {
 	*p = val
 	return (*ipNetValue)(p)
