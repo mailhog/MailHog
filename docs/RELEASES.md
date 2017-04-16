@@ -20,7 +20,7 @@ This is to get the updated release out with the latest code, since 0.2.1 is gett
 - #136 - update MailHog-UI assets, thanks @sdurrheimer
 - #145 - fix a link in DEPLOY.md, thanks @nnmer
 - mailhog/MailHog-UI#22 and #104 - support TLS websockets in HTTPS mode, thanks @blueimp
-- mailhog/MailHog-UI#23 and mailhog/MailHog-UI#24 - support multiple instances of CID
+- mailhog/MailHog-UI#23 and mailhog/MailHog-UI#24 - support multiple instances of CID, thanks @kieran and @jerbob92
 - more things I've forgotten/can't find!
 
 ### [v0.2.1](https://github.com/mailhog/MailHog/releases/v0.2.1)
