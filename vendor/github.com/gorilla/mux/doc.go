@@ -47,11 +47,20 @@ variable will be anything until the next slash. For example:
 	r.HandleFunc("/articles/{category}/", ArticlesCategoryHandler)
 	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler)
 
+Groups can be used inside patterns, as long as they are non-capturing (?:re). For example:
+
+	r.HandleFunc("/articles/{category}/{sort:(?:asc|desc|new)}", ArticlesCategoryHandler)
+
 The names are used to create a map of route variables which can be retrieved
 calling mux.Vars():
 
 	vars := mux.Vars(request)
 	category := vars["category"]
+
+Note that if any capturing groups are present, mux will panic() during parsing. To prevent
+this, convert any capturing groups to non-capturing, e.g. change "/{sort:(asc|desc)}" to
+"/{sort:(?:asc|desc)}". This is a change from prior versions which behaved unpredictably
+when capturing groups were present.
 
 And this is all you need to know about the basic usage. More advanced options
 are explained below.

@@ -9,10 +9,10 @@
 			"revisionTime": "2016-08-17T18:46:32Z"
 		},
 		{
-			"checksumSHA1": "oDsOWp1nBMGpQ9gCFnczGADwZTE=",
+			"checksumSHA1": "zmCk+lgIeiOf0Ng9aFP9aFy8ksE=",
 			"path": "github.com/gorilla/mux",
-			"revision": "0a192a193177452756c362c20087ddafcf6829c4",
-			"revisionTime": "2016-09-02T15:33:43Z"
+			"revision": "599cba5e7b6137d46ddf58fb1765f5d928e69604",
+			"revisionTime": "2017-02-28T22:43:54Z"
 		},
 		{
 			"checksumSHA1": "41syjEeyv9W/6j89XArd1yyWNBU=",
@@ -22,9 +22,10 @@
 		},
 		{
 			"checksumSHA1": "hEnH6sgR83Qfx7UNnphNNlelmj0=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/gorilla/websocket",
 			"path": "github.com/gorilla/websocket",
-			"revision": "a91eba7f97777409bc2c443f5534d41dd20c5720",
-			"revisionTime": "2017-03-19T17:27:27Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "jOXIxsHHi2+Kq4evLnADdtynshs=",
@@ -64,27 +65,31 @@
 		},
 		{
 			"checksumSHA1": "kaSS4mHWwdHmFfq8jJAWI8rXkVE=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/ian-kent/goose",
 			"path": "github.com/ian-kent/goose",
-			"revision": "c3541ea826ad9e0f8a4a8c15ca831e8b0adde58c",
-			"revisionTime": "2014-12-21T09:00:59Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "8a3jdb/e82m61ZwOgB2NbxuTjIc=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/ian-kent/linkio",
 			"path": "github.com/ian-kent/linkio",
-			"revision": "77fb4b01842cb4b019137c0227df9a8f9779d0bd",
-			"revisionTime": "2014-12-29T11:24:53Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "L6/CjN/3IdKLxfaBGRPTJ7e62bg=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/jtolds/gls",
 			"path": "github.com/jtolds/gls",
-			"revision": "bb0351aa7eb6f322f32667d51375f26a2bca6628",
-			"revisionTime": "2016-12-28T00:43:38Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "ucMoXRa6ccPO5FyBzhey+N+IOsA=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/mailhog/data",
 			"path": "github.com/mailhog/data",
-			"revision": "024d554958b5bea5db220bfd84922a584d878ded",
-			"revisionTime": "2017-04-16T19:13:44Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "vyMXU+/pSliAx1yRf6YdKRhF9Ik=",
@@ -100,15 +105,17 @@
 		},
 		{
 			"checksumSHA1": "eD34ZZL4TFFtDl7tCXMEpp+tDSU=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/mailhog/smtp",
 			"path": "github.com/mailhog/smtp",
-			"revision": "0c4e9b7e0625fec61d0c30d7b2f6c62852be6c54",
-			"revisionTime": "2016-11-19T23:01:07Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
-			"checksumSHA1": "o0iY7SpW0phHTRA/xW3O2CyNLF8=",
+			"checksumSHA1": "qS2ZuuROIJkl8JkMxZrtX8BxTgA=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/mailhog/storage",
 			"path": "github.com/mailhog/storage",
-			"revision": "6d871fb23ecd873cb10cdfc3a8dec5f50d2af8fa",
-			"revisionTime": "2017-04-16T22:27:39Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "mbhJnsNwGAwkTQH5c2hVRO9YmxA=",
@@ -117,40 +124,46 @@
 			"revisionTime": "2016-01-29T03:59:39Z"
 		},
 		{
-			"checksumSHA1": "RPVh5/wbvFG0q0CWHXifXpkYTDg=",
+			"checksumSHA1": "4FUjSj4CbaZxSPOGl2zwfyaSFWI=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/smartystreets/assertions",
 			"path": "github.com/smartystreets/assertions",
-			"revision": "26acb9229f421449ac63d014995b282d59261a8b",
-			"revisionTime": "2016-12-13T22:48:10Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "Vzb+dEH/LTYbvr8RXHmt6xJHz04=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/smartystreets/assertions/internal/go-render/render",
 			"path": "github.com/smartystreets/assertions/internal/go-render/render",
-			"revision": "26acb9229f421449ac63d014995b282d59261a8b",
-			"revisionTime": "2016-12-13T22:48:10Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
-			"checksumSHA1": "dSZQzhiGN0tEILHxUZcrFFNW2Xw=",
+			"checksumSHA1": "r6FauVdOTFnwYQgrKGFuWUbIAJE=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/smartystreets/assertions/internal/oglematchers",
 			"path": "github.com/smartystreets/assertions/internal/oglematchers",
-			"revision": "26acb9229f421449ac63d014995b282d59261a8b",
-			"revisionTime": "2016-12-13T22:48:10Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "/mwAihy9AmznMzmbPQ5nWJXBiRU=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/smartystreets/goconvey/convey",
 			"path": "github.com/smartystreets/goconvey/convey",
-			"revision": "3bd662eac601ad6436e64776af2e112069eb2edc",
-			"revisionTime": "2017-01-10T12:00:22Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "9LakndErFi5uCXtY1KWl0iRnT4c=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/smartystreets/goconvey/convey/gotest",
 			"path": "github.com/smartystreets/goconvey/convey/gotest",
-			"revision": "3bd662eac601ad6436e64776af2e112069eb2edc",
-			"revisionTime": "2017-01-10T12:00:22Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "FWDhk37bhAwZ2363D/L2xePwR64=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/github.com/smartystreets/goconvey/convey/reporting",
 			"path": "github.com/smartystreets/goconvey/convey/reporting",
-			"revision": "3bd662eac601ad6436e64776af2e112069eb2edc",
-			"revisionTime": "2017-01-10T12:00:22Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "s0GYwa3YNJJXON/b+6ci2Sz9mEw=",
@@ -185,27 +198,31 @@
 		},
 		{
 			"checksumSHA1": "o+ZqT87RLprKCGKMboo5vCxdAvA=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/gopkg.in/mgo.v2",
 			"path": "gopkg.in/mgo.v2",
-			"revision": "29cc868a5ca65f401ff318143f9408d02f4799cc",
-			"revisionTime": "2016-06-09T18:00:28Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "zTjQOFGy4XTv4L33Kd2FhrV+mbM=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/gopkg.in/mgo.v2/bson",
 			"path": "gopkg.in/mgo.v2/bson",
-			"revision": "29cc868a5ca65f401ff318143f9408d02f4799cc",
-			"revisionTime": "2016-06-09T18:00:28Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
 			"checksumSHA1": "CkCDTsyN2Lbj1cL8+oaYKoPpI9w=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/gopkg.in/mgo.v2/internal/sasl",
 			"path": "gopkg.in/mgo.v2/internal/sasl",
-			"revision": "29cc868a5ca65f401ff318143f9408d02f4799cc",
-			"revisionTime": "2016-06-09T18:00:28Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		},
 		{
-			"checksumSHA1": "+1WDRPaOphSCmRMxVPIPBV4aubc=",
+			"checksumSHA1": "JJZ3MTX3hHZ+VTXWhrGSk7MWqgY=",
+			"origin": "github.com/mailhog/MailHog-Server/vendor/gopkg.in/mgo.v2/internal/scram",
 			"path": "gopkg.in/mgo.v2/internal/scram",
-			"revision": "29cc868a5ca65f401ff318143f9408d02f4799cc",
-			"revisionTime": "2016-06-09T18:00:28Z"
+			"revision": "f4e92215ea51d10910ce817c63749f0bd1d76903",
+			"revisionTime": "2017-04-16T22:43:02Z"
 		}
 	],
 	"rootPath": "github.com/mailhog/MailHog"
