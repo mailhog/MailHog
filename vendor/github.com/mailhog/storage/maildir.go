@@ -85,7 +85,7 @@ func (maildir *Maildir) Search(kind, query string, start, limit int) (*data.Mess
 		switch kind {
 		case "to":
 			for _, t := range msg.To {
-				if strings.Contains(t.Mailbox+"@"+t.Domain, query) {
+				if strings.Contains(strings.ToLower(t.Mailbox+"@"+t.Domain), query) {
 					if start > matched {
 						matched++
 						break
@@ -95,7 +95,7 @@ func (maildir *Maildir) Search(kind, query string, start, limit int) (*data.Mess
 				}
 			}
 		case "from":
-			if strings.Contains(msg.From.Mailbox+"@"+msg.From.Domain, query) {
+			if strings.Contains(strings.ToLower(msg.From.Mailbox+"@"+msg.From.Domain), query) {
 				if start > matched {
 					matched++
 					break
@@ -103,7 +103,7 @@ func (maildir *Maildir) Search(kind, query string, start, limit int) (*data.Mess
 				filteredMessages = append(filteredMessages, *msg)
 			}
 		case "containing":
-			if strings.Contains(msg.Raw.Data, query) {
+			if strings.Contains(strings.ToLower(msg.Raw.Data), query) {
 				if start > matched {
 					matched++
 					break

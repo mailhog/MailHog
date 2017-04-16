@@ -123,10 +123,10 @@
 			"revisionTime": "2017-04-16T18:44:30Z"
 		},
 		{
-			"checksumSHA1": "ZhN2RVIK/L9LO9WGjducyi2buIk=",
+			"checksumSHA1": "ucMoXRa6ccPO5FyBzhey+N+IOsA=",
 			"path": "github.com/mailhog/data",
-			"revision": "98fee9be8f0ca761ad40016ff0dfb4e4d81e2aa8",
-			"revisionTime": "2016-08-10T07:45:39Z"
+			"revision": "024d554958b5bea5db220bfd84922a584d878ded",
+			"revisionTime": "2017-04-16T19:13:44Z"
 		},
 		{
 			"checksumSHA1": "vyMXU+/pSliAx1yRf6YdKRhF9Ik=",
@@ -147,10 +147,10 @@
 			"revisionTime": "2016-11-19T23:01:07Z"
 		},
 		{
-			"checksumSHA1": "VFMqtv5B8sXJR50Rwn21jjJZw3E=",
+			"checksumSHA1": "Kd53/4cZ1KNfatXBgCg4VWzowis=",
 			"path": "github.com/mailhog/storage",
-			"revision": "426662792547f066565458d62f52cb05fabc5535",
-			"revisionTime": "2016-11-15T21:39:50Z"
+			"revision": "970ad63c574405c1d31aade44081611047343c77",
+			"revisionTime": "2017-04-16T18:53:22Z"
 		},
 		{
 			"checksumSHA1": "mbhJnsNwGAwkTQH5c2hVRO9YmxA=",
