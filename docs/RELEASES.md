@@ -1,6 +1,28 @@
 MailHog Releases
 ================
 
+### [v1.0.0](https://github.com/mailhog/MailHog/releases/v1.0.0)
+
+There's still outstanding PRs and issues which haven't been addressed in this release.
+
+This is to get the updated release out with the latest code, since 0.2.1 is getting very stale!
+
+- Bump release to 1.0.0
+- updated mgo dependency
+- temporarily remove vendor directory, because of some build issues
+- Fix #117 - add info about proxies
+- Fix #146 - keep tags on docker hub
+- Fix #148 and mailhog/storage#7 - leading \r\n in maildir storage
+- #113 - better support RFC support for headers
+- #118 - optimise Dockerfile for automated builds, thanks @blueimp
+- #122 - add -version flag, thanks @swordbeta
+- #123 - add .gitignore, thanks @swordbeta
+- #136 - update MailHog-UI assets, thanks @sdurrheimer
+- #145 - fix a link in DEPLOY.md, thanks @nnmer
+- mailhog/MailHog-UI#22 and #104 - support TLS websockets in HTTPS mode, thanks @blueimp
+- mailhog/MailHog-UI#23 and mailhog/MailHog-UI#24 - support multiple instances of CID
+- more things I've forgotten/can't find!
+
 ### [v0.2.1](https://github.com/mailhog/MailHog/releases/v0.2.1)
 - Update .travis.yml to Go 1.6 and tip
 - Fix builds broken by out of date mgo import path
