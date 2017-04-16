@@ -9,7 +9,7 @@ You can run MailHog locally from the command line.
     MailHog -h
 
 To configure MailHog, use the environment variables or command line flags
-described in the [README](README.md).
+described in the [CONFIG](CONFIG.md).
 
 ### Using supervisord/upstart/etc
 
