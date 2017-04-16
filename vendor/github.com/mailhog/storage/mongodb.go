@@ -1,10 +1,10 @@
 package storage
 
 import (
+	"log"
 	"github.com/mailhog/data"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"log"
 )
 
 // MongoDB represents MongoDB backed storage backend
@@ -54,10 +54,10 @@ func (mongo *MongoDB) Search(kind, query string, start, limit int) (*data.Messag
 	var count = 0
 	var field = "raw.data"
 	switch kind {
-	case "to":
-		field = "raw.to"
-	case "from":
-		field = "raw.from"
+		case "to":
+			field = "raw.to"
+		case "from":
+			field = "raw.from"
 	}
 	err := mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}}).Skip(start).Limit(limit).Sort("-created").Select(bson.M{
 		"id":              1,
