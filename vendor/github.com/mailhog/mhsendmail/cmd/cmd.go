@@ -38,17 +38,22 @@ func Go() {
 		fromAddr = os.Getenv("MH_SENDMAIL_FROM")
 	}
 
+	var verbose bool
+
 	// override defaults from cli flags
 	flag.StringVar(&smtpAddr, "smtp-addr", smtpAddr, "SMTP server address")
 	flag.StringVarP(&fromAddr, "from", "f", fromAddr, "SMTP sender")
 	flag.BoolP("long-i", "i", true, "Ignored. This flag exists for sendmail compatibility.")
 	flag.BoolP("long-t", "t", true, "Ignored. This flag exists for sendmail compatibility.")
+	flag.BoolVarP(&verbose, "verbose", "v", false, "Verbose mode (sends debug output to stderr)")
 	flag.Parse()
 
 	// allow recipient to be passed as an argument
 	recip = flag.Args()
 
-	fmt.Fprintln(os.Stderr, smtpAddr, fromAddr)
+	if verbose {
+		fmt.Fprintln(os.Stderr, smtpAddr, fromAddr)
+	}
 
 	body, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {

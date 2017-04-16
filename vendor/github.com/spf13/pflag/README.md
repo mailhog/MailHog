@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/spf13/pflag.svg?branch=master)](https://travis-ci.org/spf13/pflag)
+[![Go Report Card](https://goreportcard.com/badge/github.com/spf13/pflag)](https://goreportcard.com/report/github.com/spf13/pflag)
+[![GoDoc](https://godoc.org/github.com/spf13/pflag?status.svg)](https://godoc.org/github.com/spf13/pflag)
 
 ## Description
 
@@ -106,9 +108,9 @@ that give one-letter shorthands for flags. You can use these by appending
 var ip = flag.IntP("flagname", "f", 1234, "help message")
 var flagvar bool
 func init() {
-    flag.BoolVarP("boolname", "b", true, "help message")
+	flag.BoolVarP(&flagvar, "boolname", "b", true, "help message")
 }
-flag.VarP(&flagVar, "varname", "v", 1234, "help message")
+flag.VarP(&flagVal, "varname", "v", "help message")
 ```
 
 Shorthand letters can be used with single dashes on the command line.
@@ -242,6 +244,25 @@ It is possible to mark a flag as hidden, meaning it will still function as norma
 ```go
 // hide a flag by specifying its name
 flags.MarkHidden("secretFlag")
+```
+
+## Supporting Go flags when using pflag
+In order to support flags defined using Go's `flag` package, they must be added to the `pflag` flagset. This is usually necessary
+to support flags defined by third-party dependencies (e.g. `golang/glog`).
+
+**Example**: You want to add the Go flags to the `CommandLine` flagset
+```go
+import (
+	goflag "flag"
+	flag "github.com/spf13/pflag"
+)
+
+var ip *int = flag.Int("flagname", 1234, "help message for flagname")
+
+func main() {
+	flag.CommandLine.AddGoFlagSet(goflag.CommandLine)
+	flag.Parse()
+}
 ```
 
 ## More info
