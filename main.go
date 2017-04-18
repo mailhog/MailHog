@@ -68,7 +68,6 @@ func main() {
 			log.Fatalf("error bcrypting password: %s", err)
 			os.Exit(1)
 		}
-		fmt.Println(string(b))
 		os.Exit(0)
 	}
 
