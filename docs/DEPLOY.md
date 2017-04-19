@@ -29,6 +29,20 @@ You can run it directly from Docker Hub (thanks [humboldtux](https://github.com/
 
     docker run -d -p 1025:1025 -p 8025:8025 mailhog/mailhog
 
+#### Docker Compose
+
+The example [docker-compose.yml](docker-compose.yml) can be used to run MailHog
+together with a sample app to send emails to MailHog via a simple web interface.
+
+It exposes the MailHog Web UI on port `8025` and the sample app on port `8080`.
+
+The sample app also includes a shell script to send emails to MailHog via
+command-line:
+
+```sh
+echo 'Text' | ./srv/mail.sh -h "$HOST" -p 1025 [-f from] [-t to] [-s subject]
+```
+
 ### Elastic Beanstalk
 
 You can deploy MailHog using [AWS Elastic Beanstalk](http://aws.amazon.com/elasticbeanstalk/).

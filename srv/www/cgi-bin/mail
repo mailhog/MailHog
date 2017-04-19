@@ -1,0 +1,66 @@
+#!/bin/sh
+# shellcheck shell=dash
+
+#
+# CGI script for the BusyBox HTTP Daemon to send POST data to an SMTP server.
+#
+# Requires a mailing script, which can be set via MAIL_SCRIPT_PATH variable.
+# Accepts an SMTP_HOST variable to override the default host: mailhog
+# Accepts an SMTP_PORT variable to override the default port: 1025
+#
+# BusyBox httpd documentation:
+# https://wiki.openwrt.org/doc/howto/http.httpd
+#
+# Copyright 2016, Sebastian Tschan
+# https://blueimp.net
+#
+# Licensed under the MIT license:
+# https://opensource.org/licenses/MIT
+#
+
+MAIL_SCRIPT_PATH="${MAIL_SCRIPT_PATH:-"$(dirname "$0")/../../mail.sh"}"
+
+send_mail() {
+  local line
+  local params
+  local param
+  local key
+  local value
+
+  # Read POST data:
+  read -r line
+  params=$(echo "$line" | tr '&' '\n')
+
+  # Parse POST data:
+  for param in $params; do
+    key=${param%%=*}
+    # Extract and decode the value:
+    value=$(httpd -d "${param#*=}")
+    case "$key" in
+      c)
+        # Remove superfluous carriage return from each line:
+        CONTENT="$(echo "$value" | sed 's/\r//g')"
+        ;;
+      *)
+        # If it is not empty, add the param to the arguments list:
+        if [ ! -z "$value" ]; then
+      	  set -- "$@" "-$key" "$value"
+        fi
+        ;;
+    esac
+  done
+
+  echo "$CONTENT" | "$MAIL_SCRIPT_PATH" "$@"
+}
+
+RESULT=$(send_mail -h "${SMTP_HOST:-mailhog}" -p "${SMTP_PORT:-1025}" 2>&1)
+
+if [ $? -eq 0 ]; then
+  echo 'Status: 200 OK'
+else
+  echo 'Status: 500 Internal Server Error'
+fi
+
+echo 'Content-Type: text/plain; charset=utf-8'
+echo
+echo "$RESULT"

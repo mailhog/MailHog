@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Send Mail</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  div {
+    max-width: 600px;
+    margin: auto;
+  }
+  input,textarea,button,iframe {
+    width: 100%;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+</style>
+</head>
+<body>
+<div>
+  <form action="cgi-bin/mail" method="POST" target="output">
+    <p>
+      <label for="from">From</label><br>
+      <input type="text" name="f" id="from" placeholder="user <user@hostname>">
+    </p>
+    <p>
+      <label for="to">To</label><br>
+      <input type="text" name="t" id="to" placeholder="test <test@example.org>"
+    </p>
+    <p>
+      <label for="subject">Subject</label><br>
+      <input type="text" name="s" id="subject" placeholder="Test">
+    </p>
+    <p>
+      <label for="content">Content</label><br>
+      <textarea name="c" id="content" rows="6"></textarea>
+    </p>
+    <p><button type="submit">Send Mail</button></p>
+  </form>
+  <p>
+    <span>Output</span><br>
+    <iframe name="output" src="javascript:false"></iframe>
+  </p>
+</div>
+</body>
+</html>
