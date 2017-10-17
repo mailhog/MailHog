@@ -5,7 +5,6 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"log"
-	"math"
 	"time"
 )
 
@@ -61,11 +60,11 @@ func (mongo *MongoDB) Search(kind, query string, since int64, start, limit int) 
 	case "from":
 		field = "raw.from"
 	}
-	var sinceTimeInSec = int64(since/1000)
-        var sinceTimeNanos = int64(math.Mod(since, 1000)*1000)
-        var sinceTime = time.Unix(sinceTimeInSec, sinceTimeNanos)
+	var sinceTimeInSec = intNew/1000
+	var sinceTimeNanos = (intNew%1000)*1000
+	var sinceTimeGoRepresentation = time.Unix(sinceTimeInSec, sinceTimeNanos)
 
-	err := mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}, "created": bson.M{$gte: sinceTime}}).Skip(start).Limit(limit).Sort("-created").Select(bson.M{
+	err := mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}, "created": bson.M{ "$gte": sinceTimeGoRepresentation }}).Skip(start).Limit(limit).Sort("-created").Select(bson.M{
 		"id":              1,
 		"_id":             1,
 		"from":            1,
@@ -79,7 +78,7 @@ func (mongo *MongoDB) Search(kind, query string, since int64, start, limit int) 
 		log.Printf("Error loading messages: %s", err)
 		return nil, 0, err
 	}
-	count, _ = mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}, "created": bson.M{$gte: sinceTime}}).Count()
+	count, _ = mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}, "created": bson.M{ "$gte": sinceTimeGoRepresentation }}).Count()
 
 	return messages, count, nil
 }
