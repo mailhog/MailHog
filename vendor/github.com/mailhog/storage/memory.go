@@ -38,7 +38,7 @@ func (memory *InMemory) Count() int {
 }
 
 // Search finds messages matching the query
-func (memory *InMemory) Search(kind, query string, since int64, start, limit int) (*data.Messages, int, error) {
+func (memory *InMemory) Search(kind, query, since string, start, limit int) (*data.Messages, int, error) {
 	// FIXME needs optimising, or replacing with a proper db!
 	query = strings.ToLower(query)
 	var filteredMessages = make([]*data.Message, 0)
