@@ -60,8 +60,8 @@ func (mongo *MongoDB) Search(kind, query string, since int64, start, limit int) 
 	case "from":
 		field = "raw.from"
 	}
-	var sinceTimeInSec = intNew/1000
-	var sinceTimeNanos = (intNew%1000)*1000
+	var sinceTimeInSec = since/1000
+	var sinceTimeNanos = (since%1000)*1000
 	var sinceTimeGoRepresentation = time.Unix(sinceTimeInSec, sinceTimeNanos)
 
 	err := mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}, "created": bson.M{ "$gte": sinceTimeGoRepresentation }}).Skip(start).Limit(limit).Sort("-created").Select(bson.M{
