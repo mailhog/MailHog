@@ -7,6 +7,7 @@ import (
 	"log"
 	"time"
 	"strconv"
+	"fmt"
 )
 
 // MongoDB represents MongoDB backed storage backend
@@ -62,13 +63,13 @@ func (mongo *MongoDB) Search(kind, query, since string, start, limit int) (*data
 		field = "raw.from"
 	}
 
-	log.Println("Parsing start")
+	fmt.Println("Parsing start")
 	sinceInt64, _ := strconv.ParseInt(since, 10, 64)
 	var sinceTimeInSec = sinceInt64/1000
 	var sinceTimeNanos = (sinceInt64%1000)*1000
 	var sinceTimeGoRepresentation = time.Unix(sinceTimeInSec, sinceTimeNanos)
 
-	log.Println("Expected time: %s", sinceTimeGoRepresentation)
+	fmt.Println("Expected time: %s", sinceTimeGoRepresentation)
 	err := mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}, "created": bson.M{ "$gte": sinceTimeGoRepresentation }}).Skip(start).Limit(limit).Sort("-created").Select(bson.M{
 		"id":              1,
 		"_id":             1,
