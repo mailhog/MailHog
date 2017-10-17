@@ -67,7 +67,7 @@ func (mongo *MongoDB) Search(kind, query, since string, start, limit int) (*data
 	var sinceTimeNanos = (sinceInt64%1000)*1000
 	var sinceTimeGoRepresentation = time.Unix(sinceTimeInSec, sinceTimeNanos)
 
-	log.Printf("Expected time: %s", sinceTimeGoRepresentation)
+	log.Println("Expected time: %s", sinceTimeGoRepresentation)
 	err := mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}, "created": bson.M{ "$gte": sinceTimeGoRepresentation }}).Skip(start).Limit(limit).Sort("-created").Select(bson.M{
 		"id":              1,
 		"_id":             1,
