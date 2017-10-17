@@ -139,9 +139,15 @@ func (apiv2 *APIv2) search(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	since := req.URL.Query().Get("since")
+	if len(since) == 0 {
+		w.WriteHeader(400)
+		return
+	}
+
 	var res messagesResult
 
-	messages, total, _ := apiv2.config.Storage.Search(kind, query, start, limit)
+	messages, total, _ := apiv2.config.Storage.Search(kind, query, since, start, limit)
 
 	res.Count = len([]data.Message(*messages))
 	res.Start = start
