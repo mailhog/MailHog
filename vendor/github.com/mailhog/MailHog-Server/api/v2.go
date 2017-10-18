@@ -141,8 +141,7 @@ func (apiv2 *APIv2) search(w http.ResponseWriter, req *http.Request) {
 
 	since := req.URL.Query().Get("since")
 	if len(since) == 0 {
-		w.WriteHeader(400)
-		return
+		since = "0"
 	}
 
 	var res messagesResult
