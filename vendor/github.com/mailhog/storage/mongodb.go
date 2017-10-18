@@ -7,7 +7,6 @@ import (
 	"log"
 	"time"
 	"strconv"
-	"fmt"
 )
 
 // MongoDB represents MongoDB backed storage backend
