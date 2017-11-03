@@ -30,5 +30,5 @@ WORKDIR /home/mailhog
 
 ENTRYPOINT ["MailHog"]
 
-# Expose the SMTP and HTTP ports:
-EXPOSE 1025 8025
+# Expose the HTTP and SMTP ports:
+EXPOSE 8025 1025
