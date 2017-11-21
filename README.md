@@ -73,6 +73,10 @@ sendmail_path = /usr/local/bin/mhsendmail
 sendmail_path = /usr/sbin/sendmail -S mail:1025
 ```
 
+#### postfix
+
+It is possible to redirect all mail sent by postfix (and it's sendmail compatible binary) to mailhog. In the configuratoin file `/etc/postfix/main.cf`, configure postfix to use mailhog as the SMTP forwarder, with the line `relayhost = [localhost]:1025`
+
 #### Web UI
 
 ![Screenshot of MailHog web interface](/docs/MailHog.png "MailHog web interface")
