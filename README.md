@@ -18,14 +18,30 @@ MailHog is an email testing tool for developers:
 * View messages in the web UI, or retrieve them with the JSON API
 * Optionally release messages to real SMTP servers for delivery
 
-### Getting started
+### Installation
 
-1. Either:
-  * [Download the latest release](/docs/RELEASES.md) of MailHog for your platform
-  * [Run it from Docker Hub](https://registry.hub.docker.com/u/mailhog/mailhog/) or using the provided [Dockerfile](Dockerfile)
-  * [Read the deployment guide](/docs/DEPLOY.md) for other deployment options
-  * Install it with Homebrew on MacOS - `brew update && brew install mailhog`
-2. [Configure MailHog](/docs/CONFIG.md), or use the default settings:
+#### Manual installation
+[Download the latest release for your platform](/docs/RELEASES.md). Then
+[read the deployment guide](/docs/DEPLOY.md) for deployment options.
+
+#### MacOS
+```
+brew update && brew install mailhog
+```
+
+Then, start MailHog by running `mailhog` in the command line.
+
+#### Debian / Ubuntu
+```
+sudo apt-get -y install golang-go
+go get github.com/mailhog/MailHog
+```
+
+Then, start MailHog by running `~/work/bin/MailHog` in the command line.
+
+### Configuration
+
+Check out how to [configure MailHog](/docs/CONFIG.md), or use the default settings:
   * the SMTP server starts on port 1025
   * the HTTP server starts on port 8025
   * in-memory message storage
