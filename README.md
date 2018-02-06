@@ -22,7 +22,7 @@ MailHog is an email testing tool for developers:
 
 1. Either:
   * [Download the latest release](/docs/RELEASES.md) of MailHog for your platform
-  * [Run it from Docker Hub](https://registry.hub.docker.com/u/mailhog/mailhog/) or using the provided [Dockerfile](Dockerfile)
+  * [Run it from Docker Hub](https://registry.hub.docker.com/u/mailhog/mailhog/) with `docker run -p 8025:8025 -p 1025:1025 mailhog/mailhog` or using the provided [Dockerfile](Dockerfile)
   * [Read the deployment guide](/docs/DEPLOY.md) for other deployment options
   * Install it with Homebrew on MacOS - `brew update && brew install mailhog`
 2. [Configure MailHog](/docs/CONFIG.md), or use the default settings:
