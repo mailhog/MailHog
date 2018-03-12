@@ -56,7 +56,7 @@ Only `name`, `host` and `port` are required.
 
 If you have MailHog behind a firewall, you'll need ports `8025` and `8080` by default.
 
-You can override this using `-api-bind-addr`, `-api-bind-addr` and `-api-bind-addr` configuration options.
+You can override this using `-api-bind-addr`, `-ui-bind-addr` and `-smtp-bind-addr` configuration options.
 
 If you're using MailHog behind a reverse proxy, e.g. nginx, make sure WebSocket connections
 are also supported and configured - see [this issue](https://github.com/mailhog/MailHog/issues/117) for information.
