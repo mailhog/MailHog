@@ -23,7 +23,7 @@ If installed with Homebrew on OSX you can have launchd start mailhog now and res
 
 ### Docker
 
-The example [Dockerfile](Dockerfile) can be used to run MailHog in a [Docker](https://www.docker.com/) container.
+The example [Dockerfile](../Dockerfile) can be used to run MailHog in a [Docker](https://www.docker.com/) container.
 
 You can run it directly from Docker Hub (thanks [humboldtux](https://github.com/humboldtux))
 
