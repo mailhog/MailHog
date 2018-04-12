@@ -8,6 +8,9 @@ FROM alpine:3.4
 RUN apk --no-cache add \
     ca-certificates
 
+# install setcap
+RUN apk --no-cache add libcap 
+
 # Install MailHog:
 RUN apk --no-cache add --virtual build-dependencies \
     go \
@@ -18,6 +21,9 @@ RUN apk --no-cache add --virtual build-dependencies \
   && mv /root/gocode/bin/MailHog /usr/local/bin \
   && rm -rf /root/gocode \
   && apk del --purge build-dependencies
+
+# Enable access to low-number ports
+RUN setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/MailHog 
 
 # Add mailhog user/group with uid/gid 1000.
 # This is a workaround for boot2docker issue #581, see
