@@ -1,0 +1,17 @@
+version: '2.3'
+services:
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+  app:
+    image: alpine:3.6
+    entrypoint: httpd -f -p 8080
+    init: true
+    user: nobody
+    working_dir: /srv/www
+    volumes:
+      - ./srv:/srv
+    ports:
+      - "8080:8080"
