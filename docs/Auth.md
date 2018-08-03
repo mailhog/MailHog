@@ -35,6 +35,12 @@ This also works if you're running MailHog-UI and MailHog-Server separately:
     MailHog-Server -auth-file=docs/example-auth
     MailHog-UI -auth-file=docs/example-auth
 
+#### Using Docker's environment variables
+
+Pass `HTTP_BASIC_AUTH_USER` and `HTTP_BASIC_AUTH_PASSWORD` environment variables
+to the Docker container. Authentication file will be created on container startup
+and used by MailHog command.
+
 ## Future compatibility
 
 Authentication has been a bit of an experiment.

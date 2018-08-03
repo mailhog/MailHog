@@ -4,6 +4,9 @@
 
 FROM alpine:3.4
 
+ENV HTTP_BASIC_AUTH_USER="" \
+    HTTP_BASIC_AUTH_PASSWORD=""
+
 # Install ca-certificates, required for the "release message" feature:
 RUN apk --no-cache add \
     ca-certificates
@@ -28,7 +31,9 @@ USER mailhog
 
 WORKDIR /home/mailhog
 
-ENTRYPOINT ["MailHog"]
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod a+x /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Expose the SMTP and HTTP ports:
 EXPOSE 1025 8025
