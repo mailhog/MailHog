@@ -29,6 +29,10 @@ You can run it directly from Docker Hub (thanks [humboldtux](https://github.com/
 
     docker run -d -p 1025:1025 -p 8025:8025 mailhog/mailhog
 
+To mount the Maildir to the local filesystem, you can use a volume:
+
+    docker run -d -e "MH_STORAGE=maildir" -v $PWD/maildir:/maildir -p 1025:1025 -p 8025:8025 mailhog/mailhog
+
 ### Elastic Beanstalk
 
 You can deploy MailHog using [AWS Elastic Beanstalk](http://aws.amazon.com/elasticbeanstalk/).
