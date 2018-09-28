@@ -2,7 +2,7 @@
 # MailHog Dockerfile
 #
 
-FROM alpine:3.4
+FROM alpine:3.8
 
 # Install ca-certificates, required for the "release message" feature:
 RUN apk --no-cache add \
@@ -12,6 +12,7 @@ RUN apk --no-cache add \
 RUN apk --no-cache add --virtual build-dependencies \
     go \
     git \
+    musl-dev \
   && mkdir -p /root/gocode \
   && export GOPATH=/root/gocode \
   && go get github.com/mailhog/MailHog \
