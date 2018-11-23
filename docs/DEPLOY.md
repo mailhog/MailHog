@@ -55,3 +55,9 @@ To configure your Elastic Beanstalk MailHog instance, either:
 
 You may face restrictions on outbound SMTP from EC2, for example if you are
 releasing messages to real SMTP servers.
+
+### SaltStack
+
+For deploying MailHog using [SaltStack](https://github.com/saltstack/salt), there's a
+[SaltStack Formula](https://docs.saltstack.com/en/latest/topics/development/conventions/formulas.html)
+available in [github.com/ssc-services/salt-formulas-public](https://github.com/ssc-services/salt-formulas-public/tree/master/mailhog).
