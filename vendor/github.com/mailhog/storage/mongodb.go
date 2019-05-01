@@ -14,7 +14,7 @@ type MongoDB struct {
 }
 
 // Storage Limit
-var StorageLimit int
+var StorageLimit int = 0
 
 // CreateMongoDB creates a MongoDB backed storage backend
 func CreateMongoDB(uri, db, coll string, limit int) *MongoDB {
@@ -29,7 +29,7 @@ func CreateMongoDB(uri, db, coll string, limit int) *MongoDB {
 		log.Printf("Failed creating index: %s", err)
 		return nil
 	}
-	StorageLimit := limit
+	StorageLimit = limit
 	return &MongoDB{
 		Session:    session,
 		Collection: session.DB(db).C(coll),
@@ -39,16 +39,27 @@ func CreateMongoDB(uri, db, coll string, limit int) *MongoDB {
 // Store stores a message in MongoDB and returns its storage ID
 func (mongo *MongoDB) Store(m *data.Message) (string, error) {
 	c, _ := mongo.Collection.Count()
-	if ( c >= StorageLimit ) {
-		log.Printf("Storage count (%d) bigger than limit %(d)", c, StorageLimit)
+	// If number of documents bigger than the limit then remove the last document
+	if c >= StorageLimit {
+		log.Printf("Storage count (%d) bigger than limit (%d). Removing the last document.", c, StorageLimit)
+		var result bson.M
+		change := mgo.Change{
+			Remove: true,
+			ReturnNew: false
+		}
+		_, err := mongo.Collection.Find(bson.M{}).Sort("created").Apply(change, &result)
+		if err != nil {
+			log.Printf("Error deleting messages: %s (continuing anyway)", err)
+		}
 	}
 	err := mongo.Collection.Insert(m)
 	if err != nil {
-		log.Printf("Error inserting message: %s", err)
-		return "", err
+					log.Printf("Error inserting message: %s", err)
+					return "", err
 	}
 	return string(m.ID), nil
 }
+
 
 // Count returns the number of stored messages
 func (mongo *MongoDB) Count() int {
