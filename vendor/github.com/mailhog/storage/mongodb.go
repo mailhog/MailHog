@@ -100,7 +100,9 @@ func (mongo *MongoDB) List(start int, limit int) (*data.Messages, error) {
 
 // DeleteOne deletes an individual message by storage ID
 func (mongo *MongoDB) DeleteOne(id string) error {
-	_, err := mongo.Collection.RemoveAll(bson.M{"id": id})
+	// _, err := mongo.Collection.RemoveAll(bson.M{"id": id})
+	// Is faster to just drop the collection than delete all documents in it
+	_, err := mongo.Collection.DropCollection()
 	return err
 }
 
