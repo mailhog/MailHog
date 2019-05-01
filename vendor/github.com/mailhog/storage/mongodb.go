@@ -13,8 +13,11 @@ type MongoDB struct {
 	Collection *mgo.Collection
 }
 
+// Storage Limit
+var StorageLimit int
+
 // CreateMongoDB creates a MongoDB backed storage backend
-func CreateMongoDB(uri, db, coll string) *MongoDB {
+func CreateMongoDB(uri, db, coll string, limit int) *MongoDB {
 	log.Printf("Connecting to MongoDB: %s\n", uri)
 	session, err := mgo.Dial(uri)
 	if err != nil {
@@ -26,6 +29,7 @@ func CreateMongoDB(uri, db, coll string) *MongoDB {
 		log.Printf("Failed creating index: %s", err)
 		return nil
 	}
+	StorageLimit := limit
 	return &MongoDB{
 		Session:    session,
 		Collection: session.DB(db).C(coll),
@@ -34,6 +38,10 @@ func CreateMongoDB(uri, db, coll string) *MongoDB {
 
 // Store stores a message in MongoDB and returns its storage ID
 func (mongo *MongoDB) Store(m *data.Message) (string, error) {
+	c, _ := mongo.Collection.Count()
+	if ( c >= StorageLimit ) {
+		log.Printf("Storage count (%d) bigger than limit %(d)", c, StorageLimit)
+	}
 	err := mongo.Collection.Insert(m)
 	if err != nil {
 		log.Printf("Error inserting message: %s", err)

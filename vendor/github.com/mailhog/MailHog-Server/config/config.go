@@ -23,6 +23,7 @@ func DefaultConfig() *Config {
 		MongoColl:    "messages",
 		MaildirPath:  "",
 		StorageType:  "memory",
+		StorageLimit: 2000,
 		CORSOrigin:   "",
 		WebPath:      "",
 		MessageChan:  make(chan *data.Message),
@@ -39,6 +40,7 @@ type Config struct {
 	MongoDb          string
 	MongoColl        string
 	StorageType      string
+	StorageLimit     int
 	CORSOrigin       string
 	MaildirPath      string
 	InviteJim        bool
@@ -76,7 +78,7 @@ func Configure() *Config {
 		cfg.Storage = storage.CreateInMemory()
 	case "mongodb":
 		log.Println("Using MongoDB message storage")
-		s := storage.CreateMongoDB(cfg.MongoURI, cfg.MongoDb, cfg.MongoColl)
+		s := storage.CreateMongoDB(cfg.MongoURI, cfg.MongoDb, cfg.MongoColl, cfg.StorageLimit)
 		if s == nil {
 			log.Println("MongoDB storage unavailable, reverting to in-memory storage")
 			cfg.Storage = storage.CreateInMemory()
