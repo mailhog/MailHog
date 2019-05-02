@@ -42,7 +42,7 @@ func (mongo *MongoDB) Store(m *data.Message) (string, error) {
 		var result bson.M
 		change := mgo.Change{
 			Remove: true,
-			ReturnNew: false
+			ReturnNew: false,
 		}
 		_, err := mongo.Collection.Find(bson.M{}).Sort("created").Apply(change, &result)
 		if err != nil {
