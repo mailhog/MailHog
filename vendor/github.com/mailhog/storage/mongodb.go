@@ -13,9 +13,6 @@ type MongoDB struct {
 	Collection *mgo.Collection
 }
 
-// Storage Limit
-var StorageLimit int = 0
-
 // CreateMongoDB creates a MongoDB backed storage backend
 func CreateMongoDB(uri, db, coll string, limit int) *MongoDB {
 	log.Printf("Connecting to MongoDB: %s\n", uri)

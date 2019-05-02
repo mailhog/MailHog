@@ -2,6 +2,9 @@ package storage
 
 import "github.com/mailhog/data"
 
+// Storage limit
+var StorageLimit int = 0
+
 // Storage represents a storage backend
 type Storage interface {
 	Store(m *data.Message) (string, error)
