@@ -26,11 +26,15 @@ func CreateInMemory(limit int) *InMemory {
 
 // Store stores a message and returns its storage ID
 func (memory *InMemory) Store(m *data.Message) (string, error) {
+	var c int = 0
 	memory.mu.Lock()
 	defer memory.mu.Unlock()
+	c = len(memory.Messages)
 	if len(memory.Messages) >= StorageLimit {
-		memory.Messages[len(memory.Messages)-1] = nil
-		memory.Messages = memory.Messages[:len(memory.Messages)-1]
+		for i := 0; i < (c - StorageLimit) + 1; i++ {
+			memory.Messages[len(memory.Messages)-1] = nil
+			memory.Messages = memory.Messages[:len(memory.Messages)-1]
+		}
 	}
 	memory.Messages = append(memory.Messages, m)
 	memory.MessageIDIndex[string(m.ID)] = len(memory.Messages) - 1

@@ -38,15 +38,17 @@ func (mongo *MongoDB) Store(m *data.Message) (string, error) {
 	c, _ := mongo.Collection.Count()
 	// If number of documents bigger than the limit then remove the last document
 	if c >= StorageLimit {
-		log.Printf("Storage count (%d) bigger than limit (%d). Removing the last document.", c, StorageLimit)
+		log.Printf("Storage count (%d) bigger than limit (%d). Removing the exceeding documents.", c, StorageLimit)
 		var result bson.M
 		change := mgo.Change{
 			Remove: true,
 			ReturnNew: false,
 		}
-		_, err := mongo.Collection.Find(bson.M{}).Sort("created").Apply(change, &result)
-		if err != nil {
-			log.Printf("Error deleting messages: %s (continuing anyway)", err)
+		for i := 0; i < (c - StorageLimit) + 1; i++ {
+			_, err := mongo.Collection.Find(bson.M{}).Sort("created").Apply(change, &result)
+			if err != nil {
+				log.Printf("Error deleting messages: %s (continuing anyway)", err)
+			}
 		}
 	}
 	err := mongo.Collection.Insert(m)
