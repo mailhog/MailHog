@@ -30,14 +30,14 @@ func (memory *InMemory) Store(m *data.Message) (string, error) {
 	memory.mu.Lock()
 	defer memory.mu.Unlock()
 	c = len(memory.Messages)
-	if len(memory.Messages) >= StorageLimit {
+	if c >= StorageLimit {
 		for i := 0; i < (c - StorageLimit) + 1; i++ {
-			memory.Messages[len(memory.Messages)-1] = nil
-			memory.Messages = memory.Messages[:len(memory.Messages)-1]
+			memory.Messages[c-1] = nil
+			memory.Messages = memory.Messages[:c-1]
 		}
 	}
 	memory.Messages = append(memory.Messages, m)
-	memory.MessageIDIndex[string(m.ID)] = len(memory.Messages) - 1
+	memory.MessageIDIndex[string(m.ID)] = c - 1
 	return string(m.ID), nil
 }
 
