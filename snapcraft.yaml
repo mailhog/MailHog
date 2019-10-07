@@ -1,0 +1,22 @@
+name: mailhog
+summary: Web and API based SMTP testing
+description: |
+ MailHog is an email testing tool for developers:
+ * Configure your application to use MailHog for SMTP delivery
+ * View messages in the web UI, or retrieve them with the JSON API
+ * Optionally release messages to real SMTP servers for delivery
+version: "master"
+confinement: strict
+grade: stable
+apps:
+  mailhog:
+    command: MailHog
+    plugs: [network-bind]
+    daemon: simple
+parts:
+  mailhog:
+    plugin: go
+    go-packages:
+      - github.com/mailhog/MailHog
+    build-packages:
+      - git
