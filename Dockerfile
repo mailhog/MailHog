@@ -1,18 +1,19 @@
 #
 # MailHog Dockerfile
 #
+#  Build  with: docker build --tag mymongo .
+#  Run with: docker run -d -p 8025:8025 -p 1025:1025 mymongo:latest
 
-FROM golang:alpine
+FROM golang:alpine AS builder
 
-# Install MailHog:
-RUN apk --no-cache add --virtual build-dependencies \
-    git \
-  && mkdir -p /root/gocode \
-  && export GOPATH=/root/gocode \
-  && go get github.com/mailhog/MailHog \
-  && mv /root/gocode/bin/MailHog /usr/local/bin \
-  && rm -rf /root/gocode \
-  && apk del --purge build-dependencies
+# Build MailHog
+RUN apk --no-cache add --virtual build-dependencies git
+RUN mkdir -p /root/gocode
+RUN GOPATH=/root/gocode go get github.com/mailhog/MailHog
+
+FROM alpine:latest
+
+COPY --from=builder /root/gocode/bin/MailHog /usr/local/bin/
 
 # Add mailhog user/group with uid/gid 1000.
 # This is a workaround for boot2docker issue #581, see
@@ -23,7 +24,7 @@ USER mailhog
 
 WORKDIR /home/mailhog
 
-ENTRYPOINT ["MailHog"]
+ENTRYPOINT ["/usr/local/bin/MailHog"]
 
 # Expose the SMTP and HTTP ports:
 EXPOSE 1025 8025
