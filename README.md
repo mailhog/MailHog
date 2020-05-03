@@ -76,17 +76,11 @@ It redirects mail to MailHog using SMTP.
 
 You can also use `MailHog sendmail ...` instead of the separate mhsendmail binary.
 
-Alternatively, you can use your native `sendmail` command by providing `-S`, for example:
-
-```
-/usr/sbin/sendmail -S mail:1025
-```
-
 For example, in PHP you could add either of these lines to `php.ini`:
 
 ```
 sendmail_path = /usr/local/bin/mhsendmail
-sendmail_path = /usr/sbin/sendmail -S mail:1025
+sendmail_path = /usr/local/bin/MailHog sendmail
 ```
 
 #### Web UI
