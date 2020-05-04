@@ -26,7 +26,7 @@ MailHog is an email testing tool for developers:
 
 #### MacOS
 ```bash
-brew update && brew install Mailhog
+brew update && brew install mailhog
 ```
 
 Then, start MailHog by running `mailhog` in the command line.
