@@ -25,19 +25,25 @@ MailHog is an email testing tool for developers:
 [read the deployment guide](/docs/DEPLOY.md) for deployment options.
 
 #### MacOS
-```
-brew update && brew install mailhog
+```bash
+brew update && brew install Mailhog
 ```
 
 Then, start MailHog by running `mailhog` in the command line.
 
 #### Debian / Ubuntu
-```
+```bash
 sudo apt-get -y install golang-go
 go get github.com/mailhog/MailHog
 ```
 
-Then, start MailHog by running `~/work/bin/MailHog` in the command line.
+Then, start MailHog by running `/path/to/MailHog` in the command line.
+
+E.g. the path to Go's bin files on Ubuntu is `~/go/bin/`, so to start the MailHog run:
+
+```bash
+~/go/bin/MailHog
+```
 
 ### Configuration
 
@@ -78,7 +84,7 @@ You can also use `MailHog sendmail ...` instead of the separate mhsendmail binar
 
 Alternatively, you can use your native `sendmail` command by providing `-S`, for example:
 
-```
+```bash
 /usr/sbin/sendmail -S mail:1025
 ```
 
