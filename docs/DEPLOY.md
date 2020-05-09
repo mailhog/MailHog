@@ -33,6 +33,18 @@ To mount the Maildir to the local filesystem, you can use a volume:
 
     docker run -d -e "MH_STORAGE=maildir" -v $PWD/maildir:/maildir -p 1025:1025 -p 8025:8025 mailhog/mailhog
 
+#### MongoDB
+
+You can run MailHog with a MongoDB for persisting messages. In order to prevent MailHog from falling back to in-memory storage, you can override the default Docker entrypoint with the `wait-for-it.sh` command.
+
+**docker-compose.yml**
+
+    services:
+      mailhog:
+        entrypoint: ["wait-for-it.sh", "mongo-db-host:27017", "--strict", "--timeout=120", "--", "MailHog"]
+
+This example waits 120s until a connection to the MongoDB can be established before starting MailHog. Please see https://github.com/vishnubob/wait-for-it for usage.
+
 ### Elastic Beanstalk
 
 You can deploy MailHog using [AWS Elastic Beanstalk](http://aws.amazon.com/elasticbeanstalk/).
