@@ -5,6 +5,8 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"log"
+	"time"
+	"strconv"
 )
 
 // MongoDB represents MongoDB backed storage backend
@@ -49,7 +51,7 @@ func (mongo *MongoDB) Count() int {
 }
 
 // Search finds messages matching the query
-func (mongo *MongoDB) Search(kind, query string, start, limit int) (*data.Messages, int, error) {
+func (mongo *MongoDB) Search(kind, query, since string, start, limit int) (*data.Messages, int, error) {
 	messages := &data.Messages{}
 	var count = 0
 	var field = "raw.data"
@@ -59,7 +61,14 @@ func (mongo *MongoDB) Search(kind, query string, start, limit int) (*data.Messag
 	case "from":
 		field = "raw.from"
 	}
-	err := mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}}).Skip(start).Limit(limit).Sort("-created").Select(bson.M{
+
+	sinceInt64, _ := strconv.ParseInt(since, 10, 64)
+	var sinceTimeInSec = sinceInt64/1000
+	var sinceTimeNanos = (sinceInt64%1000)*1000
+	var sinceTimeGoRepresentation = time.Unix(sinceTimeInSec, sinceTimeNanos)
+
+	log.Println("Messages would be newer than: %s", sinceTimeGoRepresentation)
+	err := mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}, "created": bson.M{ "$gte": sinceTimeGoRepresentation }}).Skip(start).Limit(limit).Sort("-created").Select(bson.M{
 		"id":              1,
 		"_id":             1,
 		"from":            1,
@@ -73,7 +82,7 @@ func (mongo *MongoDB) Search(kind, query string, start, limit int) (*data.Messag
 		log.Printf("Error loading messages: %s", err)
 		return nil, 0, err
 	}
-	count, _ = mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}}).Count()
+	count, _ = mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}, "created": bson.M{ "$gte": sinceTimeGoRepresentation }}).Count()
 
 	return messages, count, nil
 }

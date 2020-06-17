@@ -61,7 +61,7 @@ func (maildir *Maildir) Count() int {
 }
 
 // Search finds messages matching the query
-func (maildir *Maildir) Search(kind, query string, start, limit int) (*data.Messages, int, error) {
+func (maildir *Maildir) Search(kind, query, since string, start, limit int) (*data.Messages, int, error) {
 	query = strings.ToLower(query)
 	var filteredMessages = make([]data.Message, 0)
 

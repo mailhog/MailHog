@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"sync"
+	"time"
+	"strconv"
 
 	"github.com/mailhog/data"
 )
@@ -38,11 +40,24 @@ func (memory *InMemory) Count() int {
 }
 
 // Search finds messages matching the query
-func (memory *InMemory) Search(kind, query string, start, limit int) (*data.Messages, int, error) {
+func (memory *InMemory) Search(kind, query, since string, start, limit int) (*data.Messages, int, error) {
 	// FIXME needs optimising, or replacing with a proper db!
 	query = strings.ToLower(query)
+
+	sinceInt64, _ := strconv.ParseInt(since, 10, 64)
+	var sinceTimeInSec = sinceInt64/1000
+	var sinceTimeNanos = (sinceInt64%1000)*1000
+	var sinceTimeGoRepresentation = time.Unix(sinceTimeInSec, sinceTimeNanos)
+
+	var timeFilteredMessages = make([]*data.Message, 0)
 	var filteredMessages = make([]*data.Message, 0)
+
 	for _, m := range memory.Messages {
+		if m.Created.After(sinceTimeGoRepresentation) {
+			timeFilteredMessages = append(timeFilteredMessages, m)
+		}
+	}
+	for _, m := range timeFilteredMessages {
 		doAppend := false
 
 		switch kind {

@@ -6,7 +6,7 @@ import "github.com/mailhog/data"
 type Storage interface {
 	Store(m *data.Message) (string, error)
 	List(start, limit int) (*data.Messages, error)
-	Search(kind, query string, start, limit int) (*data.Messages, int, error)
+	Search(kind, query, since string, start, limit int) (*data.Messages, int, error)
 	Count() int
 	DeleteOne(id string) error
 	DeleteAll() error
