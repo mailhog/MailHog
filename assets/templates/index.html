@@ -1,0 +1,295 @@
+<div class="toolbar" ng-if="!preview && !searching">
+  <button class="btn btn-default" ng-click="refresh()" title="Refresh">
+    <i class="glyphicon glyphicon-refresh"></i>
+  </button>
+
+  <span class="pull-right">
+    <span class="message-count" ng-if="(totalMessages || 0) != 0">
+      <select ng-model="itemsPerPage" ng-change="showUpdated(itemsPerPage)">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="75">75</option>
+        <option value="100">100</option>
+      </select>
+      <strong>{{ startMessages + 1 }}-{{ startMessages + countMessages }}</strong>
+      of
+      <strong>{{ totalMessages }}</strong>
+    </span>
+
+    <button class="btn btn-default" ng-click="showNewer()" title="Newer" ng-class="{'disabled':startMessages<=0}">
+      <i class="glyphicon glyphicon-chevron-left"></i>
+    </button>
+
+    <button class="btn btn-default" ng-click="showOlder()" title="Older" ng-class="{'disabled':startMessages+countMessages>=totalMessages}">
+      <i class="glyphicon glyphicon-chevron-right"></i>
+    </button>
+  </span>
+</div>
+
+<div class="messages container-fluid" ng-if="!preview && !searching">
+  <div class="msglist-message row" ng-repeat="message in messages" ng-click="selectMessage(message)">
+    <div class="col-md-3 col-sm-4">
+      {{ getSender(message) }}
+
+      <div ng-if="message.Content.Headers['To']">
+        <div ng-repeat="to in message.Content.Headers['To']" style="color: #777">
+          {{ getDisplayName(tryDecodeMime(to)) }}
+        </div>
+      </div>
+
+      <div ng-if="!message.Content.Headers['To']">
+        <div ng-repeat="to in message.To" style="color: #777">
+          {{ to.Mailbox }}@{{ to.Domain }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-5 col-sm-5">
+      <span class="subject unread">{{ tryDecodeMime(message.Content.Headers["Subject"][0]) }}</span>
+    </div>
+    <div class="col-md-4 col-sm-3">
+      <div class="row">
+        <div class="col-md-9 col-sm-12 text-right">
+          {{ getMoment(date(message.Created)).fromNow() }}
+        </div>
+        <div class="col-md-3 col-sm-12 text-right">
+          {{ fileSize(message.Raw.Data.length) }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toolbar" ng-if="searching">
+  <span class="pull-right">
+    <span style="padding-right: 8px">
+      <strong>{{ countSearchMessages > 0 ? startSearchMessages + 1 : 0 }}-{{ (startSearchMessages + countSearchMessages) || 0 }}</strong>
+      of
+      <strong>{{ totalSearchMessages || 0 }}</strong>
+    </span>
+
+    <button class="btn btn-default" ng-click="showNewer()" title="Newer" ng-class="{'disabled':startSearchMessages<=0}">
+      <i class="glyphicon glyphicon-chevron-left"></i>
+    </button>
+
+    <button class="btn btn-default" ng-click="showOlder()" title="Older" ng-class="{'disabled':startSearchMessages+countSearchMessages>=totalSearchMessages}">
+      <i class="glyphicon glyphicon-chevron-right"></i>
+    </button>
+  </span>
+
+  <button class="btn btn-default" ng-click="backToInbox()" title="Back to Inbox">
+    <i class="glyphicon glyphicon-arrow-left"></i>
+  </button>
+  <button class="btn btn-default" ng-click="refresh()" title="Refresh">
+    <i class="glyphicon glyphicon-refresh"></i>
+  </button>
+
+  <div class="spacer"></div>
+
+  <span>Searching for messages <strong>{{searchKind}}</strong> {{ searchedText }}</span>
+</div>
+
+<div class="messages container-fluid" ng-if="searching">
+  <div class="msglist-message row" ng-repeat="message in searchMessages" ng-click="selectMessage(message)">
+    <div class="col-md-3 col-sm-4">
+      {{ getSender(message) }}
+
+      <div ng-if="message.Content.Headers['To']">
+        <div ng-repeat="to in message.Content.Headers['To']" style="color: #777">
+          {{ getDisplayName(tryDecodeMime(to)) }}
+        </div>
+      </div>
+
+      <div ng-if="!message.Content.Headers['To']">
+        <div ng-repeat="to in message.To" style="color: #777">
+          {{ to.Mailbox }}@{{ to.Domain }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-5">
+      <span class="subject unread">{{ tryDecodeMime(message.Content.Headers["Subject"][0]) }}</span>
+    </div>
+
+    <div class="col-md-3 col-md-offset-3 col-sm-3 text-right">
+      {{ getMoment(date(message.Created)).fromNow() }}
+    </div>
+  </div>
+</div>
+
+<div class="toolbar" ng-if="preview">
+  <button class="btn btn-default" ng-click="backToInbox()" title="Back to Inbox">
+    <i class="glyphicon glyphicon-arrow-left"></i>
+  </button>
+
+  <div class="spacer"></div>
+
+  <button class="btn btn-default" ng-click="deleteOne(preview); preview = null">
+    <i class="glyphicon glyphicon-trash"></i>
+  </button>
+
+  <a class="btn btn-default" title="Download" href="{{ host }}api/v1/messages/{{ preview.ID }}/download">
+    <i class="glyphicon glyphicon-save"></i>
+  </a>
+
+  <button class="btn btn-default" title="Release" ng-click="releaseOne(preview)">
+    <i class="glyphicon glyphicon-share"></i>
+  </button>
+</div>
+
+<div class="preview" ng-if="preview">
+  <div class="row headers">
+    <div class="col-md-10">
+      <table>
+        <tbody ng-if="!previewAllHeaders">
+          <tr>
+            <th>From</th>
+            <td>{{ tryDecodeMime(preview.Content.Headers["From"][0] || preview.From.Mailbox + "@" + preview.From.Domain) }}</td>
+          </tr>
+          <tr>
+            <th>Subject</th>
+            <td><strong>{{ tryDecodeMime(preview.Content.Headers["Subject"][0]) }}</strong></td>
+          </tr>
+          <tr>
+            <th>To</th>
+            <td>
+              {{ tryDecodeMime((preview.Content.Headers["To"] || []).join(', ') || preview.To[0].Mailbox + "@" + preview.To[0].Domain) }}
+            </td>
+          </tr>
+        </tbody>
+        <tbody ng-if="previewAllHeaders">
+          <tr ng-repeat="(header, value) in preview.Content.Headers">
+            <th>{{ tryDecodeMime(header) }}</th>
+            <td>
+              <div ng-repeat="v in value">{{ v }}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col-md-2">
+      <button id="hide-headers" ng-if="previewAllHeaders" ng-click="toggleHeaders(false)" type="button" class="btn btn-default pull-right btn-xs">
+        Hide headers <i class="glyphicon glyphicon-chevron-up"></i>
+      </button>
+
+      <button id="show-headers" ng-if="!previewAllHeaders" ng-click="toggleHeaders(true)" type="button" class="btn btn-default pull-right btn-xs">
+        Show headers <i class="glyphicon glyphicon-chevron-down"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="mail-content">
+    <ul class="nav nav-tabs">
+      <li ng-if="hasHTML(preview)" ng-class="{ active: hasHTML(preview) }"><a href="#preview-html" data-toggle="tab">HTML</a></li>
+      <li ng-class="{ active: !hasHTML(preview) }"><a href="#preview-plain" data-toggle="tab">Plain text</a></li>
+      <li><a href="#preview-source" data-toggle="tab">Source</a></li>
+      <li ng-if="preview.MIME"><a href="#preview-mime" data-toggle="tab">MIME</a></li>
+    </ul>
+
+    <div class="tab-content">
+      <iframe target-blank="" ng-if="hasHTML(preview)" ng-class="{ active: hasHTML(preview) }" class="tab-pane" id="preview-html" srcdoc="{{preview.previewHTML}}" seamless frameborder="0" style="width: 100%"></iframe>
+      <div class="tab-pane" ng-class="{ active: !hasHTML(preview) }" id="preview-plain" ng-bind-html="formatMessagePlain(preview)"></div>
+      <div class="tab-pane" id="preview-source">{{ getSource(preview) }}</div>
+      <div class="tab-pane" id="preview-mime">
+        <div ng-repeat="part in preview.MIME.Parts" class="mime-part">
+          <a href="{{ host }}api/v1/messages/{{ preview.ID }}/mime/part/{{ $index }}/download" type="button" class="btn btn-default btn-sm">
+            <i class="glyphicon glyphicon-save"></i>
+            Download
+          </a>
+          {{ tryDecodeMime(part.Headers["Content-Type"][0] || "Unknown type") }} ({{ part.Size }} bytes)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="confirm-delete-all">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Delete all messages?</h4>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete all messages?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" ng-click="deleteAllConfirm()">Delete all messages</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="release-one">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Release message</h4>
+      </div>
+      <div class="modal-body">
+        <p>To release this message, select an SMTP server or enter custom settings:</p>
+        <form role="form">
+          <div class="form-group">
+            <select ng-model="selectedOutgoingSMTP" id="release-message-outgoing" class="form-control">
+              <option value="{{ s.Name }}" ng-repeat="s in outgoingSMTP">{{ s.Name }}</option>
+              <option value="">Use custom settings</option>
+            </select>
+          </div>
+          <div ng-if="selectedOutgoingSMTP == ''">
+            <div class="form-group">
+              <div class="checkbox">
+                <label for="release-message-save">
+                  <input ng-model="saveSMTPServer" type="checkbox" id="release-message-save">
+                  Save these settings
+                </label>
+              </div>
+            </div>
+            <div class="form-group" ng-if="saveSMTPServer">
+              <label for="release-message-server-name">Server name</label>
+              <input type="text" autofocus class="form-control" id="release-message-server-name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="release-message-email">Email address</label>
+            <input type="email" autofocus class="form-control" id="release-message-email" placeholder="someone@example.com">
+          </div>
+          <div ng-if="selectedOutgoingSMTP == ''">
+            <div class="form-group">
+              <label for="release-message-smtp-host">SMTP server</label>
+              <input type="text" class="form-control" id="release-message-smtp-host" placeholder="mail.example.com">
+            </div>
+            <div class="form-group">
+              <label for="release-message-smtp-port">SMTP port</label>
+              <input type="number" class="form-control" id="release-message-smtp-port" value="25">
+            </div>
+            <div class="form-group">
+              <label for="release-message-smtp-username">Authentication</label>
+              <select ng-model="smtpmech" id="release-message-smtp-mechanism" class="form-control">
+                <option selected value="NONE">None</option>
+                <option value="PLAIN">PLAIN</option>
+                <option value="CRAMMD5">CRAM-MD5</option>
+              </select>
+            </div>
+            <div class="form-group" ng-if="smtpmech != 'NONE'">
+              <label for="release-message-smtp-username">Username</label>
+              <input type="text" class="form-control" id="release-message-smtp-username" value="">
+            </div>
+            <div class="form-group" ng-if="smtpmech != 'NONE'">
+              <label for="release-message-smtp-password">{{ smtpmech == 'CRAMMD5' ? "Secret" : "Password" }}</label>
+              <input type="password" class="form-control" id="release-message-smtp-password" value="">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" ng-click="confirmReleaseMessage()">Release message</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End of modals -->

@@ -5,7 +5,7 @@ Deploying MailHog
 
 You can run MailHog locally from the command line.
 
-    go get github.com/mailhog/MailHog
+    go get github.com/doctolib/MailHog
     MailHog -h
 
 To configure MailHog, use the environment variables or command line flags
@@ -18,20 +18,12 @@ MailHog can be started as a daemon using supervisord/upstart/etc.
 See [this example init script](https://github.com/geerlingguy/ansible-role-mailhog/blob/master/templates/mailhog.init.j2)
 and [this Ansible role](https://github.com/geerlingguy/ansible-role-mailhog) by [geerlingguy](https://github.com/geerlingguy).
 
-If installed with Homebrew on OSX you can have launchd start mailhog now and restart at login:
-    brew services start mailhog
-
 ### Docker
 
 The example [Dockerfile](../Dockerfile) can be used to run MailHog in a [Docker](https://www.docker.com/) container.
-
-You can run it directly from Docker Hub (thanks [humboldtux](https://github.com/humboldtux))
-
-    docker run -d -p 1025:1025 -p 8025:8025 mailhog/mailhog
-
 To mount the Maildir to the local filesystem, you can use a volume:
 
-    docker run -d -e "MH_STORAGE=maildir" -v $PWD/maildir:/maildir -p 1025:1025 -p 8025:8025 mailhog/mailhog
+    docker run -d -e "MH_STORAGE=maildir" -v $PWD/maildir:/maildir -p 1025:1025 -p 8025:8025 "$(docker build -q .)"
 
 ### Elastic Beanstalk
 

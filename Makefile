@@ -1,35 +1,40 @@
-VERSION=1.0.0
+VERSION=2.0.0
 
-all: fmt combined
+GOLANGCI_VERSION=1.27.0
+GOBINDATA_VERSION=3
+GOX_VERSION=1.0.1
 
-combined:
-	go install .
+GO111MODULE=on
+export GO111MODULE
 
-release: tag release-deps 
+.PHONY: all
+all: deps assets build test lint
+
+.PHONY: build
+build: deps assets
+	go build .
+	cd cmd/mhsendmail && go build .
+
+.PHONY: test
+test: deps assets
+	go test ./...
+
+.PHONY: release
+release: deps assets test lint
 	gox -ldflags "-X main.version=${VERSION}" -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}" .
 
-fmt:
-	go fmt ./...
+.PHONY: lint
+lint: deps
+	golangci-lint run
 
-release-deps:
-	go get github.com/mitchellh/gox
+.PHONY: deps
+deps:
+	go mod download
+	go get github.com/go-bindata/go-bindata/...@v${GOBINDATA_VERSION}
+	go get github.com/golangci/golangci-lint@v${GOLANGCI_VERSION}
+	go get github.com/mitchellh/gox@v${GOX_VERSION}
 
-pull:
-	git pull
-	cd ../data; git pull
-	cd ../http; git pull
-	cd ../MailHog-Server; git pull
-	cd ../MailHog-UI; git pull
-	cd ../smtp; git pull
-	cd ../storage; git pull
-
-tag:
-	git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
-	cd ../data; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
-	cd ../http; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
-	cd ../MailHog-Server; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
-	cd ../MailHog-UI; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
-	cd ../smtp; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
-	cd ../storage; git tag -a -m 'v${VERSION}' v${VERSION} && git push origin v${VERSION}
-
-.PHONY: all combined release fmt release-deps pull tag
+.PHONY: assets
+assets: deps
+	rm -f generated/assets/assets.go
+	go-bindata -o generated/assets/assets.go -pkg assets assets/...

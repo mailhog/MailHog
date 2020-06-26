@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html ng-app="mailhogApp">
+  <head>
+    <title>MailHog</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+
+    <link rel="icon" type="image/png" href="images/hog.png">
+
+    <link rel="stylesheet" href="css/jquery-ui-1.10.4-smoothness.css">
+    <link rel="stylesheet" href="css/bootstrap-3.3.2.min.css">
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body ng-controller="MailCtrl" ng-click="keepopen=false">
+    <nav class="navbar navbar-default navbar-static-top" role="navigation">
+      <div class="container-fluid">
+        <div class="col-md-2 col-sm-3">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="#">
+              <img src="images/hog.png" height="20" alt="MailHog"> MailHog
+            </a>
+          </div>
+        </div>
+
+        <div class="col-md-10 col-sm-9">
+          <form class="navbar-form navbar-left" role="search">
+            <div class="form-group left-inner-addon">
+              <i class="glyphicon glyphicon-search"></i>
+
+              <input ng-model="searchText" type="text" ng-key-enter="search('containing', searchText)" class="form-control" autocomplete="off" placeholder="Search" id="search" ng-focus="keepopen=true" ng-click="$event.stopPropagation()">
+
+              <div class="list-group" ng-if="searchText.length > 0 && keepopen">
+                <a href="#" ng-click="search('containing', searchText)" class="list-group-item">
+                  Find messages <strong>containing</strong> {{ searchText }}
+                </a>
+                <a href="#" ng-click="search('to', searchText)" class="list-group-item">
+                  Find messages <strong>to</strong> {{ searchText }}
+                </a>
+                <a href="#" ng-click="search('from', searchText);" class="list-group-item">
+                  Find messages <strong>from</strong> {{ searchText }}
+                </a>
+              </div>
+            </div>
+          </form>
+
+          <ul class="nav navbar-nav navbar-right">
+            <li>
+              <a target="_blank" href="https://github.com/mailhog/MailHog">
+                <img src="images/github.png" height="16" alt="GitHub"> GitHub
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-2 col-sm-3">
+          <ul class="nav nav-pills nav-stacked">
+            <li>
+              <a href="#" title="Event stream connected" ng-click="toggleStream()">
+                <span class="glyphicon glyphicon-off {{ hasEventSource ? 'has-event-source' : 'no-event-source' }}"></span>
+                {{ hasEventSource ? 'Connected' : 'Disconnected' }}
+              </a>
+            </li>
+
+            <li>
+              <a href="#" ng-click="backToInboxFirst()">
+                Inbox ({{totalMessages}})
+              </a>
+            </li>
+
+            <li>
+              <a href="#" ng-click="deleteAll()">
+                <span class="glyphicon glyphicon-remove-circle"></span>
+                Delete all messages
+              </a>
+            </li>
+          </ul>
+
+          <div class="well jim-well">
+            <h3>Jim</h3>
+            <p>
+              Jim is a chaos monkey.<br>
+              <a href="https://github.com/mailhog/MailHog/blob/master/docs/JIM.md" target="_blank">Find out more at GitHub</a>.
+            </p>
+            <div ng-if="jim">
+              <a href="#" ng-click="disableJim()" class="btn btn-xs btn-danger">Disable Jim</a>
+            </div>
+            <div ng-if="jim" class="jim-config">
+              <div class="jim-config-item">
+                <strong>Accept chance</strong>
+                <span>{{ jim.AcceptChance * 100 }}%</span>
+              </div>
+              <div class="jim-config-item">
+                <strong>Disconnect chance</strong>
+                <span>{{ jim.DisconnectChance * 100 }}%</span>
+              </div>
+              <div class="jim-config-item">
+                <strong>Link speed affect chance</strong>
+                <span>{{ jim.LinkSpeedAffect * 100}}%</span>
+              </div>
+              <div class="jim-config-item">
+                <strong>Link speed minimum</strong>
+                <span>{{ jim.LinkSpeedMin }}kbps</span>
+              </div>
+              <div class="jim-config-item">
+                <strong>Link speed maximum</strong>
+                <span>{{ jim.LinkSpeedMax }}kbps</span>
+              </div>
+              <div class="jim-config-item">
+                <strong>Reject sender chance</strong>
+                <span>{{ jim.RejectSenderChance * 100 }}%</span>
+              </div>
+              <div class="jim-config-item">
+                <strong>Reject recipient chance</strong>
+                <span>{{ jim.RejectRecipientChance * 100 }}%</span>
+              </div>
+              <div class="jim-config-item">
+                <strong>Reject auth chance</strong>
+                <span>{{ jim.RejectAuthChance * 100 }}%</span>
+              </div>
+            </div>
+            <div ng-if="!jim">
+              <a href="#" ng-click="enableJim()" class="btn btn-xs btn-default">Enable Jim</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-10 col-sm-9 content">
+          [: .Content :]
+        </div>
+      </div>
+    </div>
+
+    <script src="js/jquery-1.11.0.min.js"></script>
+    <script src="js/jquery-ui-1.10.4.min.js"></script>
+    <script src="js/bootstrap-3.3.2.min.js"></script>
+    <script src="js/angular-1.3.8.js"></script>
+    <script src="js/moment-2.8.4.js"></script>
+    <script src="js/filesize-3.1.2.min.js"></script>
+    <script src="js/strutil.js"></script>
+    <script src="js/controllers.js"></script>
+    <script>
+      function endsWith(str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
+      }
+
+      var apiHost = "[: .APIHost :]";
+      if(apiHost.length > 0 && !endsWith(apiHost, "/")) {
+        apiHost += "/";
+      }
+
+      var columns = [15,15,40,20,10];
+    </script>
+  </body>
+</html>
