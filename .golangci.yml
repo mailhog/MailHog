@@ -1,0 +1,9 @@
+run:
+  deadline: 120s
+  skip-dirs:
+    - generated/
+linters:
+  enable:
+    - gofmt
+    - goimports
+  disable-all: true

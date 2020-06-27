@@ -5,39 +5,27 @@ import (
 	"fmt"
 	"os"
 
-	gohttp "net/http"
+	"net/http"
 
 	"github.com/gorilla/pat"
 	"github.com/ian-kent/go-log/log"
-	"github.com/mailhog/MailHog-Server/api"
-	cfgapi "github.com/mailhog/MailHog-Server/config"
-	"github.com/mailhog/MailHog-Server/smtp"
-	"github.com/mailhog/MailHog-UI/assets"
-	cfgui "github.com/mailhog/MailHog-UI/config"
-	"github.com/mailhog/MailHog-UI/web"
-	cfgcom "github.com/mailhog/MailHog/config"
-	"github.com/mailhog/http"
-	"github.com/mailhog/mhsendmail/cmd"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/doctolib/MailHog/generated/assets"
+	"github.com/doctolib/MailHog/pkg/api"
+	"github.com/doctolib/MailHog/pkg/config"
+	"github.com/doctolib/MailHog/pkg/smtp"
+	"github.com/doctolib/MailHog/pkg/web"
 )
 
-var apiconf *cfgapi.Config
-var uiconf *cfgui.Config
-var comconf *cfgcom.Config
+var conf *config.Config
 var exitCh chan int
 var version string
 
 func configure() {
-	cfgcom.RegisterFlags()
-	cfgapi.RegisterFlags()
-	cfgui.RegisterFlags()
+	config.RegisterFlags()
 	flag.Parse()
-	apiconf = cfgapi.Configure()
-	uiconf = cfgui.Configure()
-	comconf = cfgcom.Configure()
-
-	apiconf.WebPath = comconf.WebPath
-	uiconf.WebPath = comconf.WebPath
+	conf = config.Configure()
 }
 
 func main() {
@@ -45,17 +33,6 @@ func main() {
 		fmt.Println("MailHog version: " + version)
 		os.Exit(0)
 	}
-
-	if len(os.Args) > 1 && os.Args[1] == "sendmail" {
-		args := os.Args
-		os.Args = []string{args[0]}
-		if len(args) > 2 {
-			os.Args = append(os.Args, args[2:]...)
-		}
-		cmd.Go()
-		return
-	}
-
 	if len(os.Args) > 1 && os.Args[1] == "bcrypt" {
 		var pw string
 		if len(os.Args) > 2 {
@@ -74,28 +51,17 @@ func main() {
 
 	configure()
 
-	if comconf.AuthFile != "" {
-		http.AuthFile(comconf.AuthFile)
+	if conf.AuthFile != "" {
+		web.AuthFile(conf.AuthFile)
 	}
 
 	exitCh = make(chan int)
-	if uiconf.UIBindAddr == apiconf.APIBindAddr {
-		cb := func(r gohttp.Handler) {
-			web.CreateWeb(uiconf, r.(*pat.Router), assets.Asset)
-			api.CreateAPI(apiconf, r.(*pat.Router))
-		}
-		go http.Listen(uiconf.UIBindAddr, assets.Asset, exitCh, cb)
-	} else {
-		cb1 := func(r gohttp.Handler) {
-			api.CreateAPI(apiconf, r.(*pat.Router))
-		}
-		cb2 := func(r gohttp.Handler) {
-			web.CreateWeb(uiconf, r.(*pat.Router), assets.Asset)
-		}
-		go http.Listen(apiconf.APIBindAddr, assets.Asset, exitCh, cb1)
-		go http.Listen(uiconf.UIBindAddr, assets.Asset, exitCh, cb2)
+	cb := func(r http.Handler) {
+		web.CreateWeb(conf, r.(*pat.Router), assets.Asset)
+		api.CreateAPI(conf, r.(*pat.Router))
 	}
-	go smtp.Listen(apiconf, exitCh)
+	go web.Listen(conf.HTTPBindAddr, assets.Asset, exitCh, cb)
+	go smtp.Listen(conf, exitCh)
 
 	for {
 		select {
@@ -105,25 +71,3 @@ func main() {
 		}
 	}
 }
-
-/*
-
-Add some random content to the end of this file, hopefully tricking GitHub
-into recognising this as a Go repo instead of Makefile.
-
-A gopher, ASCII art style - borrowed from
-https://gist.github.com/belbomemo/b5e7dad10fa567a5fe8a
-
-          ,_---~~~~~----._
-   _,,_,*^____      _____``*g*\"*,
-  / __/ /'     ^.  /      \ ^@q   f
- [  @f | @))    |  | @))   l  0 _/
-  \`/   \~____ / __ \_____/    \
-   |           _l__l_           I
-   }          [______]           I
-   ]            | | |            |
-   ]             ~ ~             |
-   |                            |
-    |                           |
-
-*/

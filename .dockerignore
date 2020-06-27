@@ -1,1 +1,39 @@
-*
+# Ignore git files
+/.git
+/.gitignore
+/**/.gitkeep
+
+# Ignore docker file
+/.dockerignore
+/Dockerfile
+
+# Ignore binaries
+/MailHog
+/build/
+/cmd/mhsendmail/mhsendmail
+
+# Ignore generated files
+/generated
+
+# Ignore IDE config
+/.idea
+/.vscode
+
+# Vim swap and backup files
+/**/.*.sw*
+/**/.*~
+
+# Ignore tag files
+/tags
+/**/TAGS
+
+# Ignore General macOS stuff
+/**/.DS_Store
+/**/.AppleDouble
+/**/.LSOverride
+
+# Ignore macOS icons (must end with two \r)
+/**/Icon
+
+# Ignore macOS thumbnails
+/**/._*

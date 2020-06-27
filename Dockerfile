@@ -2,28 +2,48 @@
 # MailHog Dockerfile
 #
 
-FROM golang:alpine
+FROM debian:buster-slim AS builder
+SHELL ["/bin/bash", "-ec"]
 
-# Install MailHog:
-RUN apk --no-cache add --virtual build-dependencies \
-    git \
-  && mkdir -p /root/gocode \
-  && export GOPATH=/root/gocode \
-  && go get github.com/mailhog/MailHog \
-  && mv /root/gocode/bin/MailHog /usr/local/bin \
-  && rm -rf /root/gocode \
-  && apk del --purge build-dependencies
+# Install build-time dependancies
+RUN apt-get -yq update
+RUN apt-get -yq install --no-install-{recommends,suggests} curl ca-certificates git make build-essential
 
-# Add mailhog user/group with uid/gid 1000.
-# This is a workaround for boot2docker issue #581, see
-# https://github.com/boot2docker/boot2docker/issues/581
-RUN adduser -D -u 1000 mailhog
+# Install go
+ARG GO_VERSION=1.14.4
+RUN tar -xzC / < <(curl -f -s https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz)
 
-USER mailhog
+# Create build-user user
+ARG BUILD_USERNAME=build-user
+ARG BUILD_DIRECTORY=/home/build-user
+RUN useradd -md ${BUILD_DIRECTORY} -u 1000 ${BUILD_USERNAME}
 
-WORKDIR /home/mailhog
+COPY . ${BUILD_DIRECTORY}/MailHog
+RUN find ${BUILD_DIRECTORY}/MailHog -exec ls -lshd '{}' +
+RUN chown -R ${BUILD_USERNAME}:${BUILD_USERNAME} ${BUILD_DIRECTORY}/MailHog
 
-ENTRYPOINT ["MailHog"]
+# Build MailHog
+USER ${BUILD_USERNAME}
+WORKDIR ${BUILD_DIRECTORY}
+ENV GOPATH="${BUILD_DIRECTORY}/go"
+ENV PATH="$PATH:/go/bin:${GOPATH}/bin"
+RUN mkdir -p go/{src,bin} bin
+RUN make -C MailHog deps
+RUN make -C MailHog
+RUN mv MailHog/MailHog MailHog/cmd/mhsendmail/mhsendmail ${BUILD_DIRECTORY}/bin
+
+FROM debian:buster-slim
+
+# Create mailhog user as non-login system user with user-group
+ARG USERNAME=mailhog
+RUN useradd --shell /bin/false -Urb / -u 99 ${USERNAME}
+
+# Copy mailhog binary
+COPY --from=builder /home/build-user/bin/* /bin/
 
 # Expose the SMTP and HTTP ports:
-EXPOSE 1025 8025
+EXPOSE 2525 8025
+
+WORKDIR /
+USER ${USERNAME}
+CMD ["MailHog"]

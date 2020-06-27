@@ -1,0 +1,162 @@
+/*********/
+/* Modal */
+.modal-dialog {
+  margin-top: 65px;
+}
+
+/*******/
+/* Nav */
+.navbar .col-md-10 {
+  padding-left: 0;
+}
+
+.navbar-brand > img {
+  display: inline-block;
+}
+
+.navbar-form {
+  padding-left: 0;
+}
+
+/**************/
+/* Search bar */
+#search {
+  width: 500px;
+}
+@media (max-width: 991px) {
+  #search {
+    width: 420px;
+  }
+}
+
+/* http://stackoverflow.com/questions/18838964/add-bootstrap-glyphicon-to-input-box */
+.left-inner-addon {
+  position: relative;
+}
+
+.left-inner-addon input {
+  padding-left: 30px;
+}
+
+.left-inner-addon .glyphicon {
+  color: #aaa;
+  position: absolute;
+  padding: 9px 10px;
+  pointer-events: none;
+}
+
+/***************/
+/* Sidebar nav */
+.nav-stacked {
+  margin-top: 10px;
+}
+
+.has-event-source {
+  color: green;
+}
+
+.no-event-source {
+  color: red;
+}
+
+/*******/
+/* Jim */
+.jim-well {
+  margin-top: 20px;
+}
+
+.jim-well h3 {
+  margin-top: 0;
+}
+
+.jim-config {
+  margin-top: 3px;
+  padding: 5px;
+  font-size: 0.9em;
+}
+
+.jim-config .jim-config-item {
+  margin-bottom: 2px;
+}
+
+/***********/
+/* Toolbar */
+.toolbar {
+  padding: 5px;
+  border-bottom: 1px solid #ccc;
+}
+
+.toolbar .btn {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.toolbar .spacer {
+  display: inline-block;
+  width: 20px;
+}
+
+.message-count {
+  padding-right: 10px;
+}
+
+/***********/
+/* Content */
+.content {
+  position: fixed;
+  right: 0;
+  top: 51px;
+  bottom: 0;
+  overflow-y: scroll;
+  padding-bottom: 80px;
+}
+
+.mail-content {
+  margin-top: 20px;
+}
+
+.msglist-message {
+  border-bottom: 1px solid #ccc;
+  padding: 5px 0;
+  cursor: pointer;
+}
+
+.msglist-message .subject.unread {
+  color: #666;
+  font-weight: bold;
+}
+
+/***********/
+/* Preview */
+#preview-plain, #preview-source {
+  white-space: pre;
+  font-family: Courier New, Courier, System, fixed-width;
+  padding: 10px;
+}
+
+.preview .tab-content {
+  overflow-y: scroll;
+}
+
+.headers {
+  margin-top: 10px;
+}
+
+.headers tbody td {
+  width: 100%;
+}
+
+.headers tbody th {
+  white-space: nowrap;
+  text-align: right;
+  color: #666;
+  font-weight: normal;
+}
+
+.haeders table td, .headers table th {
+  padding: 2px 10px
+}
+
+.mime-part {
+  padding: 10px;
+}

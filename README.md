@@ -1,6 +1,3 @@
-MailHog [ ![Download](https://img.shields.io/github/release/mailhog/MailHog.svg) ](https://github.com/mailhog/MailHog/releases/tag/v1.0.0) [![GoDoc](https://godoc.org/github.com/mailhog/MailHog?status.svg)](https://godoc.org/github.com/mailhog/MailHog) [![Build Status](https://travis-ci.org/mailhog/MailHog.svg?branch=master)](https://travis-ci.org/mailhog/MailHog)
-=========
-
 Inspired by [MailCatcher](http://mailcatcher.me/), easier to install.
 
 * Download and run MailHog
@@ -20,29 +17,8 @@ MailHog is an email testing tool for developers:
 
 ### Installation
 
-#### Manual installation
-[Download the latest release for your platform](/docs/RELEASES.md). Then
-[read the deployment guide](/docs/DEPLOY.md) for deployment options.
-
-#### MacOS
-```bash
-brew update && brew install mailhog
-```
-
-Then, start MailHog by running `mailhog` in the command line.
-
-#### Debian / Ubuntu
-```bash
-sudo apt-get -y install golang-go
-go get github.com/mailhog/MailHog
-```
-
-Then, start MailHog by running `/path/to/MailHog` in the command line.
-
-E.g. the path to Go's bin files on Ubuntu is `~/go/bin/`, so to start the MailHog run:
-
-```bash
-~/go/bin/MailHog
+```sh
+go get github.com/doctolib/MailHog
 ```
 
 ### Configuration
@@ -76,7 +52,7 @@ See [MailHog libraries](docs/LIBRARIES.md) for a list of MailHog client librarie
 
 #### sendmail
 
-[mhsendmail](https://github.com/mailhog/mhsendmail) is a sendmail replacement for MailHog.
+[mhsendmail](https://github.com/doctolib/MailHog/tree/master/cmd/mhsendmail) is a sendmail replacement for MailHog.
 
 It redirects mail to MailHog using SMTP.
 
@@ -101,13 +77,11 @@ sendmail_path = /usr/sbin/sendmail -S mail:1025
 
 ### Contributing
 
-MailHog is a rewritten version of [MailHog](https://github.com/ian-kent/MailHog), which was born out of [M3MTA](https://github.com/ian-kent/M3MTA).
-
-Clone this repository to ```$GOPATH/src/github.com/mailhog/MailHog``` and type ```make deps```.
+MailHog is a fork of [mailhog/MailHog](https://github.com/mailhog/MailHog), which is a rewritten version of [ian-kent/MailHog](https://github.com/ian-kent/MailHog), which was born out of [M3MTA](https://github.com/ian-kent/M3MTA).
 
 See the [Building MailHog](/docs/BUILD.md) guide.
 
-Requires Go 1.4+ to build.
+Requires Go 1.11+ to build.
 
 Run tests using ```make test``` or ```goconvey```.
 
