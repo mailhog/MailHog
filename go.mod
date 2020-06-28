@@ -15,6 +15,7 @@ require (
 	github.com/ian-kent/go-log v0.0.0-20160113211217-5731446c36ab
 	github.com/ian-kent/goose v0.0.0-20141221090059-c3541ea826ad
 	github.com/ian-kent/linkio v0.0.0-20141229112453-77fb4b01842c
+	github.com/jackc/pgx/v4 v4.7.0
 	github.com/jtolds/gls v4.20.0+incompatible
 	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/philhofer/fwd v0.0.0-20160129035939-98c11a7a6ec8
@@ -23,6 +24,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/t-k/fluent-logger-golang v1.0.0
 	github.com/tinylib/msgp v0.0.0-20160524150606-05e600edf28f
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	gopkg.in/mgo.v2 v2.0.0-20160609180028-29cc868a5ca6
 )

@@ -10,10 +10,10 @@ GO111MODULE := on
 export GO111MODULE
 
 .PHONY: all
-all: deps assets build test lint
+all: deps assets queries build test lint
 
 .PHONY: build
-build: deps assets
+build: deps assets queries
 	go build .
 	cd cmd/mhsendmail && go build .
 
@@ -42,3 +42,8 @@ deps:
 assets: deps
 	rm -f generated/assets/assets.go
 	go-bindata -o generated/assets/assets.go -pkg assets assets/...
+
+.PHONY: queries
+queries: deps
+	rm -f generated/queries/queries.go
+	go-bindata -o generated/queries/queries.go -pkg queries queries/...
