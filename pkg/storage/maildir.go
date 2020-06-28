@@ -68,6 +68,10 @@ func (maildir *Maildir) Search(kind, query string, start, limit int) (*data.Mess
 	var matched int
 
 	err := filepath.Walk(maildir.Path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			panic(err)
+		}
+
 		if limit > 0 && len(filteredMessages) >= limit {
 			return errors.New("reached limit")
 		}
@@ -83,7 +87,7 @@ func (maildir *Maildir) Search(kind, query string, start, limit int) (*data.Mess
 		}
 
 		switch kind {
-		case "to":
+		case SearchKindTo:
 			for _, t := range msg.To {
 				if strings.Contains(strings.ToLower(t.Mailbox+"@"+t.Domain), query) {
 					if start > matched {
@@ -94,7 +98,7 @@ func (maildir *Maildir) Search(kind, query string, start, limit int) (*data.Mess
 					break
 				}
 			}
-		case "from":
+		case SearchKindFrom:
 			if strings.Contains(strings.ToLower(msg.From.Mailbox+"@"+msg.From.Domain), query) {
 				if start > matched {
 					matched++
@@ -102,7 +106,7 @@ func (maildir *Maildir) Search(kind, query string, start, limit int) (*data.Mess
 				}
 				filteredMessages = append(filteredMessages, *msg)
 			}
-		case "containing":
+		case SearchKindContaining:
 			if strings.Contains(strings.ToLower(msg.Raw.Data), query) {
 				if start > matched {
 					matched++

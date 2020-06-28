@@ -39,6 +39,7 @@ func main() {
 			pw = os.Args[2]
 		} else {
 			// TODO: read from stdin
+			panic(fmt.Errorf("bcrypt command requires an argument"))
 		}
 		b, err := bcrypt.GenerateFromPassword([]byte(pw), 4)
 		if err != nil {
@@ -63,11 +64,8 @@ func main() {
 	go web.Listen(conf.HTTPBindAddr, assets.Asset, exitCh, cb)
 	go smtp.Listen(conf, exitCh)
 
-	for {
-		select {
-		case <-exitCh:
-			log.Printf("Received exit signal")
-			os.Exit(0)
-		}
+	for range exitCh {
+		log.Printf("Received exit signal")
+		os.Exit(0)
 	}
 }

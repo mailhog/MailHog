@@ -16,16 +16,16 @@ import (
 // DefaultConfig is the default config
 func DefaultConfig() *Config {
 	return &Config{
-		SMTPBindAddr: "0.0.0.0:1025",
-		HTTPBindAddr: "0.0.0.0:8025",
-		Hostname:     "mailhog.example",
-		MongoURI:     "127.0.0.1:27017",
-		MongoDb:      "mailhog",
-		PostgresURI:  "postgres://127.0.0.1:5432/mailhog",
-		MongoColl:    "messages",
-		StorageType:  "memory",
-		MessageChan:  make(chan *data.Message),
-		OutgoingSMTP: make(map[string]*OutgoingSMTP),
+		SMTPBindAddr:  "0.0.0.0:1025",
+		HTTPBindAddr:  "0.0.0.0:8025",
+		Hostname:      "mailhog.example",
+		MongoURI:      "127.0.0.1:27017",
+		MongoDatabase: "mailhog",
+		PostgresURI:   "postgres://127.0.0.1:5432/mailhog",
+		MongoColl:     "messages",
+		StorageType:   "memory",
+		MessageChan:   make(chan *data.Message),
+		OutgoingSMTP:  make(map[string]*OutgoingSMTP),
 	}
 }
 
@@ -35,7 +35,7 @@ type Config struct {
 	HTTPBindAddr     string
 	Hostname         string
 	MongoURI         string
-	MongoDb          string
+	MongoDatabase    string
 	MongoColl        string
 	PostgresURI      string
 	StorageType      string
@@ -77,7 +77,7 @@ func Configure() *Config {
 		cfg.Storage = storage.CreateInMemory()
 	case "mongodb":
 		log.Println("Using MongoDB message storage")
-		s := storage.CreateMongoDB(cfg.MongoURI, cfg.MongoDb, cfg.MongoColl)
+		s := storage.CreateMongoDB(cfg.MongoURI, cfg.MongoDatabase, cfg.MongoColl)
 		if s == nil {
 			log.Println("MongoDB storage unavailable, reverting to in-memory storage")
 			cfg.Storage = storage.CreateInMemory()
@@ -138,7 +138,7 @@ func RegisterFlags() {
 	flag.StringVar(&cfg.Hostname, "hostname", envconf.FromEnvP("MH_HOSTNAME", "mailhog.example").(string), "Hostname for EHLO/HELO response, e.g. mailhog.example")
 	flag.StringVar(&cfg.StorageType, "storage", envconf.FromEnvP("MH_STORAGE", "memory").(string), "Message storage: 'memory' (default), 'mongodb' or 'maildir'")
 	flag.StringVar(&cfg.MongoURI, "mongo-uri", envconf.FromEnvP("MH_MONGO_URI", "127.0.0.1:27017").(string), "MongoDB URI, e.g. 127.0.0.1:27017")
-	flag.StringVar(&cfg.MongoDb, "mongo-db", envconf.FromEnvP("MH_MONGO_DB", "mailhog").(string), "MongoDB database, e.g. mailhog")
+	flag.StringVar(&cfg.MongoDatabase, "mongo-db", envconf.FromEnvP("MH_MONGO_DB", "mailhog").(string), "MongoDB database, e.g. mailhog")
 	flag.StringVar(&cfg.MongoColl, "mongo-coll", envconf.FromEnvP("MH_MONGO_COLLECTION", "messages").(string), "MongoDB collection, e.g. messages")
 	flag.StringVar(&cfg.PostgresURI, "postgres-uri", envconf.FromEnvP("MH_POSTGRES_URI", "postgres://127.0.0.1:5432/mailhog").(string), "PostgrsQL URI, e.g. postgres://127.0.0.1:5432/mailhog")
 	flag.StringVar(&cfg.CORSOrigin, "cors-origin", envconf.FromEnvP("MH_CORS_ORIGIN", "").(string), "CORS Access-Control-Allow-Origin header for API endpoints")

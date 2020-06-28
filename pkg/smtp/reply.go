@@ -13,7 +13,7 @@ type Reply struct {
 
 // Lines returns the formatted SMTP reply
 func (r Reply) Lines() []string {
-	var lines []string
+	lines := make([]string, 0)
 
 	if len(r.lines) == 0 {
 		l := strconv.Itoa(r.Status)

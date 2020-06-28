@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -36,9 +37,7 @@ func AuthFile(file string) {
 		if len(l) > 0 {
 			p := strings.SplitN(l, ":", 2)
 			if len(p) < 2 {
-				log.Fatalf("[HTTP] Error reading auth-file, invalid line: %s", l)
-				// FIXME - go-log
-				os.Exit(1)
+				panic(fmt.Errorf("[HTTP] Error reading auth-file, invalid line: %s", l))
 			}
 			users[p[0]] = p[1]
 		}
@@ -46,14 +45,10 @@ func AuthFile(file string) {
 		case err == io.EOF:
 			break
 		case err != nil:
-			log.Fatalf("[HTTP] Error reading auth-file: %s", err)
-			// FIXME - go-log
-			os.Exit(1)
-			break
+			panic(fmt.Errorf("[HTTP] Error reading auth-file: %s", err))
 		}
 		if err == io.EOF {
 			break
-		} else if err != nil {
 		}
 	}
 
@@ -66,11 +61,7 @@ func AuthFile(file string) {
 		}
 
 		err := bcrypt.CompareHashAndPassword([]byte(hpw), []byte(pw))
-		if err != nil {
-			return false
-		}
-
-		return true
+		return err == nil
 	}
 }
 
@@ -86,7 +77,7 @@ func BasicAuthHandler(h http.Handler) http.Handler {
 		u, pw, ok := req.BasicAuth()
 		if !ok || !Authorised(u, pw) {
 			w.Header().Set("WWW-Authenticate", "Basic")
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 		h.ServeHTTP(w, req)
@@ -96,7 +87,7 @@ func BasicAuthHandler(h http.Handler) http.Handler {
 }
 
 // Listen binds to httpBindAddr
-func Listen(httpBindAddr string, Asset func(string) ([]byte, error), exitCh chan int, registerCallback func(http.Handler)) {
+func Listen(httpBindAddr string, _ func(string) ([]byte, error), exitCh chan int, registerCallback func(http.Handler)) {
 	log.Info("[HTTP] Binding to address: %s", httpBindAddr)
 
 	pat := pat.New()

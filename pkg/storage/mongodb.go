@@ -52,14 +52,18 @@ func (mongo *MongoDB) Count() int {
 // Search finds messages matching the query
 func (mongo *MongoDB) Search(kind, query string, start, limit int) (*data.Messages, int, error) {
 	messages := &data.Messages{}
-	var count = 0
-	var field = "raw.data"
+	count := 0
+
+	var field string
 	switch kind {
-	case "to":
+	case SearchKindTo:
 		field = "raw.to"
-	case "from":
+	case SearchKindFrom:
 		field = "raw.from"
+	case SearchKindContaining:
+		field = "raw.data"
 	}
+
 	err := mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}}).Skip(start).Limit(limit).Sort("-created").Select(bson.M{
 		"id":              1,
 		"_id":             1,

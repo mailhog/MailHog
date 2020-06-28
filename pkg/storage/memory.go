@@ -46,7 +46,7 @@ func (memory *InMemory) Search(kind, query string, start, limit int) (*data.Mess
 		doAppend := false
 
 		switch kind {
-		case "to":
+		case SearchKindTo:
 			for _, to := range m.To {
 				if strings.Contains(strings.ToLower(to.Mailbox+"@"+to.Domain), query) {
 					doAppend = true
@@ -63,7 +63,7 @@ func (memory *InMemory) Search(kind, query string, start, limit int) (*data.Mess
 					}
 				}
 			}
-		case "from":
+		case SearchKindFrom:
 			if strings.Contains(strings.ToLower(m.From.Mailbox+"@"+m.From.Domain), query) {
 				doAppend = true
 			}
@@ -77,7 +77,7 @@ func (memory *InMemory) Search(kind, query string, start, limit int) (*data.Mess
 					}
 				}
 			}
-		case "containing":
+		case SearchKindContaining:
 			if strings.Contains(strings.ToLower(m.Content.Body), query) {
 				doAppend = true
 			}

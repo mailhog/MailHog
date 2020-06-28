@@ -89,7 +89,7 @@ type MIMEBody struct {
 
 // Parse converts a raw SMTP message to a parsed MIME message
 func (m *SMTPMessage) Parse(hostname string) *Message {
-	var arr []*Path
+	arr := make([]*Path, 0)
 	for _, path := range m.To {
 		arr = append(arr, PathFromString(path))
 	}
@@ -182,22 +182,23 @@ func FromBytes(b []byte) *SMTPMessage {
 		}
 
 		if !headerDone {
-			if strings.HasPrefix(l, "HELO:<") {
+			switch {
+			case strings.HasPrefix(l, "HELO:<"):
 				l = strings.TrimPrefix(l, "HELO:<")
 				l = strings.TrimSuffix(l, ">\r\n")
 				msg.Helo = l
 				continue
-			} else if strings.HasPrefix(l, "FROM:<") {
+			case strings.HasPrefix(l, "FROM:<"):
 				l = strings.TrimPrefix(l, "FROM:<")
 				l = strings.TrimSuffix(l, ">\r\n")
 				msg.From = l
 				continue
-			} else if strings.HasPrefix(l, "TO:<") {
+			case strings.HasPrefix(l, "TO:<"):
 				l = strings.TrimPrefix(l, "TO:<")
 				l = strings.TrimSuffix(l, ">\r\n")
 				msg.To = append(msg.To, l)
 				continue
-			} else if l == "\r\n" {
+			case l == "\r\n":
 				headerDone = true
 				continue
 			}
@@ -294,7 +295,7 @@ func PathFromString(path string) *Path {
 func ContentFromString(data string) *Content {
 	logf("Parsing Content from string: '%s'", data)
 	x := strings.SplitN(data, "\r\n\r\n", 2)
-	h := make(map[string][]string, 0)
+	h := make(map[string][]string)
 
 	// FIXME this fails if the message content has no headers - specifically,
 	// if it doesn't contain \r\n\r\n
@@ -304,15 +305,16 @@ func ContentFromString(data string) *Content {
 		hdrs := strings.Split(headers, "\r\n")
 		var lastHdr = ""
 		for _, hdr := range hdrs {
-			if lastHdr != "" && (strings.HasPrefix(hdr, " ") || strings.HasPrefix(hdr, "\t")) {
+			switch {
+			case lastHdr != "" && (strings.HasPrefix(hdr, " ") || strings.HasPrefix(hdr, "\t")):
 				h[lastHdr][len(h[lastHdr])-1] = h[lastHdr][len(h[lastHdr])-1] + hdr
-			} else if strings.Contains(hdr, ": ") {
+			case strings.Contains(hdr, ": "):
 				y := strings.SplitN(hdr, ": ", 2)
 				key, value := y[0], y[1]
 				// TODO multiple header fields
 				h[key] = []string{value}
 				lastHdr = key
-			} else if len(hdr) > 0 {
+			case len(hdr) > 0:
 				logf("Found invalid header: '%s'", hdr)
 			}
 		}

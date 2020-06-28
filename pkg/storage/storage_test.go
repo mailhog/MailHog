@@ -215,19 +215,19 @@ func testSearch(s Storage) {
 			matches data.Messages
 		}{
 			{
-				kind:    "to",
+				kind:    SearchKindTo,
 				query:   "nonexistant@test.test",
 				matches: data.Messages([]data.Message{}),
 			},
 			{
-				kind:  "to",
+				kind:  SearchKindTo,
 				query: pathToEmail(messages[3].To[0]),
 				matches: data.Messages([]data.Message{
 					*messages[3],
 				}),
 			},
 			{
-				kind:  "to",
+				kind:  SearchKindTo,
 				query: pathToEmail(messages[0].To[0]),
 				matches: data.Messages([]data.Message{
 					*messages[0],
@@ -235,7 +235,7 @@ func testSearch(s Storage) {
 				}),
 			},
 			{
-				kind:  "from",
+				kind:  SearchKindFrom,
 				query: pathToEmail(messages[1].From),
 				matches: data.Messages([]data.Message{
 					*messages[1],
@@ -243,7 +243,7 @@ func testSearch(s Storage) {
 				}),
 			},
 			{
-				kind:  "from",
+				kind:  SearchKindFrom,
 				query: pathToEmail(messages[2].From),
 				matches: data.Messages([]data.Message{
 					*messages[2],
@@ -251,7 +251,7 @@ func testSearch(s Storage) {
 				}),
 			},
 			{
-				kind:  "containing",
+				kind:  SearchKindContaining,
 				query: "message",
 				matches: data.Messages([]data.Message{
 					*messages[0],
@@ -261,12 +261,12 @@ func testSearch(s Storage) {
 				}),
 			},
 			{
-				kind:    "containing",
+				kind:    SearchKindContaining,
 				query:   "textnotfound",
 				matches: data.Messages([]data.Message{}),
 			},
 			{
-				kind:  "containing",
+				kind:  SearchKindContaining,
 				query: "third",
 				matches: data.Messages([]data.Message{
 					*messages[3],
@@ -279,7 +279,7 @@ func testSearch(s Storage) {
 				So(i, ShouldEqual, len(search.matches))
 				So(len(*matchedMessages), ShouldEqual, i)
 				for _, expectedMatch := range search.matches {
-					So(matchedMessages, shouldContainAsMessage, &expectedMatch)
+					So(matchedMessages, shouldContainAsMessage, &expectedMatch) //nolint:scopelint
 				}
 			}
 		}
@@ -360,15 +360,15 @@ func shouldResembleAsMessage(actual interface{}, expected ...interface{}) string
 
 	if result := ShouldResemble(*actualMessage, *expectedMessage); result == "" {
 		return ""
-	} else if actualMessageJson, err := json.MarshalIndent(actualMessage, "", "  "); err != nil {
+	} else if actualMessageJSON, err := json.MarshalIndent(actualMessage, "", "  "); err != nil {
 		panic(err)
-	} else if expectedMessageJson, err := json.MarshalIndent(expectedMessage, "", "  "); err != nil {
+	} else if expectedMessageJSON, err := json.MarshalIndent(expectedMessage, "", "  "); err != nil {
 		panic(err)
 	} else {
 		return fmt.Sprintf(
-			"ACTUAL:\n%s\n\nEXPECTED:\n%s\n\nACTUAL was expected to resmeble EXPECTED (but it didn't!)",
-			actualMessageJson,
-			expectedMessageJson,
+			"ACTUAL:\n%s\n\nEXPECTED:\n%s\n\nACTUAL was expected to resemble EXPECTED (but it didn't!)",
+			actualMessageJSON,
+			expectedMessageJSON,
 		)
 	}
 }
@@ -389,16 +389,16 @@ func shouldContainAsMessage(actual interface{}, expected ...interface{}) string 
 	}
 
 	for _, actualMessage := range *actualMessages {
-		if result := shouldResembleAsMessage(&actualMessage, expectedMessage); result == "" {
+		if result := shouldResembleAsMessage(&actualMessage, expectedMessage); result == "" { //nolint:scopelint
 			return ""
 		}
 	}
 
-	if actualMessagesJson, err := json.MarshalIndent(actualMessages, "", "  "); err != nil {
+	if actualMessagesJSON, err := json.MarshalIndent(actualMessages, "", "  "); err != nil {
 		panic(err)
-	} else if expectedMessageJson, err := json.MarshalIndent(expectedMessage, "", "  "); err != nil {
+	} else if expectedMessageJSON, err := json.MarshalIndent(expectedMessage, "", "  "); err != nil {
 		panic(err)
 	} else {
-		return fmt.Sprintf("ACTUAL:\n%s\n\nEXPECTED:\n%s\n\nACTUAL was expected to contain EXPECTED (but it didn't!)", actualMessagesJson, expectedMessageJson)
+		return fmt.Sprintf("ACTUAL:\n%s\n\nEXPECTED:\n%s\n\nACTUAL was expected to contain EXPECTED (but it didn't!)", actualMessagesJSON, expectedMessageJSON)
 	}
 }

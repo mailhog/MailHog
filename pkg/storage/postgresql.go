@@ -79,12 +79,14 @@ func (pg *PostgreSQL) Search(kind, query string, start, limit int) (*data.Messag
 		return nil, 0, err
 	}
 	defer conn.Release()
-	var field = "message->'Raw'->>'Data'"
+	var field string
 	switch kind {
-	case "to":
+	case SearchKindTo:
 		field = "message->'Raw'->>'To'"
-	case "from":
+	case SearchKindFrom:
 		field = "message->'Raw'->>'From'"
+	case SearchKindContaining:
+		field = "message->'Raw'->>'Data'"
 	}
 	sqlQuery := "SELECT message FROM messages WHERE to_tsvector('english', " + field + ") @@ to_tsquery('english', $1) ORDER BY message->'Created' DESC LIMIT $2 OFFSET $3"
 	log.Printf("Query: %s", sqlQuery)

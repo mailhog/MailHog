@@ -49,12 +49,12 @@ func (web Web) Static(pattern string) func(http.ResponseWriter, *http.Request) {
 			ext := filepath.Ext(fp)
 
 			w.Header().Set("Content-Type", mime.TypeByExtension(ext))
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 			w.Write(b)
 			return
 		}
 		log.Printf("[UI] File not found: %s", fp)
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
@@ -97,7 +97,7 @@ func (web Web) Index() func(http.ResponseWriter, *http.Request) {
 
 		if err != nil {
 			log.Printf("[UI] Error executing template: %s", err)
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
@@ -108,12 +108,12 @@ func (web Web) Index() func(http.ResponseWriter, *http.Request) {
 
 		if err != nil {
 			log.Printf("[UI] Error executing template: %s", err)
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write(b.Bytes())
 	}
 }

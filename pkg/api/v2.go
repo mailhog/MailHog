@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/pat"
+	"github.com/ian-kent/go-log/log"
+
 	"github.com/doctolib/MailHog/pkg/config"
 	"github.com/doctolib/MailHog/pkg/data"
 	"github.com/doctolib/MailHog/pkg/monkey"
+	"github.com/doctolib/MailHog/pkg/storage"
 	"github.com/doctolib/MailHog/pkg/websockets"
-	"github.com/gorilla/pat"
-	"github.com/ian-kent/go-log/log"
 )
 
 // APIv2 implements version 2 of the MailHog API
@@ -49,12 +51,9 @@ func createAPIv2(conf *config.Config, r *pat.Router) *APIv2 {
 	r.Path(conf.WebPath + "/api/v2/websocket").Methods("GET").HandlerFunc(apiv2.websocket)
 
 	go func() {
-		for {
-			select {
-			case msg := <-apiv2.messageChan:
-				log.Println("Got message in APIv2 websocket channel")
-				apiv2.broadcast(msg)
-			}
+		for msg := range apiv2.messageChan {
+			log.Println("Got message in APIv2 websocket channel")
+			apiv2.broadcast(msg)
 		}
 	}()
 
@@ -128,14 +127,17 @@ func (apiv2 *APIv2) search(w http.ResponseWriter, req *http.Request) {
 	start, limit := apiv2.getStartLimit(w, req)
 
 	kind := req.URL.Query().Get("kind")
-	if kind != "from" && kind != "to" && kind != "containing" {
-		w.WriteHeader(400)
+	switch kind {
+	case storage.SearchKindTo, storage.SearchKindFrom, storage.SearchKindContaining:
+		// nop
+	default:
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	query := req.URL.Query().Get("query")
 	if len(query) == 0 {
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -159,7 +161,7 @@ func (apiv2 *APIv2) jim(w http.ResponseWriter, req *http.Request) {
 	apiv2.defaultOptions(w, req)
 
 	if apiv2.config.Monkey == nil {
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -174,7 +176,7 @@ func (apiv2 *APIv2) deleteJim(w http.ResponseWriter, req *http.Request) {
 	apiv2.defaultOptions(w, req)
 
 	if apiv2.config.Monkey == nil {
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -187,7 +189,7 @@ func (apiv2 *APIv2) createJim(w http.ResponseWriter, req *http.Request) {
 	apiv2.defaultOptions(w, req)
 
 	if apiv2.config.Monkey != nil {
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -198,7 +200,7 @@ func (apiv2 *APIv2) createJim(w http.ResponseWriter, req *http.Request) {
 	// but this works for now
 	apiv2.newJimFromBody(w, req)
 
-	w.WriteHeader(201)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (apiv2 *APIv2) newJimFromBody(w http.ResponseWriter, req *http.Request) error {
@@ -225,13 +227,13 @@ func (apiv2 *APIv2) updateJim(w http.ResponseWriter, req *http.Request) {
 	apiv2.defaultOptions(w, req)
 
 	if apiv2.config.Monkey == nil {
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	err := apiv2.newJimFromBody(w, req)
 	if err != nil {
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusBadRequest)
 	}
 }
 

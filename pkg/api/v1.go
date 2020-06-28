@@ -15,7 +15,6 @@ import (
 
 	"github.com/doctolib/MailHog/pkg/config"
 	"github.com/doctolib/MailHog/pkg/data"
-	"github.com/doctolib/MailHog/pkg/storage"
 )
 
 // APIv1 implements version 1 of the MailHog API
@@ -45,27 +44,27 @@ func createAPIv1(conf *config.Config, r *pat.Router) *APIv1 {
 	stream = goose.NewEventStream()
 
 	r.Path(conf.WebPath + "/api/v1/messages").Methods("GET").HandlerFunc(apiv1.messages)
-	r.Path(conf.WebPath + "/api/v1/messages").Methods("DELETE").HandlerFunc(apiv1.delete_all)
+	r.Path(conf.WebPath + "/api/v1/messages").Methods("DELETE").HandlerFunc(apiv1.deleteAll)
 	r.Path(conf.WebPath + "/api/v1/messages").Methods("OPTIONS").HandlerFunc(apiv1.defaultOptions)
 
 	r.Path(conf.WebPath + "/api/v1/messages/{id}").Methods("GET").HandlerFunc(apiv1.message)
-	r.Path(conf.WebPath + "/api/v1/messages/{id}").Methods("DELETE").HandlerFunc(apiv1.delete_one)
+	r.Path(conf.WebPath + "/api/v1/messages/{id}").Methods("DELETE").HandlerFunc(apiv1.deleteOne)
 	r.Path(conf.WebPath + "/api/v1/messages/{id}").Methods("OPTIONS").HandlerFunc(apiv1.defaultOptions)
 
 	r.Path(conf.WebPath + "/api/v1/messages/{id}/download").Methods("GET").HandlerFunc(apiv1.download)
 	r.Path(conf.WebPath + "/api/v1/messages/{id}/download").Methods("OPTIONS").HandlerFunc(apiv1.defaultOptions)
 
-	r.Path(conf.WebPath + "/api/v1/messages/{id}/mime/part/{part}/download").Methods("GET").HandlerFunc(apiv1.download_part)
+	r.Path(conf.WebPath + "/api/v1/messages/{id}/mime/part/{part}/download").Methods("GET").HandlerFunc(apiv1.downloadPart)
 	r.Path(conf.WebPath + "/api/v1/messages/{id}/mime/part/{part}/download").Methods("OPTIONS").HandlerFunc(apiv1.defaultOptions)
 
-	r.Path(conf.WebPath + "/api/v1/messages/{id}/release").Methods("POST").HandlerFunc(apiv1.release_one)
+	r.Path(conf.WebPath + "/api/v1/messages/{id}/release").Methods("POST").HandlerFunc(apiv1.releaseOne)
 	r.Path(conf.WebPath + "/api/v1/messages/{id}/release").Methods("OPTIONS").HandlerFunc(apiv1.defaultOptions)
 
 	r.Path(conf.WebPath + "/api/v1/events").Methods("GET").HandlerFunc(apiv1.eventstream)
 	r.Path(conf.WebPath + "/api/v1/events").Methods("OPTIONS").HandlerFunc(apiv1.defaultOptions)
 
 	go func() {
-		keepaliveTicker := time.Tick(time.Minute)
+		keepaliveTicker := time.NewTicker(time.Minute)
 		for {
 			select {
 			case msg := <-apiv1.messageChan:
@@ -74,7 +73,7 @@ func createAPIv1(conf *config.Config, r *pat.Router) *APIv1 {
 				json := string(bytes)
 				log.Printf("Sending content: %s\n", json)
 				apiv1.broadcast(json)
-			case <-keepaliveTicker:
+			case <-keepaliveTicker.C:
 				apiv1.keepalive()
 			}
 		}
@@ -125,19 +124,15 @@ func (apiv1 *APIv1) messages(w http.ResponseWriter, req *http.Request) {
 	apiv1.defaultOptions(w, req)
 
 	// TODO start, limit
-	switch apiv1.config.Storage.(type) {
-	case *storage.MongoDB:
-		messages, _ := apiv1.config.Storage.(*storage.MongoDB).List(0, 1000)
-		bytes, _ := json.Marshal(messages)
+	if messages, err := apiv1.config.Storage.List(0, 1000); err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	} else if bytes, err := json.Marshal(messages); err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
 		w.Header().Add("Content-Type", "text/json")
 		w.Write(bytes)
-	case *storage.InMemory:
-		messages, _ := apiv1.config.Storage.(*storage.InMemory).List(0, 1000)
-		bytes, _ := json.Marshal(messages)
-		w.Header().Add("Content-Type", "text/json")
-		w.Write(bytes)
-	default:
-		w.WriteHeader(500)
 	}
 }
 
@@ -150,14 +145,14 @@ func (apiv1 *APIv1) message(w http.ResponseWriter, req *http.Request) {
 	message, err := apiv1.config.Storage.Load(id)
 	if err != nil {
 		log.Printf("- Error: %s", err)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	bytes, err := json.Marshal(message)
 	if err != nil {
 		log.Printf("- Error: %s", err)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -171,32 +166,25 @@ func (apiv1 *APIv1) download(w http.ResponseWriter, req *http.Request) {
 
 	apiv1.defaultOptions(w, req)
 
-	w.Header().Set("Content-Type", "message/rfc822")
-	w.Header().Set("Content-Disposition", "attachment; filename=\""+id+".eml\"")
-
-	switch apiv1.config.Storage.(type) {
-	case *storage.MongoDB:
-		message, _ := apiv1.config.Storage.(*storage.MongoDB).Load(id)
-		for h, l := range message.Content.Headers {
-			for _, v := range l {
-				w.Write([]byte(h + ": " + v + "\r\n"))
-			}
-		}
-		w.Write([]byte("\r\n" + message.Content.Body))
-	case *storage.InMemory:
-		message, _ := apiv1.config.Storage.(*storage.InMemory).Load(id)
-		for h, l := range message.Content.Headers {
-			for _, v := range l {
-				w.Write([]byte(h + ": " + v + "\r\n"))
-			}
-		}
-		w.Write([]byte("\r\n" + message.Content.Body))
+	switch message, err := apiv1.config.Storage.Load(id); {
+	case err != nil:
+		w.WriteHeader(http.StatusInternalServerError)
+	case message == nil:
+		w.WriteHeader(http.StatusNotFound)
 	default:
-		w.WriteHeader(500)
+		w.Header().Set("Content-Type", "message/rfc822")
+		w.Header().Set("Content-Disposition", "attachment; filename=\""+id+".eml\"")
+
+		for h, l := range message.Content.Headers {
+			for _, v := range l {
+				w.Write([]byte(h + ": " + v + "\r\n"))
+			}
+		}
+		w.Write([]byte("\r\n" + message.Content.Body))
 	}
 }
 
-func (apiv1 *APIv1) download_part(w http.ResponseWriter, req *http.Request) {
+func (apiv1 *APIv1) downloadPart(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get(":id")
 	part := req.URL.Query().Get(":part")
 	log.Printf("[APIv1] GET /api/v1/messages/%s/mime/part/%s/download\n", id, part)
@@ -236,7 +224,7 @@ func (apiv1 *APIv1) download_part(w http.ResponseWriter, req *http.Request) {
 	w.Write(body)
 }
 
-func (apiv1 *APIv1) delete_all(w http.ResponseWriter, req *http.Request) {
+func (apiv1 *APIv1) deleteAll(w http.ResponseWriter, req *http.Request) {
 	log.Println("[APIv1] POST /api/v1/messages")
 
 	apiv1.defaultOptions(w, req)
@@ -246,14 +234,14 @@ func (apiv1 *APIv1) delete_all(w http.ResponseWriter, req *http.Request) {
 	err := apiv1.config.Storage.DeleteAll()
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
-func (apiv1 *APIv1) release_one(w http.ResponseWriter, req *http.Request) {
+func (apiv1 *APIv1) releaseOne(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get(":id")
 	log.Printf("[APIv1] POST /api/v1/messages/%s/release\n", id)
 
@@ -267,7 +255,7 @@ func (apiv1 *APIv1) release_one(w http.ResponseWriter, req *http.Request) {
 	err := decoder.Decode(&cfg)
 	if err != nil {
 		log.Printf("Error decoding request body: %s", err)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Error decoding request body"))
 		return
 	}
@@ -279,7 +267,7 @@ func (apiv1 *APIv1) release_one(w http.ResponseWriter, req *http.Request) {
 	if cfg.Save {
 		if _, ok := apiv1.config.OutgoingSMTP[cfg.Name]; ok {
 			log.Printf("Server already exists named %s", cfg.Name)
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		cf := config.OutgoingSMTP(cfg)
@@ -301,7 +289,7 @@ func (apiv1 *APIv1) release_one(w http.ResponseWriter, req *http.Request) {
 			cfg.Mechanism = c.Mechanism
 		} else {
 			log.Printf("Server not found: %s", cfg.Name)
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 	}
@@ -327,7 +315,7 @@ func (apiv1 *APIv1) release_one(w http.ResponseWriter, req *http.Request) {
 			auth = smtp.PlainAuth("", cfg.Username, cfg.Password, cfg.Host)
 		default:
 			log.Printf("Error - invalid authentication mechanism")
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 	}
@@ -335,13 +323,13 @@ func (apiv1 *APIv1) release_one(w http.ResponseWriter, req *http.Request) {
 	err = smtp.SendMail(cfg.Host+":"+cfg.Port, auth, "nobody@"+apiv1.config.Hostname, []string{cfg.Email}, bytes)
 	if err != nil {
 		log.Printf("Failed to release message: %s", err)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	log.Printf("Message released successfully")
 }
 
-func (apiv1 *APIv1) delete_one(w http.ResponseWriter, req *http.Request) {
+func (apiv1 *APIv1) deleteOne(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get(":id")
 
 	log.Printf("[APIv1] POST /api/v1/messages/%s/delete\n", id)
@@ -352,8 +340,8 @@ func (apiv1 *APIv1) delete_one(w http.ResponseWriter, req *http.Request) {
 	err := apiv1.config.Storage.DeleteOne(id)
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }

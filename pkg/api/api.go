@@ -13,12 +13,9 @@ func CreateAPI(conf *config.Config, r gohttp.Handler) {
 	apiv2 := createAPIv2(conf, r.(*pat.Router))
 
 	go func() {
-		for {
-			select {
-			case msg := <-conf.MessageChan:
-				apiv1.messageChan <- msg
-				apiv2.messageChan <- msg
-			}
+		for msg := range conf.MessageChan {
+			apiv1.messageChan <- msg
+			apiv2.messageChan <- msg
 		}
 	}()
 }
