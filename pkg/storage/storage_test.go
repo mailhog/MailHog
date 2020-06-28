@@ -347,6 +347,17 @@ func shouldResembleAsMessage(actual interface{}, expected ...interface{}) string
 		delete(expectedMessage.Content.Headers, header)
 	}
 
+	for _, message := range []*data.Message{actualMessage, expectedMessage} {
+		paths := make([]*data.Path, 0)
+		paths = append(paths, message.From)
+		paths = append(paths, message.To...)
+		for _, path := range paths {
+			if path.Relays == nil {
+				path.Relays = []string{}
+			}
+		}
+	}
+
 	if result := ShouldResemble(*actualMessage, *expectedMessage); result == "" {
 		return ""
 	} else if actualMessageJson, err := json.MarshalIndent(actualMessage, "", "  "); err != nil {

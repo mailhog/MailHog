@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/go-bindata/go-bindata v3.1.2+incompatible // indirect
 	github.com/golangci/golangci-lint v1.27.0 // indirect
+	github.com/google/uuid v1.0.0
 	github.com/gorilla/context v1.1.1
 	github.com/gorilla/mux v1.3.1-0.20170228224354-599cba5e7b61
 	github.com/gorilla/pat v0.0.0-20160413041632-cf955c3d1f2c

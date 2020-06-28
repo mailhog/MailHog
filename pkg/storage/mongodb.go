@@ -67,6 +67,7 @@ func (mongo *MongoDB) Search(kind, query string, start, limit int) (*data.Messag
 		"to":              1,
 		"content.headers": 1,
 		"content.size":    1,
+		"content.body":    1,
 		"created":         1,
 		"raw":             1,
 	}).All(messages)
@@ -89,6 +90,7 @@ func (mongo *MongoDB) List(start int, limit int) (*data.Messages, error) {
 		"to":              1,
 		"content.headers": 1,
 		"content.size":    1,
+		"content.body":    1,
 		"created":         1,
 		"raw":             1,
 	}).All(messages)
@@ -114,10 +116,13 @@ func (mongo *MongoDB) DeleteAll() error {
 // Load loads an individual message by storage ID
 func (mongo *MongoDB) Load(id string) (*data.Message, error) {
 	result := &data.Message{}
-	err := mongo.Collection.Find(bson.M{"id": id}).One(&result)
-	if err != nil {
+	if err := mongo.Collection.Find(bson.M{"id": id}).One(&result); err != nil {
+		if mgo.ErrNotFound == err {
+			return nil, nil
+		}
 		log.Printf("Error loading message: %s", err)
 		return nil, err
 	}
+
 	return result, nil
 }
