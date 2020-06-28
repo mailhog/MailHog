@@ -175,6 +175,9 @@ func (maildir *Maildir) DeleteAll() error {
 func (maildir *Maildir) Load(id string) (*data.Message, error) {
 	b, err := ioutil.ReadFile(filepath.Join(maildir.Path, id))
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	// FIXME domain

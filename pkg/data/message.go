@@ -1,6 +1,7 @@
 package data
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/rand"
 	"encoding/base64"
@@ -108,6 +109,8 @@ func (m *SMTPMessage) Parse(hostname string) *Message {
 		msg.MIME = msg.Content.ParseMIMEBody()
 	}
 
+	// TODO: Don't inject this stuff as part of the parsing function, we need a proper Marshal/Unmarshal.
+
 	// find headers
 	var hasMessageID bool
 	var receivedHeaderName string
@@ -166,32 +169,40 @@ func (m *SMTPMessage) Bytes() io.Reader {
 func FromBytes(b []byte) *SMTPMessage {
 	msg := &SMTPMessage{}
 	var headerDone bool
-	for _, l := range strings.Split(string(b), "\n") {
+	r := strings.NewReader(string(b))
+	rb := bufio.NewReader(r)
+
+	done := false
+	for !done {
+		l, err := rb.ReadString('\n')
+		if err == io.EOF {
+			done = true
+		} else if err != nil {
+			panic(err)
+		}
+
 		if !headerDone {
 			if strings.HasPrefix(l, "HELO:<") {
 				l = strings.TrimPrefix(l, "HELO:<")
-				l = strings.TrimSuffix(l, ">\r")
+				l = strings.TrimSuffix(l, ">\r\n")
 				msg.Helo = l
 				continue
-			}
-			if strings.HasPrefix(l, "FROM:<") {
+			} else if strings.HasPrefix(l, "FROM:<") {
 				l = strings.TrimPrefix(l, "FROM:<")
-				l = strings.TrimSuffix(l, ">\r")
+				l = strings.TrimSuffix(l, ">\r\n")
 				msg.From = l
 				continue
-			}
-			if strings.HasPrefix(l, "TO:<") {
+			} else if strings.HasPrefix(l, "TO:<") {
 				l = strings.TrimPrefix(l, "TO:<")
-				l = strings.TrimSuffix(l, ">\r")
+				l = strings.TrimSuffix(l, ">\r\n")
 				msg.To = append(msg.To, l)
 				continue
-			}
-			if strings.TrimSpace(l) == "" {
+			} else if l == "\r\n" {
 				headerDone = true
 				continue
 			}
 		}
-		msg.Data += l + "\n"
+		msg.Data += l
 	}
 	return msg
 }

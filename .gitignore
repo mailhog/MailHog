@@ -12,7 +12,8 @@
 /.vscode
 
 # Vim swap and backup files
-.*.sw*
+.*.sw[op]
+.sw[op]
 .*~
 
 # Ignore tag files
