@@ -3,9 +3,9 @@ package config
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io/ioutil"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/doctolib/MailHog/pkg/data"
 	"github.com/doctolib/MailHog/pkg/monkey"
@@ -31,6 +31,7 @@ func DefaultConfig() *Config {
 
 // Config is the config, kind of
 type Config struct {
+	Verbose          bool
 	SMTPBindAddr     string
 	HTTPBindAddr     string
 	Hostname         string
@@ -71,52 +72,52 @@ var Jim = &monkey.Jim{}
 
 // Configure configures stuff
 func Configure() *Config {
+	if cfg.Verbose {
+		log.SetLevel(log.TraceLevel)
+	} else {
+		log.SetLevel(log.InfoLevel)
+	}
+
 	switch cfg.StorageType {
 	case "memory":
-		log.Println("Using in-memory storage")
+		log.Info("Using in-memory storage")
 		cfg.Storage = storage.CreateInMemory()
 	case "mongodb":
-		log.Println("Using MongoDB message storage")
+		log.Info("Using MongoDB message storage")
 		s := storage.CreateMongoDB(cfg.MongoURI, cfg.MongoDatabase, cfg.MongoColl)
 		if s == nil {
-			log.Println("MongoDB storage unavailable, reverting to in-memory storage")
-			cfg.Storage = storage.CreateInMemory()
+			log.Fatal("MongoDB storage unavailable")
 		} else {
-			log.Println("Connected to MongoDB")
+			log.Infof("Connected to MongoDB")
 			cfg.Storage = s
 		}
 	case "postgres":
-		log.Println("Using PostgreSql message storage")
+		log.Info("Using PostgreSQL message storage")
 		s := storage.CreatePostgreSQL(cfg.PostgresURI)
 		if s == nil {
-			panic(fmt.Errorf("MongoDB storage unavailable"))
+			log.Fatal("PostgreSQL storage unavailable")
 		} else {
-			log.Println("Connected to MongoDB")
+			log.Infof("Connected to PostgreSQL")
 			cfg.Storage = s
 		}
 	case "maildir":
-		log.Println("Using maildir message storage")
+		log.Infof("Using Maildir message storage")
 		s := storage.CreateMaildir(cfg.MaildirPath)
 		cfg.Storage = s
 	default:
 		log.Fatalf("Invalid storage type %s", cfg.StorageType)
 	}
 
-	Jim.Configure(func(message string, args ...interface{}) {
-		log.Printf(message, args...)
-	})
+	Jim.Configure()
 	if cfg.InviteJim {
 		cfg.Monkey = Jim
 	}
 
 	if len(cfg.OutgoingSMTPFile) > 0 {
-		b, err := ioutil.ReadFile(cfg.OutgoingSMTPFile)
-		if err != nil {
-			log.Fatal(err)
-		}
 		var o map[string]*OutgoingSMTP
-		err = json.Unmarshal(b, &o)
-		if err != nil {
+		if b, err := ioutil.ReadFile(cfg.OutgoingSMTPFile); err != nil {
+			log.Fatal(err)
+		} else if err = json.Unmarshal(b, &o); err != nil {
 			log.Fatal(err)
 		}
 		cfg.OutgoingSMTP = o
@@ -133,6 +134,7 @@ func Configure() *Config {
 
 // RegisterFlags registers flags
 func RegisterFlags() {
+	flag.BoolVar(&cfg.Verbose, "verbose", envconf.FromEnvP("MH_VERBOSE", false).(bool), "Be verbose (TRACE log level)")
 	flag.StringVar(&cfg.SMTPBindAddr, "smtp-bind-addr", envconf.FromEnvP("MH_SMTP_BIND_ADDR", "0.0.0.0:1025").(string), "SMTP bind interface and port, e.g. 0.0.0.0:1025 or just :1025")
 	flag.StringVar(&cfg.HTTPBindAddr, "api-bind-addr", envconf.FromEnvP("MH_API_BIND_ADDR", "0.0.0.0:8025").(string), "HTTP bind interface and port for API, e.g. 0.0.0.0:8025 or just :8025")
 	flag.StringVar(&cfg.Hostname, "hostname", envconf.FromEnvP("MH_HOSTNAME", "mailhog.example").(string), "Hostname for EHLO/HELO response, e.g. mailhog.example")

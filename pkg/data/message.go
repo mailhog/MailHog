@@ -6,23 +6,12 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"io"
-	"log"
 	"mime"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
-
-// LogHandler is called for each log message. If nil, log messages will
-// be output using log.Printf instead.
-var LogHandler func(message string, args ...interface{})
-
-func logf(message string, args ...interface{}) {
-	if LogHandler != nil {
-		LogHandler(message, args...)
-	} else {
-		log.Printf(message, args...)
-	}
-}
 
 // MessageID represents the ID of an SMTP message including the hostname part
 type MessageID string
@@ -105,7 +94,7 @@ func (m *SMTPMessage) Parse(hostname string) *Message {
 	}
 
 	if msg.Content.IsMIME() {
-		logf("Parsing MIME body")
+		log.Trace("Parsing MIME body")
 		msg.MIME = msg.Content.ParseMIMEBody()
 	}
 
@@ -243,16 +232,16 @@ func (content *Content) ParseMIMEBody() *MIMEBody {
 			var p []string
 			if len(boundary) > 0 {
 				p = strings.Split(content.Body, "--"+boundary)
-				logf("Got boundary: %s", boundary)
+				log.Tracef("Got boundary: %s", boundary)
 			} else {
-				logf("Boundary not found: %s", hdr[0])
+				log.Tracef("Boundary not found: %s", hdr[0])
 			}
 
 			for _, s := range p {
 				if len(s) > 0 {
 					part := ContentFromString(strings.Trim(s, "\r\n"))
 					if part.IsMIME() {
-						logf("Parsing inner MIME body")
+						log.Trace("Parsing inner MIME body")
 						part.MIME = part.ParseMIMEBody()
 					}
 					parts = append(parts, part)
@@ -293,7 +282,7 @@ func PathFromString(path string) *Path {
 
 // ContentFromString parses SMTP content into separate headers and body
 func ContentFromString(data string) *Content {
-	logf("Parsing Content from string: '%s'", data)
+	log.Tracef("Parsing Content from string: '%s'", data)
 	x := strings.SplitN(data, "\r\n\r\n", 2)
 	h := make(map[string][]string)
 
@@ -315,7 +304,7 @@ func ContentFromString(data string) *Content {
 				h[key] = []string{value}
 				lastHdr = key
 			case len(hdr) > 0:
-				logf("Found invalid header: '%s'", hdr)
+				log.Warnf("Found invalid header: '%s'", hdr)
 			}
 		}
 		return &Content{

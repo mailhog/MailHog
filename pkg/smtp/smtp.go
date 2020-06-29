@@ -2,14 +2,15 @@ package smtp
 
 import (
 	"io"
-	"log"
 	"net"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/doctolib/MailHog/pkg/config"
 )
 
 func Listen(cfg *config.Config, exitCh chan int) *net.TCPListener {
-	log.Printf("[SMTP] Binding to address: %s\n", cfg.SMTPBindAddr)
+	log.Infof("[SMTP] Binding to address: %s\n", cfg.SMTPBindAddr)
 	ln, err := net.Listen("tcp", cfg.SMTPBindAddr)
 	if err != nil {
 		log.Fatalf("[SMTP] Error listening on socket: %s\n", err)
@@ -19,7 +20,7 @@ func Listen(cfg *config.Config, exitCh chan int) *net.TCPListener {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Printf("[SMTP] Error accepting connection: %s\n", err)
+			log.Errorf("[SMTP] Error accepting connection: %s\n", err)
 			continue
 		}
 

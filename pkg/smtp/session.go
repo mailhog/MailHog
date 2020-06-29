@@ -4,8 +4,9 @@ package smtp
 
 import (
 	"io"
-	"log"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/doctolib/MailHog/pkg/data"
 	"github.com/doctolib/MailHog/pkg/monkey"
@@ -48,14 +49,13 @@ func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Stora
 	}
 
 	session := &Session{conn, proto, storage, messageChan, remoteAddress, false, "", link, reader, writer, monkey}
-	proto.LogHandler = session.logf
 	proto.MessageReceivedHandler = session.acceptMessage
 	proto.ValidateSenderHandler = session.validateSender
 	proto.ValidateRecipientHandler = session.validateRecipient
 	proto.ValidateAuthenticationHandler = session.validateAuthentication
 	proto.GetAuthenticationMechanismsHandler = func() []string { return []string{"PLAIN"} }
 
-	session.logf("Starting session")
+	session.log().Info("Starting session")
 	session.Write(proto.Start())
 	for session.Read() {
 		if monkey != nil && monkey.Disconnect() {
@@ -63,7 +63,7 @@ func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Stora
 			break
 		}
 	}
-	session.logf("Session ended")
+	session.log().Info("Session ended")
 }
 
 func (c *Session) validateAuthentication(mechanism string, args ...string) (errorReply *Reply, ok bool) {
@@ -99,16 +99,16 @@ func (c *Session) validateSender(from string) bool {
 
 func (c *Session) acceptMessage(msg *data.SMTPMessage) (id string, err error) {
 	m := msg.Parse(c.proto.Hostname)
-	c.logf("Storing message %s", m.ID)
+	c.log().Debugf("Storing message %s", m.ID)
 	id, err = c.storage.Store(m)
 	c.messageChan <- m
 	return
 }
 
-func (c *Session) logf(message string, args ...interface{}) {
-	message = strings.Join([]string{"[SMTP %s]", message}, " ")
-	args = append([]interface{}{c.remoteAddress}, args...)
-	log.Printf(message, args...)
+func (c *Session) log() *log.Entry {
+	return log.WithFields(
+		log.Fields{"smtp_remote_address": c.remoteAddress},
+	)
 }
 
 // Read reads from the underlying net.TCPConn
@@ -117,20 +117,20 @@ func (c *Session) Read() bool {
 	n, err := c.reader.Read(buf)
 
 	if n == 0 {
-		c.logf("Connection closed by remote host\n")
+		c.log().Info("Connection closed by remote host")
 		io.Closer(c.conn).Close() // not sure this is necessary?
 		return false
 	}
 
 	if err != nil {
-		c.logf("Error reading from socket: %s\n", err)
+		c.log().Errorf("Error reading from socket: %s\n", err)
 		return false
 	}
 
 	text := string(buf[0:n])
 	logText := strings.Replace(text, "\n", "\\n", -1)
 	logText = strings.Replace(logText, "\r", "\\r", -1)
-	c.logf("Received %d bytes: '%s'\n", n, logText)
+	c.log().Tracef("Received %d bytes: '%s'\n", n, logText)
 
 	c.line += text
 
@@ -156,7 +156,7 @@ func (c *Session) Write(reply *Reply) {
 	for _, l := range lines {
 		logText := strings.Replace(l, "\n", "\\n", -1)
 		logText = strings.Replace(logText, "\r", "\\r", -1)
-		c.logf("Sent %d bytes: '%s'", len(l), logText)
+		c.log().Tracef("Sent %d bytes: '%s'", len(l), logText)
 		c.writer.Write([]byte(l))
 	}
 }

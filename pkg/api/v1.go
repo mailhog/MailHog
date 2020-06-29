@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/gorilla/pat"
-	"github.com/ian-kent/go-log/log"
 	"github.com/ian-kent/goose"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/doctolib/MailHog/pkg/config"
 	"github.com/doctolib/MailHog/pkg/data"
@@ -35,7 +35,7 @@ var stream *goose.EventStream
 type ReleaseConfig config.OutgoingSMTP
 
 func createAPIv1(conf *config.Config, r *pat.Router) *APIv1 {
-	log.Println("Creating API v1 with WebPath: " + conf.WebPath)
+	log.Infof("Creating API v1 with WebPath: " + conf.WebPath)
 	apiv1 := &APIv1{
 		config:      conf,
 		messageChan: make(chan *data.Message),
@@ -68,10 +68,10 @@ func createAPIv1(conf *config.Config, r *pat.Router) *APIv1 {
 		for {
 			select {
 			case msg := <-apiv1.messageChan:
-				log.Println("Got message in APIv1 event stream")
+				log.Debugf("Got message in APIv1 event stream")
 				bytes, _ := json.MarshalIndent(msg, "", "  ")
 				json := string(bytes)
-				log.Printf("Sending content: %s\n", json)
+				log.Debugf("Sending content: %s\n", json)
 				apiv1.broadcast(json)
 			case <-keepaliveTicker.C:
 				apiv1.keepalive()
@@ -91,7 +91,7 @@ func (apiv1 *APIv1) defaultOptions(w http.ResponseWriter, req *http.Request) {
 }
 
 func (apiv1 *APIv1) broadcast(json string) {
-	log.Println("[APIv1] BROADCAST /api/v1/events")
+	log.Infof("[APIv1] BROADCAST /api/v1/events")
 	b := []byte(json)
 	stream.Notify("data", b)
 }
@@ -102,12 +102,12 @@ func (apiv1 *APIv1) broadcast(json string) {
 // connections. Without this it is possible for the server to become
 // unresponsive due to too many open files.
 func (apiv1 *APIv1) keepalive() {
-	log.Println("[APIv1] KEEPALIVE /api/v1/events")
+	log.Infof("[APIv1] KEEPALIVE /api/v1/events")
 	stream.Notify("keepalive", []byte{})
 }
 
 func (apiv1 *APIv1) eventstream(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv1] GET /api/v1/events")
+	log.Infof("[APIv1] GET /api/v1/events")
 
 	//apiv1.defaultOptions(session)
 	if len(apiv1.config.CORSOrigin) > 0 {
@@ -119,7 +119,7 @@ func (apiv1 *APIv1) eventstream(w http.ResponseWriter, req *http.Request) {
 }
 
 func (apiv1 *APIv1) messages(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv1] GET /api/v1/messages")
+	log.Infof("[APIv1] GET /api/v1/messages")
 
 	apiv1.defaultOptions(w, req)
 
@@ -138,20 +138,20 @@ func (apiv1 *APIv1) messages(w http.ResponseWriter, req *http.Request) {
 
 func (apiv1 *APIv1) message(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get(":id")
-	log.Printf("[APIv1] GET /api/v1/messages/%s\n", id)
+	log.Infof("[APIv1] GET /api/v1/messages/%s\n", id)
 
 	apiv1.defaultOptions(w, req)
 
 	message, err := apiv1.config.Storage.Load(id)
 	if err != nil {
-		log.Printf("- Error: %s", err)
+		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	bytes, err := json.Marshal(message)
 	if err != nil {
-		log.Printf("- Error: %s", err)
+		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -162,7 +162,7 @@ func (apiv1 *APIv1) message(w http.ResponseWriter, req *http.Request) {
 
 func (apiv1 *APIv1) download(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get(":id")
-	log.Printf("[APIv1] GET /api/v1/messages/%s\n", id)
+	log.Infof("[APIv1] GET /api/v1/messages/%s\n", id)
 
 	apiv1.defaultOptions(w, req)
 
@@ -187,7 +187,7 @@ func (apiv1 *APIv1) download(w http.ResponseWriter, req *http.Request) {
 func (apiv1 *APIv1) downloadPart(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get(":id")
 	part := req.URL.Query().Get(":part")
-	log.Printf("[APIv1] GET /api/v1/messages/%s/mime/part/%s/download\n", id, part)
+	log.Infof("[APIv1] GET /api/v1/messages/%s/mime/part/%s/download\n", id, part)
 
 	// TODO extension from content-type?
 	apiv1.defaultOptions(w, req)
@@ -218,14 +218,16 @@ func (apiv1 *APIv1) downloadPart(w http.ResponseWriter, req *http.Request) {
 		var e error
 		body, e = base64.StdEncoding.DecodeString(message.MIME.Parts[pid].Body)
 		if e != nil {
-			log.Printf("[APIv1] Decoding base64 encoded body failed: %s", e)
+			log.Errorf("[APIv1] Decoding base64 encoded body failed: %s", e)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 	}
 	w.Write(body)
 }
 
 func (apiv1 *APIv1) deleteAll(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv1] POST /api/v1/messages")
+	log.Infof("[APIv1] POST /api/v1/messages")
 
 	apiv1.defaultOptions(w, req)
 
@@ -233,7 +235,7 @@ func (apiv1 *APIv1) deleteAll(w http.ResponseWriter, req *http.Request) {
 
 	err := apiv1.config.Storage.DeleteAll()
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -243,7 +245,7 @@ func (apiv1 *APIv1) deleteAll(w http.ResponseWriter, req *http.Request) {
 
 func (apiv1 *APIv1) releaseOne(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get(":id")
-	log.Printf("[APIv1] POST /api/v1/messages/%s/release\n", id)
+	log.Infof("[APIv1] POST /api/v1/messages/%s/release\n", id)
 
 	apiv1.defaultOptions(w, req)
 
@@ -254,30 +256,29 @@ func (apiv1 *APIv1) releaseOne(w http.ResponseWriter, req *http.Request) {
 	var cfg ReleaseConfig
 	err := decoder.Decode(&cfg)
 	if err != nil {
-		log.Printf("Error decoding request body: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Warnf("Error decoding request body: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Error decoding request body"))
 		return
 	}
 
-	log.Printf("%+v", cfg)
-
-	log.Printf("Got message: %s", msg.ID)
+	log.Debugf("%+v", cfg)
+	log.Debugf("Got message: %s", msg.ID)
 
 	if cfg.Save {
 		if _, ok := apiv1.config.OutgoingSMTP[cfg.Name]; ok {
-			log.Printf("Server already exists named %s", cfg.Name)
+			log.Warnf("Server already exists named %s", cfg.Name)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		cf := config.OutgoingSMTP(cfg)
 		apiv1.config.OutgoingSMTP[cfg.Name] = &cf
-		log.Printf("Saved server with name %s", cfg.Name)
+		log.Infof("Saved server with name %s", cfg.Name)
 	}
 
 	if len(cfg.Name) > 0 {
 		if c, ok := apiv1.config.OutgoingSMTP[cfg.Name]; ok {
-			log.Printf("Using server with name: %s", cfg.Name)
+			log.Infof("Using server with name: %s", cfg.Name)
 			cfg.Name = c.Name
 			if len(cfg.Email) == 0 {
 				cfg.Email = c.Email
@@ -288,13 +289,13 @@ func (apiv1 *APIv1) releaseOne(w http.ResponseWriter, req *http.Request) {
 			cfg.Password = c.Password
 			cfg.Mechanism = c.Mechanism
 		} else {
-			log.Printf("Server not found: %s", cfg.Name)
+			log.Warnf("Server not found: %s", cfg.Name)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 	}
 
-	log.Printf("Releasing to %s (via %s:%s)", cfg.Email, cfg.Host, cfg.Port)
+	log.Infof("Releasing to %s (via %s:%s)", cfg.Email, cfg.Host, cfg.Port)
 
 	bytes := make([]byte, 0)
 	for h, l := range msg.Content.Headers {
@@ -314,7 +315,7 @@ func (apiv1 *APIv1) releaseOne(w http.ResponseWriter, req *http.Request) {
 		case "PLAIN":
 			auth = smtp.PlainAuth("", cfg.Username, cfg.Password, cfg.Host)
 		default:
-			log.Printf("Error - invalid authentication mechanism")
+			log.Error("Error - invalid authentication mechanism")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -322,24 +323,24 @@ func (apiv1 *APIv1) releaseOne(w http.ResponseWriter, req *http.Request) {
 
 	err = smtp.SendMail(cfg.Host+":"+cfg.Port, auth, "nobody@"+apiv1.config.Hostname, []string{cfg.Email}, bytes)
 	if err != nil {
-		log.Printf("Failed to release message: %s", err)
+		log.Errorf("Failed to release message: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	log.Printf("Message released successfully")
+	log.Info("Message released successfully")
 }
 
 func (apiv1 *APIv1) deleteOne(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get(":id")
 
-	log.Printf("[APIv1] POST /api/v1/messages/%s/delete\n", id)
+	log.Infof("[APIv1] POST /api/v1/messages/%s/delete\n", id)
 
 	apiv1.defaultOptions(w, req)
 
 	w.Header().Add("Content-Type", "text/json")
 	err := apiv1.config.Storage.DeleteOne(id)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

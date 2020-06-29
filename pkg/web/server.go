@@ -6,11 +6,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gorilla/pat"
-	"github.com/ian-kent/go-log/log"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,8 +24,6 @@ func AuthFile(file string) {
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Fatalf("[HTTP] Error reading auth-file: %s", err)
-		// FIXME - go-log
-		os.Exit(1)
 	}
 
 	buf := bytes.NewBuffer(b)
@@ -52,7 +49,7 @@ func AuthFile(file string) {
 		}
 	}
 
-	log.Printf("[HTTP] Loaded %d users from %s", len(users), file)
+	log.Infof("[HTTP] Loaded %d users from %s", len(users), file)
 
 	Authorised = func(u, pw string) bool {
 		hpw, ok := users[u]
@@ -88,7 +85,7 @@ func BasicAuthHandler(h http.Handler) http.Handler {
 
 // Listen binds to httpBindAddr
 func Listen(httpBindAddr string, _ func(string) ([]byte, error), exitCh chan int, registerCallback func(http.Handler)) {
-	log.Info("[HTTP] Binding to address: %s", httpBindAddr)
+	log.Infof("[HTTP] Binding to address: %s", httpBindAddr)
 
 	pat := pat.New()
 	registerCallback(pat)
@@ -98,6 +95,6 @@ func Listen(httpBindAddr string, _ func(string) ([]byte, error), exitCh chan int
 
 	err := http.ListenAndServe(httpBindAddr, auth)
 	if err != nil {
-		log.Fatalf("[HTTP] Error binding to address %s: %s", httpBindAddr, err)
+		log.Errorf("[HTTP] Error binding to address %s: %s", httpBindAddr, err)
 	}
 }

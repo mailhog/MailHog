@@ -3,11 +3,12 @@ package web
 import (
 	"bytes"
 	"html/template"
-	"log"
 	"mime"
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/doctolib/MailHog/pkg/config"
 	"github.com/gorilla/pat"
@@ -31,7 +32,7 @@ func CreateWeb(cfg *config.Config, r http.Handler, asset func(string) ([]byte, e
 
 	WebPath = cfg.WebPath
 
-	log.Printf("Serving under http://%s%s/", cfg.HTTPBindAddr, WebPath)
+	log.Infof("Serving under http://%s%s/", cfg.HTTPBindAddr, WebPath)
 
 	pat.Path(WebPath + "/images/{file:.*}").Methods("GET").HandlerFunc(web.Static("assets/images/{{file}}"))
 	pat.Path(WebPath + "/css/{file:.*}").Methods("GET").HandlerFunc(web.Static("assets/css/{{file}}"))
@@ -53,7 +54,7 @@ func (web Web) Static(pattern string) func(http.ResponseWriter, *http.Request) {
 			w.Write(b)
 			return
 		}
-		log.Printf("[UI] File not found: %s", fp)
+		log.Warnf("[UI] File not found: %s", fp)
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
@@ -96,7 +97,7 @@ func (web Web) Index() func(http.ResponseWriter, *http.Request) {
 		err := tmpl.Execute(b, data)
 
 		if err != nil {
-			log.Printf("[UI] Error executing template: %s", err)
+			log.Errorf("[UI] Error executing template: %s", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -107,7 +108,7 @@ func (web Web) Index() func(http.ResponseWriter, *http.Request) {
 		err = layout.Execute(b, data)
 
 		if err != nil {
-			log.Printf("[UI] Error executing template: %s", err)
+			log.Errorf("[UI] Error executing template: %s", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

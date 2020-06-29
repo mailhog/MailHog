@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/pat"
-	"github.com/ian-kent/go-log/log"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/doctolib/MailHog/generated/assets"
@@ -30,7 +30,7 @@ func configure() {
 
 func main() {
 	if len(os.Args) > 1 && (os.Args[1] == "-version" || os.Args[1] == "--version") {
-		fmt.Println("MailHog version: " + version)
+		log.Infof("MailHog version: " + version)
 		os.Exit(0)
 	}
 	if len(os.Args) > 1 && os.Args[1] == "bcrypt" {
@@ -65,7 +65,7 @@ func main() {
 	go smtp.Listen(conf, exitCh)
 
 	for range exitCh {
-		log.Printf("Received exit signal")
+		log.Infof("Received exit signal")
 		os.Exit(0)
 	}
 }

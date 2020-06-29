@@ -9,7 +9,7 @@ import (
 // ChaosMonkey should be implemented by chaos monkeys!
 type ChaosMonkey interface {
 	RegisterFlags()
-	Configure(func(string, ...interface{}))
+	Configure()
 
 	// Accept is called for each incoming connection. Returning false closes the connection.
 	Accept(conn net.Conn) bool

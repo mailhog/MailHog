@@ -5,9 +5,10 @@ package smtp
 import (
 	"encoding/base64"
 	"errors"
-	"log"
 	"regexp"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/doctolib/MailHog/pkg/data"
 )
@@ -48,9 +49,6 @@ type Protocol struct {
 	MaximumLineLength int
 	MaximumRecipients int
 
-	// LogHandler is called for each log message. If nil, log messages will
-	// be output using log.Printf instead.
-	LogHandler func(message string, args ...interface{})
 	// MessageReceivedHandler is called for each message accepted by the
 	// SMTP protocol. It must return a MessageID or error. If nil, messages
 	// will be rejected with an error.
@@ -115,21 +113,16 @@ func (proto *Protocol) resetState() {
 	proto.Message = &data.SMTPMessage{}
 }
 
-func (proto *Protocol) logf(message string, args ...interface{}) {
-	message = strings.Join([]string{"[PROTO: %s]", message}, " ")
-	args = append([]interface{}{StateMap[proto.State]}, args...)
-
-	if proto.LogHandler != nil {
-		proto.LogHandler(message, args...)
-	} else {
-		log.Printf(message, args...)
-	}
+func (proto *Protocol) log() *log.Entry {
+	return log.WithFields(
+		log.Fields{"proto": StateMap[proto.State]},
+	)
 }
 
 // Start begins an SMTP conversation with a 220 reply, placing the state
 // machine in ESTABLISH state.
 func (proto *Protocol) Start() *Reply {
-	proto.logf("Started session, switching to ESTABLISH state")
+	proto.log().Info("Started session, switching to ESTABLISH state")
 	proto.State = ESTABLISH
 	return ReplyIdent(proto.Hostname + " " + proto.Ident)
 }
@@ -173,7 +166,7 @@ func (proto *Protocol) ProcessData(line string) (reply *Reply) {
 	if strings.HasSuffix(proto.Message.Data, "\r\n.\r\n") {
 		proto.Message.Data = strings.Replace(proto.Message.Data, "\r\n..", "\r\n.", -1)
 
-		proto.logf("Got EOF, storing message and switching to MAIL state")
+		proto.log().Info("Got EOF, storing message and switching to MAIL state")
 		proto.Message.Data = strings.TrimSuffix(proto.Message.Data, "\r\n.\r\n")
 		proto.State = MAIL
 
@@ -185,7 +178,7 @@ func (proto *Protocol) ProcessData(line string) (reply *Reply) {
 
 		id, err := proto.MessageReceivedHandler(proto.Message)
 		if err != nil {
-			proto.logf("Error storing message: %s", err)
+			proto.log().Errorf("Error storing message: %s", err)
 			return ReplyStorageFailed("Unable to store message")
 		}
 		return ReplyOk("Ok: queued as " + id)
@@ -202,7 +195,7 @@ func (proto *Protocol) ProcessCommand(line string) (reply *Reply) {
 	words := strings.Split(line, " ")
 	command := strings.ToUpper(words[0])
 	args := strings.Join(words[1:], " ")
-	proto.logf("In state %d, got command '%s', args '%s'", proto.State, command, args)
+	proto.log().Debugf("In state %d, got command '%s', args '%s'", proto.State, command, args)
 
 	cmd := ParseCommand(strings.TrimSuffix(line, "\r\n"))
 	return proto.Command(cmd)
@@ -215,37 +208,37 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		proto.lastCommand = command
 	}()
 	if proto.SMTPVerbFilter != nil {
-		proto.logf("sending to SMTP verb filter")
+		proto.log().Info("sending to SMTP verb filter")
 		r := proto.SMTPVerbFilter(command.verb)
 		if r != nil {
-			proto.logf("response returned by SMTP verb filter")
+			proto.log().Debug("response returned by SMTP verb filter")
 			return r
 		}
 	}
 
 	if proto.TLSPending && !proto.TLSUpgraded {
-		proto.logf("Got command before TLS upgrade complete")
+		proto.log().Warn("Got command before TLS upgrade complete")
 		// FIXME what to do?
 		return ReplyBye()
 	}
 
 	switch command.verb {
 	case "RSET":
-		proto.logf("Got RSET command, switching to MAIL state")
+		proto.log().Info("Got RSET command, switching to MAIL state")
 		proto.State = MAIL
 		proto.Message = &data.SMTPMessage{}
 		return ReplyOk()
 	case "NOOP":
-		proto.logf("Got NOOP verb, staying in %s state", StateMap[proto.State])
+		proto.log().Infof("Got NOOP verb, staying in %s state", StateMap[proto.State])
 		return ReplyOk()
 	case "QUIT":
-		proto.logf("Got QUIT verb, staying in %s state", StateMap[proto.State])
+		proto.log().Infof("Got QUIT verb, staying in %s state", StateMap[proto.State])
 		proto.State = DONE
 		return ReplyBye()
 	}
 
 	if proto.State == ESTABLISH {
-		proto.logf("In ESTABLISH state")
+		proto.log().Info("In ESTABLISH state")
 		switch command.verb {
 		case "HELO":
 			return proto.HELO(command.args)
@@ -254,23 +247,23 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		case "STARTTLS":
 			return proto.STARTTLS(command.args)
 		default:
-			proto.logf("Got unknown command for ESTABLISH state: '%s'", command.verb)
+			proto.log().Warnf("Got unknown command for ESTABLISH state: '%s'", command.verb)
 			return ReplyUnrecognisedCommand()
 		}
 	}
 
 	if command.verb == "STARTTLS" {
-		proto.logf("Got STARTTLS command outside ESTABLISH state")
+		proto.log().Info("Got STARTTLS command outside ESTABLISH state")
 		return proto.STARTTLS(command.args)
 	}
 	if proto.RequireTLS && !proto.TLSUpgraded {
-		proto.logf("RequireTLS set and not TLS not upgraded")
+		proto.log().Warn("RequireTLS set and not TLS not upgraded")
 		return ReplyMustIssueSTARTTLSFirst()
 	}
 
 	switch proto.State {
 	case AUTHPLAIN:
-		proto.logf("Got PLAIN authentication response: '%s', switching to MAIL state", command.args)
+		proto.log().Infof("Got PLAIN authentication response: '%s', switching to MAIL state", command.args)
 		proto.State = MAIL
 		if proto.ValidateAuthenticationHandler != nil {
 			// TODO error handling
@@ -289,11 +282,11 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		}
 		return ReplyAuthOk()
 	case AUTHLOGIN:
-		proto.logf("Got LOGIN authentication response: '%s', switching to AUTHLOGIN2 state", command.args)
+		proto.log().Infof("Got LOGIN authentication response: '%s', switching to AUTHLOGIN2 state", command.args)
 		proto.State = AUTHLOGIN2
 		return ReplyAuthResponse("UGFzc3dvcmQ6")
 	case AUTHLOGIN2:
-		proto.logf("Got LOGIN authentication response: '%s', switching to MAIL state", command.args)
+		proto.log().Infof("Got LOGIN authentication response: '%s', switching to MAIL state", command.args)
 		proto.State = MAIL
 		if proto.ValidateAuthenticationHandler != nil {
 			if reply, ok := proto.ValidateAuthenticationHandler("LOGIN", proto.lastCommand.orig, command.orig); !ok {
@@ -302,7 +295,7 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		}
 		return ReplyAuthOk()
 	case AUTHCRAMMD5:
-		proto.logf("Got CRAM-MD5 authentication response: '%s', switching to MAIL state", command.args)
+		proto.log().Infof("Got CRAM-MD5 authentication response: '%s', switching to MAIL state", command.args)
 		proto.State = MAIL
 		if proto.ValidateAuthenticationHandler != nil {
 			if reply, ok := proto.ValidateAuthenticationHandler("CRAM-MD5", command.orig); !ok {
@@ -311,12 +304,12 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		}
 		return ReplyAuthOk()
 	case MAIL:
-		proto.logf("In MAIL state")
+		proto.log().Info("In MAIL state")
 		switch command.verb {
 		case "AUTH":
-			proto.logf("Got AUTH command, staying in MAIL state")
+			proto.log().Info("Got AUTH command, staying in MAIL state")
 			if strings.HasPrefix(command.args, "PLAIN ") {
-				proto.logf("Got PLAIN authentication: %s", strings.TrimPrefix(command.args, "PLAIN "))
+				proto.log().Infof("Got PLAIN authentication: %s", strings.TrimPrefix(command.args, "PLAIN "))
 				if proto.ValidateAuthenticationHandler != nil {
 					val, _ := base64.StdEncoding.DecodeString(strings.TrimPrefix(command.args, "PLAIN "))
 					bits := strings.Split(string(val), string(rune(0)))
@@ -335,21 +328,21 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 			}
 			switch command.args {
 			case "LOGIN":
-				proto.logf("Got LOGIN authentication, switching to AUTH state")
+				proto.log().Info("Got LOGIN authentication, switching to AUTH state")
 				proto.State = AUTHLOGIN
 				return ReplyAuthResponse("VXNlcm5hbWU6")
 			case "PLAIN":
-				proto.logf("Got PLAIN authentication (no args), switching to AUTH2 state")
+				proto.log().Info("Got PLAIN authentication (no args), switching to AUTH2 state")
 				proto.State = AUTHPLAIN
 				return ReplyAuthResponse("")
 			case "CRAM-MD5":
-				proto.logf("Got CRAM-MD5 authentication, switching to AUTH state")
+				proto.log().Info("Got CRAM-MD5 authentication, switching to AUTH state")
 				proto.State = AUTHCRAMMD5
 				return ReplyAuthResponse("PDQxOTI5NDIzNDEuMTI4Mjg0NzJAc291cmNlZm91ci5hbmRyZXcuY211LmVkdT4=")
 			}
 
 			if strings.HasPrefix(command.args, "EXTERNAL ") {
-				proto.logf("Got EXTERNAL authentication: %s", strings.TrimPrefix(command.args, "EXTERNAL "))
+				proto.log().Infof("Got EXTERNAL authentication: %s", strings.TrimPrefix(command.args, "EXTERNAL "))
 				if proto.ValidateAuthenticationHandler != nil {
 					if reply, ok := proto.ValidateAuthenticationHandler("EXTERNAL", strings.TrimPrefix(command.args, "EXTERNAL ")); !ok {
 						return reply
@@ -360,7 +353,7 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 
 			return ReplyUnsupportedAuth()
 		case "MAIL":
-			proto.logf("Got MAIL command, switching to RCPT state")
+			proto.log().Info("Got MAIL command, switching to RCPT state")
 			from, err := proto.ParseMAIL(command.args)
 			if err != nil {
 				return ReplyError(err)
@@ -379,14 +372,14 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		case "EHLO":
 			return proto.EHLO(command.args)
 		default:
-			proto.logf("Got unknown command for MAIL state: '%s'", command)
+			proto.log().Infof("Got unknown command for MAIL state: '%s'", command)
 			return ReplyUnrecognisedCommand()
 		}
 	case RCPT:
-		proto.logf("In RCPT state")
+		proto.log().Info("In RCPT state")
 		switch command.verb {
 		case "RCPT":
-			proto.logf("Got RCPT command")
+			proto.log().Info("Got RCPT command")
 			if proto.MaximumRecipients > -1 && len(proto.Message.To) >= proto.MaximumRecipients {
 				return ReplyTooManyRecipients()
 			}
@@ -408,22 +401,22 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 		case "EHLO":
 			return proto.EHLO(command.args)
 		case "DATA":
-			proto.logf("Got DATA command, switching to DATA state")
+			proto.log().Info("Got DATA command, switching to DATA state")
 			proto.State = DATA
 			return ReplyDataResponse()
 		default:
-			proto.logf("Got unknown command for RCPT state: '%s'", command)
+			proto.log().Infof("Got unknown command for RCPT state: '%s'", command)
 			return ReplyUnrecognisedCommand()
 		}
 	}
 
-	proto.logf("Command not recognised")
+	proto.log().Warn("Command not recognised")
 	return ReplyUnrecognisedCommand()
 }
 
 // HELO creates a reply to a HELO command
 func (proto *Protocol) HELO(args string) (reply *Reply) {
-	proto.logf("Got HELO command, switching to MAIL state")
+	proto.log().Info("Got HELO command, switching to MAIL state")
 	proto.State = MAIL
 	proto.Message.Helo = args
 	return ReplyOk("Hello " + args)
@@ -431,7 +424,7 @@ func (proto *Protocol) HELO(args string) (reply *Reply) {
 
 // EHLO creates a reply to a EHLO command
 func (proto *Protocol) EHLO(args string) (reply *Reply) {
-	proto.logf("Got EHLO command, switching to MAIL state")
+	proto.log().Info("Got EHLO command, switching to MAIL state")
 	proto.State = MAIL
 	proto.Message.Helo = args
 	replyArgs := []string{"Hello " + args, "PIPELINING"}
@@ -458,7 +451,7 @@ func (proto *Protocol) STARTTLS(args string) (reply *Reply) {
 	}
 
 	if proto.TLSHandler == nil {
-		proto.logf("tls handler not found")
+		proto.log().Warn("tls handler not found")
 		return ReplyUnrecognisedCommand()
 	}
 

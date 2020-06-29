@@ -3,8 +3,9 @@ package websockets
 import (
 	"net/http"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/gorilla/websocket"
-	"github.com/ian-kent/go-log/log"
 )
 
 type Hub struct {
@@ -62,7 +63,8 @@ func (h *Hub) unregister(c *connection) {
 func (h *Hub) Serve(w http.ResponseWriter, r *http.Request) {
 	ws, err := h.upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	c := &connection{hub: h, ws: ws, send: make(chan interface{}, 256)}

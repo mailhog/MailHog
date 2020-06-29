@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/pat"
-	"github.com/ian-kent/go-log/log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/doctolib/MailHog/pkg/config"
 	"github.com/doctolib/MailHog/pkg/data"
@@ -26,7 +26,7 @@ type APIv2 struct {
 }
 
 func createAPIv2(conf *config.Config, r *pat.Router) *APIv2 {
-	log.Println("Creating API v2 with WebPath: " + conf.WebPath)
+	log.Infof("Creating API v2 with WebPath: %s", conf.WebPath)
 	apiv2 := &APIv2{
 		config:      conf,
 		messageChan: make(chan *data.Message),
@@ -52,7 +52,7 @@ func createAPIv2(conf *config.Config, r *pat.Router) *APIv2 {
 
 	go func() {
 		for msg := range apiv2.messageChan {
-			log.Println("Got message in APIv2 websocket channel")
+			log.Debug("Got message in APIv2 websocket channel")
 			apiv2.broadcast(msg)
 		}
 	}()
@@ -96,7 +96,7 @@ func (apiv2 *APIv2) getStartLimit(w http.ResponseWriter, req *http.Request) (sta
 }
 
 func (apiv2 *APIv2) messages(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv2] GET /api/v2/messages")
+	log.Info("[APIv2] GET /api/v2/messages")
 
 	apiv2.defaultOptions(w, req)
 
@@ -120,7 +120,7 @@ func (apiv2 *APIv2) messages(w http.ResponseWriter, req *http.Request) {
 }
 
 func (apiv2 *APIv2) search(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv2] GET /api/v2/search")
+	log.Info("[APIv2] GET /api/v2/search")
 
 	apiv2.defaultOptions(w, req)
 
@@ -156,7 +156,7 @@ func (apiv2 *APIv2) search(w http.ResponseWriter, req *http.Request) {
 }
 
 func (apiv2 *APIv2) jim(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv2] GET /api/v2/jim")
+	log.Info("[APIv2] GET /api/v2/jim")
 
 	apiv2.defaultOptions(w, req)
 
@@ -171,7 +171,7 @@ func (apiv2 *APIv2) jim(w http.ResponseWriter, req *http.Request) {
 }
 
 func (apiv2 *APIv2) deleteJim(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv2] DELETE /api/v2/jim")
+	log.Info("[APIv2] DELETE /api/v2/jim")
 
 	apiv2.defaultOptions(w, req)
 
@@ -184,7 +184,7 @@ func (apiv2 *APIv2) deleteJim(w http.ResponseWriter, req *http.Request) {
 }
 
 func (apiv2 *APIv2) createJim(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv2] POST /api/v2/jim")
+	log.Info("[APIv2] POST /api/v2/jim")
 
 	apiv2.defaultOptions(w, req)
 
@@ -222,7 +222,7 @@ func (apiv2 *APIv2) newJimFromBody(w http.ResponseWriter, req *http.Request) err
 }
 
 func (apiv2 *APIv2) updateJim(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv2] PUT /api/v2/jim")
+	log.Info("[APIv2] PUT /api/v2/jim")
 
 	apiv2.defaultOptions(w, req)
 
@@ -238,7 +238,7 @@ func (apiv2 *APIv2) updateJim(w http.ResponseWriter, req *http.Request) {
 }
 
 func (apiv2 *APIv2) listOutgoingSMTP(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv2] GET /api/v2/outgoing-smtp")
+	log.Info("[APIv2] GET /api/v2/outgoing-smtp")
 
 	apiv2.defaultOptions(w, req)
 
@@ -248,13 +248,13 @@ func (apiv2 *APIv2) listOutgoingSMTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (apiv2 *APIv2) websocket(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv2] GET /api/v2/websocket")
+	log.Info("[APIv2] GET /api/v2/websocket")
 
 	apiv2.wsHub.Serve(w, req)
 }
 
 func (apiv2 *APIv2) broadcast(msg *data.Message) {
-	log.Println("[APIv2] BROADCAST /api/v2/websocket")
+	log.Info("[APIv2] BROADCAST /api/v2/websocket")
 
 	apiv2.wsHub.Broadcast(msg)
 }

@@ -3,10 +3,11 @@ package storage
 import (
 	"errors"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/doctolib/MailHog/pkg/data"
 )
@@ -31,7 +32,7 @@ func CreateMaildir(path string) *Maildir {
 			panic(err)
 		}
 	}
-	log.Println("Maildir path is", path)
+	log.Infof("Maildir path is %s", path)
 	return &Maildir{
 		Path: path,
 	}
@@ -82,7 +83,7 @@ func (maildir *Maildir) Search(kind, query string, start, limit int) (*data.Mess
 
 		msg, err := maildir.Load(info.Name())
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			return nil
 		}
 
@@ -120,7 +121,7 @@ func (maildir *Maildir) Search(kind, query string, start, limit int) (*data.Mess
 	})
 
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 
 	msgs := data.Messages(filteredMessages)
@@ -129,7 +130,7 @@ func (maildir *Maildir) Search(kind, query string, start, limit int) (*data.Mess
 
 // List lists stored messages by index
 func (maildir *Maildir) List(start, limit int) (*data.Messages, error) {
-	log.Println("Listing messages in", maildir.Path)
+	log.Debugf("Listing messages in %s", maildir.Path)
 	messages := make([]data.Message, 0)
 
 	dir, err := os.Open(maildir.Path)
@@ -156,7 +157,7 @@ func (maildir *Maildir) List(start, limit int) (*data.Messages, error) {
 		messages = append(messages, m)
 	}
 
-	log.Printf("Found %d messages", len(messages))
+	log.Debugf("Found %d messages", len(messages))
 	msgs := data.Messages(messages)
 	return &msgs, nil
 }

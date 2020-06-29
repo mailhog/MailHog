@@ -1,11 +1,11 @@
 package storage
 
 import (
-	"log"
-
-	"github.com/doctolib/MailHog/pkg/data"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+
+	"github.com/doctolib/MailHog/pkg/data"
 )
 
 // MongoDB represents MongoDB backed storage backend
@@ -16,15 +16,15 @@ type MongoDB struct {
 
 // CreateMongoDB creates a MongoDB backed storage backend
 func CreateMongoDB(uri, db, coll string) *MongoDB {
-	log.Printf("Connecting to MongoDB: %s\n", uri)
+	log.Infof("Connecting to MongoDB: %s\n", uri)
 	session, err := mgo.Dial(uri)
 	if err != nil {
-		log.Printf("Error connecting to MongoDB: %s", err)
+		log.Errorf("Error connecting to MongoDB: %s", err)
 		return nil
 	}
 	err = session.DB(db).C(coll).EnsureIndexKey("created")
 	if err != nil {
-		log.Printf("Failed creating index: %s", err)
+		log.Errorf("Failed creating index: %s", err)
 		return nil
 	}
 	return &MongoDB{
@@ -37,7 +37,7 @@ func CreateMongoDB(uri, db, coll string) *MongoDB {
 func (mongo *MongoDB) Store(m *data.Message) (string, error) {
 	err := mongo.Collection.Insert(m)
 	if err != nil {
-		log.Printf("Error inserting message: %s", err)
+		log.Errorf("Error inserting message: %s", err)
 		return "", err
 	}
 	return string(m.ID), nil
@@ -76,7 +76,7 @@ func (mongo *MongoDB) Search(kind, query string, start, limit int) (*data.Messag
 		"raw":             1,
 	}).All(messages)
 	if err != nil {
-		log.Printf("Error loading messages: %s", err)
+		log.Errorf("Error loading messages: %s", err)
 		return nil, 0, err
 	}
 	count, _ = mongo.Collection.Find(bson.M{field: bson.RegEx{Pattern: query, Options: "i"}}).Count()
@@ -99,7 +99,7 @@ func (mongo *MongoDB) List(start int, limit int) (*data.Messages, error) {
 		"raw":             1,
 	}).All(messages)
 	if err != nil {
-		log.Printf("Error loading messages: %s", err)
+		log.Errorf("Error loading messages: %s", err)
 		return nil, err
 	}
 	return messages, nil
@@ -124,7 +124,7 @@ func (mongo *MongoDB) Load(id string) (*data.Message, error) {
 		if mgo.ErrNotFound == err {
 			return nil, nil
 		}
-		log.Printf("Error loading message: %s", err)
+		log.Errorf("Error loading message: %s", err)
 		return nil, err
 	}
 
