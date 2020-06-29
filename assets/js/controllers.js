@@ -340,6 +340,7 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
   }
 
   $scope.selectMessage = function(message) {
+    $scope.searching = false;
     $timeout(function(){
       $scope.resizePreview();
     }, 0);
