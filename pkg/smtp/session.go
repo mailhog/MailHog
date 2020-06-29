@@ -57,11 +57,8 @@ func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Stora
 
 	session.logf("Starting session")
 	session.Write(proto.Start())
-	log.Print("here")
 	for session.Read() {
-		log.Print("here1")
 		if monkey != nil && monkey.Disconnect() {
-			log.Print("here2")
 			session.conn.Close()
 			break
 		}

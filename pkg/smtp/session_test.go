@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"sync"
 	"testing"
 
@@ -68,18 +67,15 @@ func TestAcceptMessage(t *testing.T) {
 		serverConn := &fakeRw{
 			_read: func(p []byte) (int, error) {
 				n, err := serverReader.Read(p)
-				log.Printf("read %d, %v\n", n, err)
 				return n, err
 			},
 			_write: func(p []byte) (int, error) {
 				n, err := serverWritter.Write(p)
-				log.Printf("write %d, %v\n", n, err)
 				return n, err
 			},
 			_close: func() error {
 				var err error
 
-				log.Println("closing")
 				if rErr := serverReader.Close(); rErr != nil {
 					err = rErr
 				}

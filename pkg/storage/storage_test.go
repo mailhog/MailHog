@@ -28,16 +28,6 @@ func testStoreLoad(s Storage) {
 		}
 		if loadedMessage, err := s.Load(string(message.ID)); true {
 			So(err, ShouldBeNil)
-			if messageString, err := json.MarshalIndent(message, "", "  "); err != nil {
-				panic(err)
-			} else {
-				fmt.Printf("%s\n", messageString)
-			}
-			if messageString, err := json.MarshalIndent(loadedMessage, "", "  "); err != nil {
-				panic(err)
-			} else {
-				fmt.Printf("%s\n", messageString)
-			}
 			So(loadedMessage, shouldResembleAsMessage, message)
 		}
 	})

@@ -140,7 +140,6 @@ func (proto *Protocol) Start() *Reply {
 // - TODO decide whether to move this to a buffer inside Protocol
 //   sort of like it this way, since it gives control back to the caller
 func (proto *Protocol) Parse(line string) (string, *Reply) {
-	log.Printf("Parsing line %q\n", line)
 	var reply *Reply
 
 	if !strings.Contains(line, "\r\n") {
@@ -169,7 +168,6 @@ func (proto *Protocol) Parse(line string) (string, *Reply) {
 // ProcessData handles content received (with newlines stripped) while
 // in the SMTP DATA state
 func (proto *Protocol) ProcessData(line string) (reply *Reply) {
-	log.Printf("got proto line %s\n", line)
 	proto.Message.Data += line + "\r\n"
 
 	if strings.HasSuffix(proto.Message.Data, "\r\n.\r\n") {
@@ -200,7 +198,6 @@ func (proto *Protocol) ProcessData(line string) (reply *Reply) {
 // It expects the line string to be a properly formed SMTP verb and arguments
 func (proto *Protocol) ProcessCommand(line string) (reply *Reply) {
 	line = strings.Trim(line, "\r\n")
-	proto.logf("Processing line: %s", line)
 
 	words := strings.Split(line, " ")
 	command := strings.ToUpper(words[0])
