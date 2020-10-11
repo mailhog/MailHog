@@ -37,6 +37,13 @@ sudo apt-get -y install golang-go
 go get github.com/mailhog/MailHog
 ```
 
+#### FreeBSD
+```bash
+pkg install mailhog
+sysrc mailhog_enable="YES"
+service mailhog start
+```
+
 Then, start MailHog by running `/path/to/MailHog` in the command line.
 
 E.g. the path to Go's bin files on Ubuntu is `~/go/bin/`, so to start the MailHog run:
