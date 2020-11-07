@@ -6,13 +6,14 @@ FROM golang:alpine
 
 # Install MailHog:
 RUN apk --no-cache add --virtual build-dependencies \
-    git \
+    git libcap \
   && mkdir -p /root/gocode \
   && export GOPATH=/root/gocode \
   && go get github.com/mailhog/MailHog \
   && mv /root/gocode/bin/MailHog /usr/local/bin \
   && rm -rf /root/gocode \
-  && apk del --purge build-dependencies
+  && setcap  CAP_NET_BIND_SERVICE=+eip /usr/local/bin/MailHog \
+  && apk del --purge build-dependencies libcap 
 
 # Add mailhog user/group with uid/gid 1000.
 # This is a workaround for boot2docker issue #581, see
