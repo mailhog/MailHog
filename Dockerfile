@@ -6,12 +6,14 @@ FROM golang:alpine
 
 # Install MailHog:
 RUN apk --no-cache add --virtual build-dependencies \
-    git libcap \
+    git \
   && mkdir -p /root/gocode \
   && export GOPATH=/root/gocode \
   && go get github.com/mailhog/MailHog \
   && mv /root/gocode/bin/MailHog /usr/local/bin \
-  && rm -rf /root/gocode \
+  && rm -rf /root/gocode 
+RUN apk --no-cache add --virtual build-dependencies \
+    libcap \
   && setcap  CAP_NET_BIND_SERVICE=+eip /usr/local/bin/MailHog \
   && apk del --purge build-dependencies libcap 
 
