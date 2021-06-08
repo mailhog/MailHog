@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
+        "sort"
 	"github.com/mailhog/data"
 )
 
