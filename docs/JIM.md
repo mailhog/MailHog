@@ -29,7 +29,7 @@ You can control Jims behavior using the following command line flags:
 
 | Flag                  | Default | Description
 | --------------------- | ------- | ----
-| -invite-jim           | true    | Set to true to invite Jim
+| -invite-jim           | false   | Set to true to invite Jim
 | -jim-disconnect       | 0.005   | Chance of randomly disconnecting a session
 | -jim-accept           | 0.99    | Chance of accepting an incoming connection
 | -jim-linkspeed-affect | 0.1     | Chance of applying a rate limit
