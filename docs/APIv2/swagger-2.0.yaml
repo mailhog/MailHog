@@ -4,7 +4,91 @@ info:
   version: "2.0.0"
   title: MailHog API
 
+definitions:
+  jim:
+    type: object
+    properties:
+      DisconnectChance:
+        type: number
+        format: float
+        description: Chance of randomly disconnecting a session
+      AcceptChance:
+        type: number
+        format: float
+        description: Chance of accepting an incoming connection
+      LinkSpeedAffect:
+        type: number
+        format: float
+        description: Chance of applying a rate limit
+      LinkSpeedMin:
+        type: number
+        format: float
+        description: Minimum link speed (in bytes per second)
+      LinkSpeedMax:
+        type: number
+        format: float
+        description: Maximum link speed (in bytes per second)
+      RejectSenderChance:
+        type: number
+        format: float
+        description: Chance of rejecting a MAIL FROM command
+      RejectRecipientChance:
+        type: number
+        format: float
+        description: Chance of rejecting a RCPT TO command
+      RejectAuthChance:
+        type: number
+        format: float
+        description: Chance of rejecting an AUTH command
+
 paths:
+  /api/v2/jim:
+    get:
+      description: |
+        Get Jim's configuration
+      responses:
+        '200':
+          description: Successful response
+          schema:
+            $ref: '#/definitions/jim'
+        '404':
+          description: Jim is not enabled
+    post:
+      description: |
+        Enable Jim
+      parameters:
+        - 
+          name: 'config'
+          in: body
+          schema:
+            $ref: '#/definitions/jim'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Jim is already enabled
+    put:
+      description: |
+        Update Jim
+      parameters:
+        - 
+          name: 'config'
+          in: body
+          schema:
+            $ref: '#/definitions/jim'
+      responses:
+        '200':
+          description: Successful response
+        '404':
+          description: Jim is not enabled
+    delete:
+      description: |
+        Disable Jim
+      responses:
+        '200':
+          description: Successful response
+        '404':
+          description: Jim is not enabled
   /api/v2/messages:
     get:
       description: |
