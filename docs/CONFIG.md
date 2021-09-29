@@ -55,7 +55,7 @@ Only `name`, `host` and `port` are required.
 
 ### Firewalls and proxies
 
-If you have MailHog behind a firewall, you'll need ports `8025` and `8080` by default.
+If you have MailHog behind a firewall, you'll need ports `8025` and `1025` by default.
 
 You can override this using `-api-bind-addr`, `-ui-bind-addr` and `-smtp-bind-addr` configuration options.
 
