@@ -45,6 +45,13 @@ E.g. the path to Go's bin files on Ubuntu is `~/go/bin/`, so to start the MailHo
 ~/go/bin/MailHog
 ```
 
+#### FreeBSD
+```bash
+pkg install mailhog
+sysrc mailhog_enable="YES"
+service mailhog start
+```
+
 #### Docker
 [Run it from Docker Hub](https://registry.hub.docker.com/r/mailhog/mailhog/) or using the provided [Dockerfile](Dockerfile)
 
