@@ -16,7 +16,8 @@ type InMemory struct {
 }
 
 // CreateInMemory creates a new in memory storage backend
-func CreateInMemory() *InMemory {
+func CreateInMemory(limit int) *InMemory {
+	StorageLimit = limit
 	return &InMemory{
 		MessageIDIndex: make(map[string]int),
 		Messages:       make([]*data.Message, 0),
@@ -25,10 +26,18 @@ func CreateInMemory() *InMemory {
 
 // Store stores a message and returns its storage ID
 func (memory *InMemory) Store(m *data.Message) (string, error) {
+	var c int = 0
 	memory.mu.Lock()
 	defer memory.mu.Unlock()
+	c = len(memory.Messages)
+	if c >= StorageLimit {
+		for i := 0; i < (c - StorageLimit) + 1; i++ {
+			memory.Messages[c-1] = nil
+			memory.Messages = memory.Messages[:c-1]
+		}
+	}
 	memory.Messages = append(memory.Messages, m)
-	memory.MessageIDIndex[string(m.ID)] = len(memory.Messages) - 1
+	memory.MessageIDIndex[string(m.ID)] = c - 1
 	return string(m.ID), nil
 }
 

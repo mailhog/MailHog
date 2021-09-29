@@ -14,7 +14,7 @@ type MongoDB struct {
 }
 
 // CreateMongoDB creates a MongoDB backed storage backend
-func CreateMongoDB(uri, db, coll string) *MongoDB {
+func CreateMongoDB(uri, db, coll string, limit int) *MongoDB {
 	log.Printf("Connecting to MongoDB: %s\n", uri)
 	session, err := mgo.Dial(uri)
 	if err != nil {
@@ -26,6 +26,7 @@ func CreateMongoDB(uri, db, coll string) *MongoDB {
 		log.Printf("Failed creating index: %s", err)
 		return nil
 	}
+	StorageLimit = limit
 	return &MongoDB{
 		Session:    session,
 		Collection: session.DB(db).C(coll),
@@ -34,13 +35,30 @@ func CreateMongoDB(uri, db, coll string) *MongoDB {
 
 // Store stores a message in MongoDB and returns its storage ID
 func (mongo *MongoDB) Store(m *data.Message) (string, error) {
+	c, _ := mongo.Collection.Count()
+	// If number of documents bigger than the limit then remove the last document
+	if c >= StorageLimit {
+		log.Printf("Storage count (%d) bigger than limit (%d). Removing the exceeding documents.", c, StorageLimit)
+		var result bson.M
+		change := mgo.Change{
+			Remove: true,
+			ReturnNew: false,
+		}
+		for i := 0; i < (c - StorageLimit) + 1; i++ {
+			_, err := mongo.Collection.Find(bson.M{}).Sort("created").Apply(change, &result)
+			if err != nil {
+				log.Printf("Error deleting messages: %s (continuing anyway)", err)
+			}
+		}
+	}
 	err := mongo.Collection.Insert(m)
 	if err != nil {
-		log.Printf("Error inserting message: %s", err)
-		return "", err
+					log.Printf("Error inserting message: %s", err)
+					return "", err
 	}
 	return string(m.ID), nil
 }
+
 
 // Count returns the number of stored messages
 func (mongo *MongoDB) Count() int {
@@ -100,13 +118,15 @@ func (mongo *MongoDB) List(start int, limit int) (*data.Messages, error) {
 
 // DeleteOne deletes an individual message by storage ID
 func (mongo *MongoDB) DeleteOne(id string) error {
-	_, err := mongo.Collection.RemoveAll(bson.M{"id": id})
+	 _, err := mongo.Collection.RemoveAll(bson.M{"id": id})
 	return err
 }
 
 // DeleteAll deletes all messages stored in MongoDB
 func (mongo *MongoDB) DeleteAll() error {
-	_, err := mongo.Collection.RemoveAll(bson.M{})
+	//_, err := mongo.Collection.RemoveAll(bson.M{})
+	// Is faster to just drop the collection than delete all documents in it
+	err := mongo.Collection.DropCollection()
 	return err
 }
 
