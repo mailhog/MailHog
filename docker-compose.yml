@@ -1,0 +1,20 @@
+version: "3.5"
+
+services:
+  mailtrap:
+    restart: always
+    image: mailhog/mailhog
+    depends_on:
+      - mongodb
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      - MH_STORAGE=mongodb
+      - MH_MONGO_URI=mongodb:27017
+
+  mongodb:
+    image: mongo
+    restart: always
+    volumes:
+      - ./mongodb:/data/db
