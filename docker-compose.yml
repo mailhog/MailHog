@@ -1,7 +1,7 @@
 version: "3.5"
 
 services:
-  mailtrap:
+  mailhog:
     restart: always
     image: mailhog/mailhog
     depends_on:
