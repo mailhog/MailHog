@@ -97,13 +97,8 @@ func main() {
 	}
 	go smtp.Listen(apiconf, exitCh)
 
-	for {
-		select {
-		case <-exitCh:
-			log.Printf("Received exit signal")
-			os.Exit(0)
-		}
-	}
+	<-exitCh
+	log.Printf("Received exit signal")
 }
 
 /*
