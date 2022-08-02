@@ -31,10 +31,16 @@ brew update && brew install mailhog
 
 Then, start MailHog by running `mailhog` in the command line.
 
-#### Debian / Ubuntu
+#### Debian / Ubuntu Go < v1.18
 ```bash
 sudo apt-get -y install golang-go
 go get github.com/mailhog/MailHog
+```
+
+#### Go >= v1.17 (Debian Bookworm) 
+```bash
+sudo apt-get -y install golang-go
+go install github.com/mailhog/MailHog@latest
 ```
 
 Then, start MailHog by running `/path/to/MailHog` in the command line.
