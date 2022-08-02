@@ -34,6 +34,7 @@ Then, start MailHog by running `mailhog` in the command line.
 #### Debian / Ubuntu Go < v1.18
 ```bash
 sudo apt-get -y install golang-go
+sudo apt-get install git
 go get github.com/mailhog/MailHog
 ```
 
