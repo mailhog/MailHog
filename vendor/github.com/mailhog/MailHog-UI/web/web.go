@@ -37,9 +37,19 @@ func CreateWeb(cfg *config.Config, r http.Handler, asset func(string) ([]byte, e
 	pat.Path(WebPath + "/css/{file:.*}").Methods("GET").HandlerFunc(web.Static("assets/css/{{file}}"))
 	pat.Path(WebPath + "/js/{file:.*}").Methods("GET").HandlerFunc(web.Static("assets/js/{{file}}"))
 	pat.Path(WebPath + "/fonts/{file:.*}").Methods("GET").HandlerFunc(web.Static("assets/fonts/{{file}}"))
+	pat.Path(WebPath + "/healthz").Methods("GET").HandlerFunc(web.HealthCheck())
 	pat.StrictSlash(true).Path(WebPath + "/").Methods("GET").HandlerFunc(web.Index())
 
 	return web
+}
+
+func (web Web) HealthCheck() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		log.Println("[UI] GET /healthz")
+
+		w.WriteHeader(200)
+		w.Write([]byte("UP"))
+	}
 }
 
 func (web Web) Static(pattern string) func(http.ResponseWriter, *http.Request) {

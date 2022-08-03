@@ -84,7 +84,8 @@ func BasicAuthHandler(h http.Handler) http.Handler {
 		}
 
 		u, pw, ok := req.BasicAuth()
-		if !ok || !Authorised(u, pw) {
+
+		if (req.URL.Path != "/healthz") && (!ok || !Authorised(u, pw)) {
 			w.Header().Set("WWW-Authenticate", "Basic")
 			w.WriteHeader(401)
 			return
