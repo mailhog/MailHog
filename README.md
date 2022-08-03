@@ -107,6 +107,7 @@ Alternatively, you can use your native `sendmail` command by providing `-S`, for
 For example, in PHP you could add either of these lines to `php.ini`:
 
 ```
+sendmail_path = /usr/local/bin/mailhog sendmail test@example.org
 sendmail_path = /usr/local/bin/mhsendmail
 sendmail_path = /usr/sbin/sendmail -S mail:1025
 ```
