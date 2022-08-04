@@ -5,6 +5,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"log"
+	"time"
 )
 
 // MongoDB represents MongoDB backed storage backend
@@ -14,7 +15,7 @@ type MongoDB struct {
 }
 
 // CreateMongoDB creates a MongoDB backed storage backend
-func CreateMongoDB(uri, db, coll string) *MongoDB {
+func CreateMongoDB(uri, db, coll string, timeout int) *MongoDB {
 	log.Printf("Connecting to MongoDB: %s\n", uri)
 	session, err := mgo.Dial(uri)
 	if err != nil {
@@ -26,6 +27,7 @@ func CreateMongoDB(uri, db, coll string) *MongoDB {
 		log.Printf("Failed creating index: %s", err)
 		return nil
 	}
+	session.SetSocketTimeout(time.Duration(timeout) * time.Second)
 	return &MongoDB{
 		Session:    session,
 		Collection: session.DB(db).C(coll),
