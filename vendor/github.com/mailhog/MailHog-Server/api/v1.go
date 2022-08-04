@@ -191,6 +191,14 @@ func (apiv1 *APIv1) download(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 		w.Write([]byte("\r\n" + message.Content.Body))
+	case *storage.Maildir:
+		message, _ := apiv1.config.Storage.(*storage.Maildir).Load(id)
+		for h, l := range message.Content.Headers {
+			for _, v := range l {
+				w.Write([]byte(h + ": " + v + "\r\n"))
+			}
+		}
+		w.Write([]byte("\r\n" + message.Content.Body))
 	default:
 		w.WriteHeader(500)
 	}
