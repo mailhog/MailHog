@@ -13,6 +13,7 @@ You can configure MailHog using command line options or environment variables:
 | MH_MONGO_COLLECTION | -mongo-coll     | messages        | MongoDB collection name for message storage
 | MH_MONGO_DB         | -mongo-db       | mailhog         | MongoDB database name for message storage
 | MH_MONGO_URI        | -mongo-uri      | 127.0.0.1:27017 | MongoDB host and port
+| MH_MONGO_FALLBACK   | -mongo-fallback | true            | Fallback to in-memory storage if MongoDB is unavailable
 | MH_SMTP_BIND_ADDR   | -smtp-bind-addr | 0.0.0.0:1025    | Interface and port for SMTP server to bind to
 | MH_STORAGE          | -storage        | memory          | Set message storage: memory / mongodb / maildir
 | MH_OUTGOING_SMTP    | -outgoing-smtp  |                 | JSON file defining outgoing SMTP servers
