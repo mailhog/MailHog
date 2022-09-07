@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/pat"
-	"github.com/mailhog/MailHog-UI/config"
+	"github.com/GabeReis/MailHog-UI/config"
 )
 
 var APIHost string
