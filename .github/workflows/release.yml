@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  releases-matrix:
+    name: Release Go Binary
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        goos:
+          - darwin
+          - freebsd
+          - linux
+          - netbsd
+          - openbsd
+          - windows
+        goarch:
+          - "386"
+          - amd64
+          - arm
+          - arm64
+        exclude:
+          - goos: darwin
+            goarch: "386"
+          - goos: darwin
+            goarch: arm
+    steps:
+      - uses: actions/checkout@v3
+      - uses: wangyoucao577/go-release-action@v1.28
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          goversion: "1.19"
+          md5sum: false
+          sha256sum: true
