@@ -116,7 +116,7 @@ func (apiv2 *APIv2) messages(w http.ResponseWriter, req *http.Request) {
 	res.Total = apiv2.config.Storage.Count()
 
 	bytes, _ := json.Marshal(res)
-	w.Header().Add("Content-Type", "text/json")
+	w.Header().Add("Content-Type", "application/json")
 	w.Write(bytes)
 }
 
