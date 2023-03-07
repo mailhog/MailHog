@@ -65,7 +65,7 @@ service mailhog start
 
 Check out how to [configure MailHog](/docs/CONFIG.md), or use the default settings:
   * the SMTP server starts on port 1025
-  * the HTTP server starts on port 8025
+  * the HTTP server starts on port 8025 (See Web UI: http://localhost:8025/ )
   * in-memory message storage
 
 ### Features
