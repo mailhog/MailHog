@@ -1,7 +1,7 @@
 MailHog [ ![Download](https://img.shields.io/github/release/mailhog/MailHog.svg) ](https://github.com/mailhog/MailHog/releases/tag/v1.0.0) [![GoDoc](https://godoc.org/github.com/mailhog/MailHog?status.svg)](https://godoc.org/github.com/mailhog/MailHog) [![Build Status](https://travis-ci.org/mailhog/MailHog.svg?branch=master)](https://travis-ci.org/mailhog/MailHog)
 =========
 
-Inspired by [MailCatcher](https://mailcatcher.me/), easier to install.
+Inspired by [MailCatcher](https://mailcatcher.me/), Easier to install.
 
 * Download and run MailHog
 * Configure your outgoing SMTP server
@@ -74,7 +74,7 @@ See [MailHog libraries](docs/LIBRARIES.md) for a list of MailHog client librarie
 
 * ESMTP server implementing RFC5321
 * Support for SMTP AUTH (RFC4954) and PIPELINING (RFC2920)
-* Web interface to view messages (plain text, HTML or source)
+* Web interface to view messages (Plain text, HTML or source)
   * Supports RFC2047 encoded headers
 * Real-time updates using EventSource
 * Release messages to real SMTP servers
