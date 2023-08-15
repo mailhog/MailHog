@@ -29,6 +29,8 @@ MailHog is an email testing tool for developers:
 brew update && brew install mailhog
 ```
 
+Pro tip: Use brew services to start Mailhog and have it automatically started when your computer restarts: `brew services start mailhog`.
+
 Then, start MailHog by running `mailhog` in the command line.
 
 #### Debian / Ubuntu Go < v1.18
@@ -112,6 +114,8 @@ sendmail_path = /usr/sbin/sendmail -S mail:1025
 ```
 
 #### Web UI
+
+To open the UI, navigate to localhost:8025. Here's what the UI looks like:
 
 ![Screenshot of MailHog web interface](/docs/MailHog.png "MailHog web interface")
 
