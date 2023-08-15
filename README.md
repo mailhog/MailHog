@@ -29,9 +29,9 @@ MailHog is an email testing tool for developers:
 brew update && brew install mailhog
 ```
 
-Pro tip: Use brew services to start Mailhog and have it automatically started when your computer restarts: `brew services start mailhog`.
-
 Then, start MailHog by running `mailhog` in the command line.
+
+Pro tip: Use brew services to start Mailhog and have it automatically started when your computer restarts: `brew services start mailhog`.
 
 #### Debian / Ubuntu Go < v1.18
 ```bash
