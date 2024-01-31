@@ -129,12 +129,12 @@ func (apiv1 *APIv1) messages(w http.ResponseWriter, req *http.Request) {
 	case *storage.MongoDB:
 		messages, _ := apiv1.config.Storage.(*storage.MongoDB).List(0, 1000)
 		bytes, _ := json.Marshal(messages)
-		w.Header().Add("Content-Type", "text/json")
+		w.Header().Add("Content-Type", "application/json")
 		w.Write(bytes)
 	case *storage.InMemory:
 		messages, _ := apiv1.config.Storage.(*storage.InMemory).List(0, 1000)
 		bytes, _ := json.Marshal(messages)
-		w.Header().Add("Content-Type", "text/json")
+		w.Header().Add("Content-Type", "application/json")
 		w.Write(bytes)
 	default:
 		w.WriteHeader(500)
@@ -161,7 +161,7 @@ func (apiv1 *APIv1) message(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(bytes)
 }
 
@@ -241,7 +241,7 @@ func (apiv1 *APIv1) delete_all(w http.ResponseWriter, req *http.Request) {
 
 	apiv1.defaultOptions(w, req)
 
-	w.Header().Add("Content-Type", "text/json")
+	w.Header().Add("Content-Type", "application/json")
 
 	err := apiv1.config.Storage.DeleteAll()
 	if err != nil {
@@ -259,7 +259,7 @@ func (apiv1 *APIv1) release_one(w http.ResponseWriter, req *http.Request) {
 
 	apiv1.defaultOptions(w, req)
 
-	w.Header().Add("Content-Type", "text/json")
+	w.Header().Add("Content-Type", "application/json")
 	msg, _ := apiv1.config.Storage.Load(id)
 
 	decoder := json.NewDecoder(req.Body)
@@ -348,7 +348,7 @@ func (apiv1 *APIv1) delete_one(w http.ResponseWriter, req *http.Request) {
 
 	apiv1.defaultOptions(w, req)
 
-	w.Header().Add("Content-Type", "text/json")
+	w.Header().Add("Content-Type", "application/json")
 	err := apiv1.config.Storage.DeleteOne(id)
 	if err != nil {
 		log.Println(err)
