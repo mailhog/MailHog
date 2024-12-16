@@ -1,0 +1,19 @@
+---
+services:
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI port
+    environment:
+      - MH_STORAGE=maildir
+    volumes:
+      - ./maildir:/maildir
+    restart: unless-stopped
+    healthcheck:
+          test: ["CMD", "nc", "-z", "localhost", "8025"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
