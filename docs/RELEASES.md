@@ -1,6 +1,16 @@
 MailHog Releases
 ================
 
+### [v1.0.1](https://github.com/secforge/MailHog/releases/v1.0.1)
+
+- Add email blacklist functionality
+- Add APIv2 endpoints for blacklist management:
+  - `GET /api/v2/blacklist` - List blacklisted email addresses  
+  - `POST /api/v2/blacklist/{email}` - Add email to blacklist
+  - `DELETE /api/v2/blacklist/{email}` - Remove email from blacklist
+- Add SMTP rejection for blacklisted sender and recipient addresses
+- Minimal changes to maintain upstream compatibility
+
 ### [v1.0.0](https://github.com/mailhog/MailHog/releases/v1.0.0)
 
 There's still outstanding PRs and issues which haven't been addressed in this release.

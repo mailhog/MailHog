@@ -38,6 +38,7 @@ func Listen(cfg *config.Config, exitCh chan int) *net.TCPListener {
 			cfg.MessageChan,
 			cfg.Hostname,
 			cfg.Monkey,
+			cfg.Blacklist,
 		)
 	}
 }

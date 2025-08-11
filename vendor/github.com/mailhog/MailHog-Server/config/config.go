@@ -27,6 +27,7 @@ func DefaultConfig() *Config {
 		WebPath:      "",
 		MessageChan:  make(chan *data.Message),
 		OutgoingSMTP: make(map[string]*OutgoingSMTP),
+		Blacklist:    make(map[string]bool),
 	}
 }
 
@@ -49,6 +50,7 @@ type Config struct {
 	OutgoingSMTPFile string
 	OutgoingSMTP     map[string]*OutgoingSMTP
 	WebPath          string
+	Blacklist        map[string]bool
 }
 
 // OutgoingSMTP is an outgoing SMTP server config

@@ -24,6 +24,7 @@ type Session struct {
 	isTLS         bool
 	line          string
 	link          *linkio.Link
+	blacklist     map[string]bool
 
 	reader io.Reader
 	writer io.Writer
@@ -31,7 +32,7 @@ type Session struct {
 }
 
 // Accept starts a new SMTP session using io.ReadWriteCloser
-func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Storage, messageChan chan *data.Message, hostname string, monkey monkey.ChaosMonkey) {
+func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Storage, messageChan chan *data.Message, hostname string, monkey monkey.ChaosMonkey, blacklist map[string]bool) {
 	defer conn.Close()
 
 	proto := smtp.NewProtocol()
@@ -48,7 +49,7 @@ func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Stora
 		}
 	}
 
-	session := &Session{conn, proto, storage, messageChan, remoteAddress, false, "", link, reader, writer, monkey}
+	session := &Session{conn, proto, storage, messageChan, remoteAddress, false, "", link, blacklist, reader, writer, monkey}
 	proto.LogHandler = session.logf
 	proto.MessageReceivedHandler = session.acceptMessage
 	proto.ValidateSenderHandler = session.validateSender
@@ -79,6 +80,10 @@ func (c *Session) validateAuthentication(mechanism string, args ...string) (erro
 }
 
 func (c *Session) validateRecipient(to string) bool {
+	if c.blacklist != nil && c.blacklist[to] {
+		c.logf("Rejecting email to blacklisted address: %s", to)
+		return false
+	}
 	if c.monkey != nil {
 		ok := c.monkey.ValidRCPT(to)
 		if !ok {
@@ -89,6 +94,10 @@ func (c *Session) validateRecipient(to string) bool {
 }
 
 func (c *Session) validateSender(from string) bool {
+	if c.blacklist != nil && c.blacklist[from] {
+		c.logf("Rejecting email from blacklisted address: %s", from)
+		return false
+	}
 	if c.monkey != nil {
 		ok := c.monkey.ValidMAIL(from)
 		if !ok {

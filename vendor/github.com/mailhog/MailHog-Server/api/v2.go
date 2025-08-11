@@ -46,6 +46,13 @@ func createAPIv2(conf *config.Config, r *pat.Router) *APIv2 {
 	r.Path(conf.WebPath + "/api/v2/outgoing-smtp").Methods("GET").HandlerFunc(apiv2.listOutgoingSMTP)
 	r.Path(conf.WebPath + "/api/v2/outgoing-smtp").Methods("OPTIONS").HandlerFunc(apiv2.defaultOptions)
 
+	r.Path(conf.WebPath + "/api/v2/blacklist").Methods("GET").HandlerFunc(apiv2.blacklist_list)
+	r.Path(conf.WebPath + "/api/v2/blacklist").Methods("OPTIONS").HandlerFunc(apiv2.defaultOptions)
+
+	r.Path(conf.WebPath + "/api/v2/blacklist/{email}").Methods("POST").HandlerFunc(apiv2.blacklist_add)
+	r.Path(conf.WebPath + "/api/v2/blacklist/{email}").Methods("DELETE").HandlerFunc(apiv2.blacklist_remove)
+	r.Path(conf.WebPath + "/api/v2/blacklist/{email}").Methods("OPTIONS").HandlerFunc(apiv2.defaultOptions)
+
 	r.Path(conf.WebPath + "/api/v2/websocket").Methods("GET").HandlerFunc(apiv2.websocket)
 
 	go func() {
@@ -255,4 +262,65 @@ func (apiv2 *APIv2) broadcast(msg *data.Message) {
 	log.Println("[APIv2] BROADCAST /api/v2/websocket")
 
 	apiv2.wsHub.Broadcast(msg)
+}
+
+func (apiv2 *APIv2) blacklist_list(w http.ResponseWriter, req *http.Request) {
+	log.Println("[APIv2] GET /api/v2/blacklist")
+
+	apiv2.defaultOptions(w, req)
+
+	emails := make([]string, 0, len(apiv2.config.Blacklist))
+	for email := range apiv2.config.Blacklist {
+		emails = append(emails, email)
+	}
+
+	bytes, err := json.Marshal(emails)
+	if err != nil {
+		log.Printf("Error marshaling blacklist: %s", err)
+		w.WriteHeader(500)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(bytes)
+}
+
+func (apiv2 *APIv2) blacklist_add(w http.ResponseWriter, req *http.Request) {
+	email := req.URL.Query().Get(":email")
+	log.Printf("[APIv2] POST /api/v2/blacklist/%s", email)
+
+	apiv2.defaultOptions(w, req)
+
+	if email == "" {
+		w.WriteHeader(400)
+		w.Write([]byte("Email address is required"))
+		return
+	}
+
+	apiv2.config.Blacklist[email] = true
+	log.Printf("Added %s to blacklist", email)
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(200)
+	w.Write([]byte(`{"success": true}`))
+}
+
+func (apiv2 *APIv2) blacklist_remove(w http.ResponseWriter, req *http.Request) {
+	email := req.URL.Query().Get(":email")
+	log.Printf("[APIv2] DELETE /api/v2/blacklist/%s", email)
+
+	apiv2.defaultOptions(w, req)
+
+	if email == "" {
+		w.WriteHeader(400)
+		w.Write([]byte("Email address is required"))
+		return
+	}
+
+	delete(apiv2.config.Blacklist, email)
+	log.Printf("Removed %s from blacklist", email)
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(200)
+	w.Write([]byte(`{"success": true}`))
 }

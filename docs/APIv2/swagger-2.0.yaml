@@ -91,6 +91,60 @@ paths:
                     created:
                       type: string
                       format: date-time
+  /api/v2/blacklist:
+    get:
+      description: |
+        Retrieve a list of blacklisted email addresses
+      responses:
+        200:
+          description: Successful response
+          schema:
+            title: Blacklisted Emails
+            type: array
+            items:
+              type: string
+              description: Email address
+  /api/v2/blacklist/{email}:
+    post:
+      description: |
+        Add an email address to the blacklist
+      parameters:
+        -
+          name: email
+          in: path
+          description: Email address to blacklist
+          required: true
+          type: string
+      responses:
+        200:
+          description: Email successfully added to blacklist
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+        400:
+          description: Email address is required
+    delete:
+      description: |
+        Remove an email address from the blacklist
+      parameters:
+        -
+          name: email
+          in: path
+          description: Email address to remove from blacklist
+          required: true
+          type: string
+      responses:
+        200:
+          description: Email successfully removed from blacklist
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+        400:
+          description: Email address is required
   /api/v2/search:
     get:
       description: |
@@ -190,3 +244,57 @@ paths:
                     created:
                       type: string
                       format: date-time
+  /api/v2/blacklist:
+    get:
+      description: |
+        Retrieve a list of blacklisted email addresses
+      responses:
+        200:
+          description: Successful response
+          schema:
+            title: Blacklisted Emails
+            type: array
+            items:
+              type: string
+              description: Email address
+  /api/v2/blacklist/{email}:
+    post:
+      description: |
+        Add an email address to the blacklist
+      parameters:
+        -
+          name: email
+          in: path
+          description: Email address to blacklist
+          required: true
+          type: string
+      responses:
+        200:
+          description: Email successfully added to blacklist
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+        400:
+          description: Email address is required
+    delete:
+      description: |
+        Remove an email address from the blacklist
+      parameters:
+        -
+          name: email
+          in: path
+          description: Email address to remove from blacklist
+          required: true
+          type: string
+      responses:
+        200:
+          description: Email successfully removed from blacklist
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+        400:
+          description: Email address is required

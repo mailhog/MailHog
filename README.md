@@ -82,6 +82,7 @@ See [MailHog libraries](docs/LIBRARIES.md) for a list of MailHog client librarie
   * See [Introduction to Jim](/docs/JIM.md) for more information
 * HTTP API to list, retrieve and delete messages
   * See [APIv1](/docs/APIv1.md) and [APIv2](/docs/APIv2.md) documentation for more information
+* Email blacklist functionality to reject messages from/to specific addresses via SMTP
 * [HTTP basic authentication](docs/Auth.md) for MailHog UI and API
 * Multipart MIME support
 * Download individual MIME parts
