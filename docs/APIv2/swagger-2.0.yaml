@@ -45,7 +45,7 @@ paths:
                 type: number
                 format: int64
                 description: Number of returned messages
-              messages:
+              items:
                 type: array
                 items:
                   title: Message
@@ -144,7 +144,7 @@ paths:
                 type: number
                 format: int64
                 description: Number of returned messages
-              messages:
+              items:
                 type: array
                 items:
                   title: Message
