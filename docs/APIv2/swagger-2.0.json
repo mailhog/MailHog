@@ -50,7 +50,7 @@
                                     "format": "int64",
                                     "description": "Number of returned messages"
                                 },
-                                "messages": {
+                                "items": {
                                     "type": "array",
                                     "items": {
                                         "title": "Message",
@@ -188,7 +188,7 @@
                                     "format": "int64",
                                     "description": "Number of returned messages"
                                 },
-                                "messages": {
+                                "items": {
                                     "type": "array",
                                     "items": {
                                         "title": "Message",
