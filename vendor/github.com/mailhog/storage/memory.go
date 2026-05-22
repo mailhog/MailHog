@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/mailhog/data"
 )
@@ -187,6 +188,26 @@ func (memory *InMemory) DeleteAll() error {
 	defer memory.mu.Unlock()
 	memory.Messages = make([]*data.Message, 0)
 	memory.MessageIDIndex = make(map[string]int)
+	return nil
+}
+
+// DeleteOlderThan deletes in memory messages older than cutoff.
+func (memory *InMemory) DeleteOlderThan(cutoff time.Time) error {
+	memory.mu.Lock()
+	defer memory.mu.Unlock()
+
+	messages := make([]*data.Message, 0, len(memory.Messages))
+	messageIDIndex := make(map[string]int)
+	for _, message := range memory.Messages {
+		if message.Created.Before(cutoff) {
+			continue
+		}
+		messageIDIndex[string(message.ID)] = len(messages)
+		messages = append(messages, message)
+	}
+
+	memory.Messages = messages
+	memory.MessageIDIndex = messageIDIndex
 	return nil
 }
 

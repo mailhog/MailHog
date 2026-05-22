@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"time"
+
 	"github.com/mailhog/data"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -107,6 +109,12 @@ func (mongo *MongoDB) DeleteOne(id string) error {
 // DeleteAll deletes all messages stored in MongoDB
 func (mongo *MongoDB) DeleteAll() error {
 	_, err := mongo.Collection.RemoveAll(bson.M{})
+	return err
+}
+
+// DeleteOlderThan deletes messages older than cutoff.
+func (mongo *MongoDB) DeleteOlderThan(cutoff time.Time) error {
+	_, err := mongo.Collection.RemoveAll(bson.M{"created": bson.M{"$lt": cutoff}})
 	return err
 }
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/smtp"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -32,6 +33,12 @@ type APIv1 struct {
 // FIXME should probably move this into APIv1 struct
 var stream *goose.EventStream
 
+const (
+	previewMaxMessageSize   = 10 * 1024 * 1024
+	previewBodyChunkSize    = 1024 * 1024
+	previewBodyMaxChunkSize = 2 * 1024 * 1024
+)
+
 // ReleaseConfig is an alias to preserve go package API
 type ReleaseConfig config.OutgoingSMTP
 
@@ -47,6 +54,9 @@ func createAPIv1(conf *config.Config, r *pat.Router) *APIv1 {
 	r.Path(conf.WebPath + "/api/v1/messages").Methods("GET").HandlerFunc(apiv1.messages)
 	r.Path(conf.WebPath + "/api/v1/messages").Methods("DELETE").HandlerFunc(apiv1.delete_all)
 	r.Path(conf.WebPath + "/api/v1/messages").Methods("OPTIONS").HandlerFunc(apiv1.defaultOptions)
+
+	r.Path(conf.WebPath + "/api/v1/messages/{id}/body").Methods("GET").HandlerFunc(apiv1.message_body)
+	r.Path(conf.WebPath + "/api/v1/messages/{id}/body").Methods("OPTIONS").HandlerFunc(apiv1.defaultOptions)
 
 	r.Path(conf.WebPath + "/api/v1/messages/{id}").Methods("GET").HandlerFunc(apiv1.message)
 	r.Path(conf.WebPath + "/api/v1/messages/{id}").Methods("DELETE").HandlerFunc(apiv1.delete_one)
@@ -70,9 +80,10 @@ func createAPIv1(conf *config.Config, r *pat.Router) *APIv1 {
 			select {
 			case msg := <-apiv1.messageChan:
 				log.Println("Got message in APIv1 event stream")
-				bytes, _ := json.MarshalIndent(msg, "", "  ")
+				eventMessage := loadFullMessage(apiv1.config.Storage, *msg)
+				bytes, _ := json.MarshalIndent(eventMessage, "", "  ")
 				json := string(bytes)
-				log.Printf("Sending content: %s\n", json)
+				log.Printf("Sending message event: %s\n", msg.ID)
 				apiv1.broadcast(json)
 			case <-keepaliveTicker:
 				apiv1.keepalive()
@@ -165,14 +176,72 @@ func (apiv1 *APIv1) message(w http.ResponseWriter, req *http.Request) {
 	w.Write(bytes)
 }
 
+func (apiv1 *APIv1) message_body(w http.ResponseWriter, req *http.Request) {
+	id := req.URL.Query().Get(":id")
+	log.Printf("[APIv1] GET /api/v1/messages/%s/body\n", id)
+
+	apiv1.defaultOptions(w, req)
+
+	offset := parseInt64Query(req, "offset", 0)
+	limit := parseInt64Query(req, "limit", previewBodyChunkSize)
+	if offset < 0 {
+		offset = 0
+	}
+	if limit <= 0 {
+		limit = previewBodyChunkSize
+	}
+	if limit > previewBodyMaxChunkSize {
+		limit = previewBodyMaxChunkSize
+	}
+
+	var chunk *storage.MessageBodyChunk
+	var err error
+	if previewStorage, ok := apiv1.config.Storage.(storage.BodyPreviewStorage); ok {
+		chunk, err = previewStorage.LoadBodyChunk(id, offset, limit, previewMaxMessageSize)
+	} else {
+		chunk, err = apiv1.loadMessageBodyChunk(id, offset, limit, previewMaxMessageSize)
+	}
+	if err != nil {
+		log.Printf("- Error: %s", err)
+		if os.IsNotExist(err) {
+			w.WriteHeader(404)
+		} else {
+			w.WriteHeader(500)
+		}
+		return
+	}
+
+	bytes, err := json.Marshal(chunk)
+	if err != nil {
+		log.Printf("- Error: %s", err)
+		w.WriteHeader(500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/json")
+	w.Write(bytes)
+}
+
 func (apiv1 *APIv1) download(w http.ResponseWriter, req *http.Request) {
 	id := req.URL.Query().Get(":id")
-	log.Printf("[APIv1] GET /api/v1/messages/%s\n", id)
+	log.Printf("[APIv1] GET /api/v1/messages/%s/download\n", id)
 
 	apiv1.defaultOptions(w, req)
 
 	w.Header().Set("Content-Type", "message/rfc822")
 	w.Header().Set("Content-Disposition", "attachment; filename=\""+id+".eml\"")
+
+	if downloader, ok := apiv1.config.Storage.(storage.DownloadStorage); ok {
+		if err := downloader.WriteMessageTo(id, w); err != nil {
+			log.Printf("- Error: %s", err)
+			if os.IsNotExist(err) {
+				w.WriteHeader(404)
+			} else {
+				w.WriteHeader(500)
+			}
+		}
+		return
+	}
 
 	switch apiv1.config.Storage.(type) {
 	case *storage.MongoDB:
@@ -237,7 +306,7 @@ func (apiv1 *APIv1) download_part(w http.ResponseWriter, req *http.Request) {
 }
 
 func (apiv1 *APIv1) delete_all(w http.ResponseWriter, req *http.Request) {
-	log.Println("[APIv1] POST /api/v1/messages")
+	log.Println("[APIv1] DELETE /api/v1/messages")
 
 	apiv1.defaultOptions(w, req)
 
@@ -356,4 +425,118 @@ func (apiv1 *APIv1) delete_one(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	w.WriteHeader(200)
+}
+
+func parseInt64Query(req *http.Request, key string, fallback int64) int64 {
+	value := req.URL.Query().Get(key)
+	if value == "" {
+		return fallback
+	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return fallback
+	}
+	return parsed
+}
+
+func (apiv1 *APIv1) loadMessageBodyChunk(id string, offset int64, limit int64, maxSize int64) (*storage.MessageBodyChunk, error) {
+	return loadMessageBodyChunk(apiv1.config.Storage, id, offset, limit, maxSize)
+}
+
+func loadMessageBodyChunk(storageBackend storage.Storage, id string, offset int64, limit int64, maxSize int64) (*storage.MessageBodyChunk, error) {
+	message, err := storageBackend.Load(id)
+	if err != nil {
+		return nil, err
+	}
+
+	content := message.Content
+	if part := firstDisplayPart(message); part != nil {
+		content = part
+	}
+
+	body := ""
+	headers := make(map[string][]string)
+	if content != nil {
+		body = content.Body
+		headers = content.Headers
+	}
+
+	if offset > int64(len(body)) {
+		offset = int64(len(body))
+	}
+	end := offset + limit
+	if end > maxSize {
+		end = maxSize
+	}
+	if end > int64(len(body)) {
+		end = int64(len(body))
+	}
+	if end < offset {
+		end = offset
+	}
+
+	hasMore := end < int64(len(body)) && end < maxSize
+	truncated := end >= maxSize && end < int64(len(body))
+	return &storage.MessageBodyChunk{
+		ID: id,
+		Content: &data.Content{
+			Headers: headers,
+			Body:    body[offset:end],
+			Size:    len(body),
+		},
+		Offset:     offset,
+		NextOffset: end,
+		Limit:      limit,
+		MaxSize:    maxSize,
+		HasMore:    hasMore,
+		Truncated:  truncated,
+		Source:     "message",
+	}, nil
+}
+
+func firstDisplayPart(message *data.Message) *data.Content {
+	if message == nil || message.MIME == nil {
+		return nil
+	}
+	return firstDisplayContent(message.MIME)
+}
+
+func firstDisplayContent(mimeBody *data.MIMEBody) *data.Content {
+	var plain *data.Content
+	for _, part := range mimeBody.Parts {
+		contentType := firstHeaderValue(part.Headers, "Content-Type")
+		if strings.HasPrefix(strings.ToLower(contentType), "multipart/") && part.MIME != nil {
+			if nested := firstDisplayContent(part.MIME); nested != nil {
+				return nested
+			}
+		}
+		if !isInlineTextContent(part.Headers) {
+			continue
+		}
+		if strings.HasPrefix(strings.ToLower(contentType), "text/html") {
+			return part
+		}
+		if plain == nil && strings.HasPrefix(strings.ToLower(contentType), "text/plain") {
+			plain = part
+		}
+	}
+	return plain
+}
+
+func isInlineTextContent(headers map[string][]string) bool {
+	contentDisposition := strings.ToLower(firstHeaderValue(headers, "Content-Disposition"))
+	if strings.HasPrefix(contentDisposition, "attachment") {
+		return false
+	}
+	contentType := strings.ToLower(firstHeaderValue(headers, "Content-Type"))
+	return strings.HasPrefix(contentType, "text/plain") || strings.HasPrefix(contentType, "text/html")
+}
+
+func firstHeaderValue(headers map[string][]string, name string) string {
+	for header, values := range headers {
+		if strings.ToLower(header) == strings.ToLower(name) && len(values) > 0 {
+			return values[0]
+		}
+	}
+	return ""
 }

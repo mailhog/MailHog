@@ -11,14 +11,14 @@ import (
 	"github.com/mailhog/MailHog-Server/monkey"
 	"github.com/mailhog/data"
 	"github.com/mailhog/smtp"
-	"github.com/mailhog/storage"
+	storagepkg "github.com/mailhog/storage"
 )
 
 // Session represents a SMTP session using net.TCPConn
 type Session struct {
 	conn          io.ReadWriteCloser
 	proto         *smtp.Protocol
-	storage       storage.Storage
+	storage       storagepkg.Storage
 	messageChan   chan *data.Message
 	remoteAddress string
 	isTLS         bool
@@ -28,10 +28,12 @@ type Session struct {
 	reader io.Reader
 	writer io.Writer
 	monkey monkey.ChaosMonkey
+
+	messageWriter storagepkg.MessageWriter
 }
 
 // Accept starts a new SMTP session using io.ReadWriteCloser
-func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Storage, messageChan chan *data.Message, hostname string, monkey monkey.ChaosMonkey) {
+func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storagepkg.Storage, messageChan chan *data.Message, hostname string, monkey monkey.ChaosMonkey) {
 	defer conn.Close()
 
 	proto := smtp.NewProtocol()
@@ -48,9 +50,14 @@ func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Stora
 		}
 	}
 
-	session := &Session{conn, proto, storage, messageChan, remoteAddress, false, "", link, reader, writer, monkey}
+	session := &Session{conn, proto, storage, messageChan, remoteAddress, false, "", link, reader, writer, monkey, nil}
 	proto.LogHandler = session.logf
 	proto.MessageReceivedHandler = session.acceptMessage
+	if _, ok := storage.(storagepkg.StreamingStorage); ok {
+		proto.DataBeginHandler = session.beginMessage
+		proto.DataLineHandler = session.writeMessageLine
+		proto.DataAbortHandler = session.abortMessage
+	}
 	proto.ValidateSenderHandler = session.validateSender
 	proto.ValidateRecipientHandler = session.validateRecipient
 	proto.ValidateAuthenticationHandler = session.validateAuthentication
@@ -59,11 +66,12 @@ func Accept(remoteAddress string, conn io.ReadWriteCloser, storage storage.Stora
 	session.logf("Starting session")
 	session.Write(proto.Start())
 	for session.Read() == true {
-		if monkey != nil && monkey.Disconnect != nil && monkey.Disconnect() {
+		if monkey != nil && monkey.Disconnect() {
 			session.conn.Close()
 			break
 		}
 	}
+	session.abortMessage()
 	session.logf("Session ended")
 }
 
@@ -99,11 +107,50 @@ func (c *Session) validateSender(from string) bool {
 }
 
 func (c *Session) acceptMessage(msg *data.SMTPMessage) (id string, err error) {
+	if c.messageWriter != nil {
+		var m *data.Message
+		id, m, err = c.messageWriter.Commit()
+		c.messageWriter = nil
+		if err != nil {
+			return "", err
+		}
+		c.messageChan <- m
+		return id, nil
+	}
+
 	m := msg.Parse(c.proto.Hostname)
 	c.logf("Storing message %s", m.ID)
 	id, err = c.storage.Store(m)
 	c.messageChan <- m
 	return
+}
+
+func (c *Session) beginMessage(msg *data.SMTPMessage) error {
+	streamingStorage, ok := c.storage.(storagepkg.StreamingStorage)
+	if !ok {
+		return nil
+	}
+	writer, err := streamingStorage.CreateMessageWriter(msg, c.proto.Hostname)
+	if err != nil {
+		return err
+	}
+	c.messageWriter = writer
+	return nil
+}
+
+func (c *Session) writeMessageLine(line string) error {
+	if c.messageWriter == nil {
+		return nil
+	}
+	return c.messageWriter.WriteLine(line)
+}
+
+func (c *Session) abortMessage() {
+	if c.messageWriter == nil {
+		return
+	}
+	c.messageWriter.Abort()
+	c.messageWriter = nil
 }
 
 func (c *Session) logf(message string, args ...interface{}) {
@@ -129,9 +176,9 @@ func (c *Session) Read() bool {
 	}
 
 	text := string(buf[0:n])
-	logText := strings.Replace(text, "\n", "\\n", -1)
-	logText = strings.Replace(logText, "\r", "\\r", -1)
-	c.logf("Received %d bytes: '%s'\n", n, logText)
+	if c.proto.State != smtp.DATA {
+		c.logf("Received %d bytes\n", n)
+	}
 
 	c.line += text
 

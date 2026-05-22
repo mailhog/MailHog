@@ -39,8 +39,9 @@ type Protocol struct {
 	TLSPending  bool
 	TLSUpgraded bool
 
-	State   State
-	Message *data.SMTPMessage
+	State       State
+	Message     *data.SMTPMessage
+	messageData strings.Builder
 
 	Hostname string
 	Ident    string
@@ -55,6 +56,13 @@ type Protocol struct {
 	// SMTP protocol. It must return a MessageID or error. If nil, messages
 	// will be rejected with an error.
 	MessageReceivedHandler func(*data.SMTPMessage) (string, error)
+	// DataBeginHandler is called when the DATA command is accepted.
+	DataBeginHandler func(*data.SMTPMessage) error
+	// DataLineHandler is called for each unescaped DATA line, without CRLF.
+	// If nil, DATA is accumulated in Message.Data for MessageReceivedHandler.
+	DataLineHandler func(line string) error
+	// DataAbortHandler is called if DATA processing fails before commit.
+	DataAbortHandler func()
 	// ValidateSenderHandler should return true if the sender is valid,
 	// otherwise false. If nil, all senders will be accepted.
 	ValidateSenderHandler func(from string) bool
@@ -113,6 +121,7 @@ func NewProtocol() *Protocol {
 
 func (proto *Protocol) resetState() {
 	proto.Message = &data.SMTPMessage{}
+	proto.messageData.Reset()
 }
 
 func (proto *Protocol) logf(message string, args ...interface{}) {
@@ -137,29 +146,30 @@ func (proto *Protocol) Start() *Reply {
 // Parse parses a line string and returns any remaining line string
 // and a reply, if a command was found. Parse does nothing until a
 // new line is found.
-// - TODO decide whether to move this to a buffer inside Protocol
-//   sort of like it this way, since it gives control back to the caller
+//   - TODO decide whether to move this to a buffer inside Protocol
+//     sort of like it this way, since it gives control back to the caller
 func (proto *Protocol) Parse(line string) (string, *Reply) {
 	var reply *Reply
 
-	if !strings.Contains(line, "\r\n") {
+	idx := strings.Index(line, "\r\n")
+	if idx < 0 {
 		return line, reply
 	}
 
-	parts := strings.SplitN(line, "\r\n", 2)
-	line = parts[1]
+	part := line[:idx]
+	line = line[idx+len("\r\n"):]
 
 	if proto.MaximumLineLength > -1 {
-		if len(parts[0]) > proto.MaximumLineLength {
+		if len(part) > proto.MaximumLineLength {
 			return line, ReplyLineTooLong()
 		}
 	}
 
 	// TODO collapse AUTH states into separate processing
 	if proto.State == DATA {
-		reply = proto.ProcessData(parts[0])
+		reply = proto.ProcessData(part)
 	} else {
-		reply = proto.ProcessCommand(parts[0])
+		reply = proto.ProcessCommand(part)
 	}
 
 	return line, reply
@@ -168,13 +178,11 @@ func (proto *Protocol) Parse(line string) (string, *Reply) {
 // ProcessData handles content received (with newlines stripped) while
 // in the SMTP DATA state
 func (proto *Protocol) ProcessData(line string) (reply *Reply) {
-	proto.Message.Data += line + "\r\n"
-
-	if strings.HasSuffix(proto.Message.Data, "\r\n.\r\n") {
-		proto.Message.Data = strings.Replace(proto.Message.Data, "\r\n..", "\r\n.", -1)
-
+	if line == "." {
 		proto.logf("Got EOF, storing message and switching to MAIL state")
-		proto.Message.Data = strings.TrimSuffix(proto.Message.Data, "\r\n.\r\n")
+		if proto.DataLineHandler == nil {
+			proto.Message.Data = proto.messageData.String()
+		}
 		proto.State = MAIL
 
 		defer proto.resetState()
@@ -189,6 +197,24 @@ func (proto *Protocol) ProcessData(line string) (reply *Reply) {
 			return ReplyStorageFailed("Unable to store message")
 		}
 		return ReplyOk("Ok: queued as " + id)
+	}
+
+	if strings.HasPrefix(line, "..") {
+		line = line[1:]
+	}
+	if proto.DataLineHandler != nil {
+		if err := proto.DataLineHandler(line); err != nil {
+			proto.logf("Error processing DATA line: %s", err)
+			if proto.DataAbortHandler != nil {
+				proto.DataAbortHandler()
+			}
+			proto.State = MAIL
+			proto.resetState()
+			return ReplyStorageFailed("Unable to store message")
+		}
+	} else {
+		proto.messageData.WriteString(line)
+		proto.messageData.WriteString("\r\n")
 	}
 
 	return
@@ -395,6 +421,12 @@ func (proto *Protocol) Command(command *Command) (reply *Reply) {
 			return proto.EHLO(command.args)
 		case "DATA":
 			proto.logf("Got DATA command, switching to DATA state")
+			if proto.DataBeginHandler != nil {
+				if err := proto.DataBeginHandler(proto.Message); err != nil {
+					proto.logf("Error starting DATA storage: %s", err)
+					return ReplyStorageFailed("Unable to store message")
+				}
+			}
 			proto.State = DATA
 			return ReplyDataResponse()
 		default:

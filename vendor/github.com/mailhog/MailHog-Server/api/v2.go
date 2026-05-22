@@ -77,6 +77,10 @@ type messagesResult struct {
 }
 
 func (apiv2 *APIv2) getStartLimit(w http.ResponseWriter, req *http.Request) (start, limit int) {
+	return getStartLimit(req)
+}
+
+func getStartLimit(req *http.Request) (start, limit int) {
 	start = 0
 	limit = 50
 
@@ -112,7 +116,7 @@ func (apiv2 *APIv2) messages(w http.ResponseWriter, req *http.Request) {
 
 	res.Count = len([]data.Message(*messages))
 	res.Start = start
-	res.Items = []data.Message(*messages)
+	res.Items = loadFullMessages(apiv2.config.Storage, *messages)
 	res.Total = apiv2.config.Storage.Count()
 
 	bytes, _ := json.Marshal(res)
@@ -145,12 +149,69 @@ func (apiv2 *APIv2) search(w http.ResponseWriter, req *http.Request) {
 
 	res.Count = len([]data.Message(*messages))
 	res.Start = start
-	res.Items = []data.Message(*messages)
+	res.Items = loadFullMessages(apiv2.config.Storage, *messages)
 	res.Total = total
 
 	b, _ := json.Marshal(res)
 	w.Header().Add("Content-Type", "application/json")
 	w.Write(b)
+}
+
+func compactMessages(messages data.Messages) []data.Message {
+	items := make([]data.Message, 0, len(messages))
+	for _, message := range messages {
+		items = append(items, compactMessage(message))
+	}
+	return items
+}
+
+func compactMessage(message data.Message) data.Message {
+	compact := data.Message{
+		ID:      message.ID,
+		From:    clonePath(message.From),
+		To:      clonePaths(message.To),
+		Created: message.Created,
+	}
+	if message.Content != nil {
+		compact.Content = &data.Content{
+			Headers: cloneHeaders(message.Content.Headers),
+			Size:    message.Content.Size,
+		}
+	}
+	return compact
+}
+
+func clonePath(path *data.Path) *data.Path {
+	if path == nil {
+		return nil
+	}
+	clone := *path
+	if path.Relays != nil {
+		clone.Relays = append([]string(nil), path.Relays...)
+	}
+	return &clone
+}
+
+func clonePaths(paths []*data.Path) []*data.Path {
+	if paths == nil {
+		return nil
+	}
+	clones := make([]*data.Path, 0, len(paths))
+	for _, path := range paths {
+		clones = append(clones, clonePath(path))
+	}
+	return clones
+}
+
+func cloneHeaders(headers map[string][]string) map[string][]string {
+	if headers == nil {
+		return nil
+	}
+	clone := make(map[string][]string, len(headers))
+	for key, values := range headers {
+		clone[key] = append([]string(nil), values...)
+	}
+	return clone
 }
 
 func (apiv2 *APIv2) jim(w http.ResponseWriter, req *http.Request) {
@@ -254,5 +315,5 @@ func (apiv2 *APIv2) websocket(w http.ResponseWriter, req *http.Request) {
 func (apiv2 *APIv2) broadcast(msg *data.Message) {
 	log.Println("[APIv2] BROADCAST /api/v2/websocket")
 
-	apiv2.wsHub.Broadcast(msg)
+	apiv2.wsHub.Broadcast(loadFullMessage(apiv2.config.Storage, *msg))
 }

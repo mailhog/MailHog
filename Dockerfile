@@ -2,14 +2,19 @@
 # MailHog Dockerfile
 #
 
-FROM golang:1.18-alpine as builder
+FROM golang:1.18-alpine AS builder
 
-# Install MailHog:
+# Build MailHog from this checkout:
 RUN apk --no-cache add --virtual build-dependencies \
-    git \
-  && mkdir -p /root/gocode \
-  && export GOPATH=/root/gocode \
-  && go install github.com/mailhog/MailHog@latest
+    git
+
+ENV GOPATH=/root/gocode
+ENV GO111MODULE=off
+
+WORKDIR /root/gocode/src/github.com/mailhog/MailHog
+COPY . .
+
+RUN go install .
 
 FROM alpine:3
 # Add mailhog user/group with uid/gid 1000.

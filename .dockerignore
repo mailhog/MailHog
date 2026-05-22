@@ -1,1 +1,6 @@
 *
+!main.go
+!config
+!config/**
+!vendor
+!vendor/**

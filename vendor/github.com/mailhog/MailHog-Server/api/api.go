@@ -10,6 +10,7 @@ import (
 func CreateAPI(conf *config.Config, r gohttp.Handler) {
 	apiv1 := createAPIv1(conf, r.(*pat.Router))
 	apiv2 := createAPIv2(conf, r.(*pat.Router))
+	apiv3 := createAPIv3(conf, r.(*pat.Router))
 
 	go func() {
 		for {
@@ -17,6 +18,7 @@ func CreateAPI(conf *config.Config, r gohttp.Handler) {
 			case msg := <-conf.MessageChan:
 				apiv1.messageChan <- msg
 				apiv2.messageChan <- msg
+				apiv3.messageChan <- msg
 			}
 		}
 	}()

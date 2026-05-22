@@ -2,10 +2,7 @@ package smtp
 
 import (
 	"errors"
-	"sync"
 	"testing"
-
-	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/mailhog/data"
 	"github.com/mailhog/storage"
@@ -37,105 +34,107 @@ func (rw *fakeRw) Write(p []byte) (n int, err error) {
 }
 
 func TestAccept(t *testing.T) {
-	Convey("Accept should handle a connection", t, func() {
-		frw := &fakeRw{}
-		mChan := make(chan *data.Message)
-		Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost", nil)
-	})
+	frw := &fakeRw{}
+	mChan := make(chan *data.Message)
+	Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost", nil)
 }
 
 func TestSocketError(t *testing.T) {
-	Convey("Socket errors should return from Accept", t, func() {
-		frw := &fakeRw{
-			_read: func(p []byte) (n int, err error) {
-				return -1, errors.New("OINK")
-			},
-		}
-		mChan := make(chan *data.Message)
-		Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost", nil)
-	})
+	frw := &fakeRw{
+		_read: func(p []byte) (n int, err error) {
+			return -1, errors.New("OINK")
+		},
+	}
+	mChan := make(chan *data.Message)
+	Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost", nil)
 }
 
 func TestAcceptMessage(t *testing.T) {
-	Convey("acceptMessage should be called", t, func() {
-		mbuf := "EHLO localhost\nMAIL FROM:<test>\nRCPT TO:<test>\nDATA\nHi.\r\n.\r\nQUIT\n"
-		var rbuf []byte
-		frw := &fakeRw{
-			_read: func(p []byte) (n int, err error) {
-				if len(p) >= len(mbuf) {
-					ba := []byte(mbuf)
-					mbuf = ""
-					for i, b := range ba {
-						p[i] = b
-					}
-					return len(ba), nil
-				}
-
-				ba := []byte(mbuf[0:len(p)])
-				mbuf = mbuf[len(p):]
+	mbuf := "EHLO localhost\r\nMAIL FROM:<test>\r\nRCPT TO:<test>\r\nDATA\r\nHi.\r\n.\r\nQUIT\r\n"
+	var rbuf []byte
+	frw := &fakeRw{
+		_read: func(p []byte) (n int, err error) {
+			if len(p) >= len(mbuf) {
+				ba := []byte(mbuf)
+				mbuf = ""
 				for i, b := range ba {
 					p[i] = b
 				}
 				return len(ba), nil
-			},
-			_write: func(p []byte) (n int, err error) {
-				rbuf = append(rbuf, p...)
-				return len(p), nil
-			},
-			_close: func() error {
-				return nil
-			},
-		}
-		mChan := make(chan *data.Message)
-		var wg sync.WaitGroup
-		wg.Add(1)
-		handlerCalled := false
-		go func() {
-			handlerCalled = true
-			<-mChan
-			//FIXME breaks some tests (in drone.io)
-			//m := <-mChan
-			//So(m, ShouldNotBeNil)
-			wg.Done()
-		}()
-		Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost", nil)
-		wg.Wait()
-		So(handlerCalled, ShouldBeTrue)
-	})
+			}
+
+			ba := []byte(mbuf[0:len(p)])
+			mbuf = mbuf[len(p):]
+			for i, b := range ba {
+				p[i] = b
+			}
+			return len(ba), nil
+		},
+		_write: func(p []byte) (n int, err error) {
+			rbuf = append(rbuf, p...)
+			return len(p), nil
+		},
+		_close: func() error {
+			return nil
+		},
+	}
+	mChan := make(chan *data.Message, 1)
+	Accept("1.1.1.1:11111", frw, storage.CreateInMemory(), mChan, "localhost", nil)
+	if got := len(mChan); got != 1 {
+		t.Fatalf("got %d accepted messages, want 1", got)
+	}
+	if msg := <-mChan; msg == nil {
+		t.Fatal("accepted message is nil")
+	}
+	if len(rbuf) == 0 {
+		t.Fatal("SMTP session wrote no replies")
+	}
 }
 
 func TestValidateAuthentication(t *testing.T) {
-	Convey("validateAuthentication is always successful", t, func() {
-		c := &Session{}
+	c := &Session{}
 
-		err, ok := c.validateAuthentication("OINK")
-		So(err, ShouldBeNil)
-		So(ok, ShouldBeTrue)
+	err, ok := c.validateAuthentication("OINK")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !ok {
+		t.Fatal("expected authentication to be valid")
+	}
 
-		err, ok = c.validateAuthentication("OINK", "arg1")
-		So(err, ShouldBeNil)
-		So(ok, ShouldBeTrue)
+	err, ok = c.validateAuthentication("OINK", "arg1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !ok {
+		t.Fatal("expected authentication with one arg to be valid")
+	}
 
-		err, ok = c.validateAuthentication("OINK", "arg1", "arg2")
-		So(err, ShouldBeNil)
-		So(ok, ShouldBeTrue)
-	})
+	err, ok = c.validateAuthentication("OINK", "arg1", "arg2")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !ok {
+		t.Fatal("expected authentication with two args to be valid")
+	}
 }
 
 func TestValidateRecipient(t *testing.T) {
-	Convey("validateRecipient is always successful", t, func() {
-		c := &Session{}
+	c := &Session{}
 
-		So(c.validateRecipient("OINK"), ShouldBeTrue)
-		So(c.validateRecipient("foo@bar.mailhog"), ShouldBeTrue)
-	})
+	for _, recipient := range []string{"OINK", "foo@bar.mailhog"} {
+		if !c.validateRecipient(recipient) {
+			t.Fatalf("expected recipient %q to be valid", recipient)
+		}
+	}
 }
 
 func TestValidateSender(t *testing.T) {
-	Convey("validateSender is always successful", t, func() {
-		c := &Session{}
+	c := &Session{}
 
-		So(c.validateSender("OINK"), ShouldBeTrue)
-		So(c.validateSender("foo@bar.mailhog"), ShouldBeTrue)
-	})
+	for _, sender := range []string{"OINK", "foo@bar.mailhog"} {
+		if !c.validateSender(sender) {
+			t.Fatalf("expected sender %q to be valid", sender)
+		}
+	}
 }

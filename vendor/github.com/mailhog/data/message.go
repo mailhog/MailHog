@@ -282,7 +282,7 @@ func PathFromString(path string) *Path {
 
 // ContentFromString parses SMTP content into separate headers and body
 func ContentFromString(data string) *Content {
-	logf("Parsing Content from string: '%s'", data)
+	logf("Parsing Content from string: %d bytes", len(data))
 	x := strings.SplitN(data, "\r\n\r\n", 2)
 	h := make(map[string][]string, 0)
 
