@@ -61,6 +61,10 @@ service mailhog start
 #### Docker
 [Run it from Docker Hub](https://registry.hub.docker.com/r/mailhog/mailhog/) or using the provided [Dockerfile](Dockerfile)
 
+[Easypanel](https://easypanel.io) is a self-hosted Docker deployment platform, and it maintains a one-click deployment template for MailHog:
+
+[![Deploy on Easypanel](https://easypanel.io/img/deploy-on-easypanel-40.svg)](https://easypanel.io/templates/mailhog)
+
 ### Configuration
 
 Check out how to [configure MailHog](/docs/CONFIG.md), or use the default settings:
